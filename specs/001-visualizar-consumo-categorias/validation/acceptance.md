@@ -1,5 +1,10 @@
 # Aceptación parcial de spec-001
 
+**Estado vigente (continuación2026-11-02): 48/61 tareas completas.** Consulta/API y
+administración integradas sobre002; [evidencia actual](increment-2026-11-02.md).
+El registro anterior que sigue conserva resultados históricos; sus faltantes002 y
+cifras de23 tareas no describen el incremento actual. No hay aceptación integral.
+
 Fecha: 2026-11-02. Base Git `c9f336c14372b6fe8f82a0a66038f55c0fb1122a`;
 cambios de esta ejecución sin commit. **23/61 tareas completas; aceptación funcional
 integral pendiente.** [Prerrequisitos](prerequisites.md), [base/reglas](foundations.md).

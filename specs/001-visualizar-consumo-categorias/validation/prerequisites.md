@@ -1,5 +1,11 @@
 # Prerrequisitos observados de spec-001
 
+**Actualización2026-11-02:** recepción/almacenamiento002 y el shell006 ya están
+integrados; la evaluación anterior se conserva como registro histórico.
+[Capacidades actuales y pendientes](increment-2026-11-02.md). El nuevo gate de002
+es la evidencia de diagnósticos cruzados y su retirada real;007/003/008/personas/VPS
+siguen pendientes según sus capacidades, sin trasladar su implementación a001.
+
 Fecha: 2026-11-02. Base Git: `c9f336c14372b6fe8f82a0a66038f55c0fb1122a`;
 árbol limpio al comenzar. Selección explícita `specs/001-visualizar-consumo-categorias`
 con el script oficial `check-prerequisites.sh --json --require-tasks --include-tasks`.

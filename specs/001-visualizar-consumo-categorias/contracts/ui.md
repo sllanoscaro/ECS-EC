@@ -3,10 +3,10 @@
 [Spec](../spec.md), [HTTP](http.md), [modelo](../data-model.md).
 Páginas estáticas, datos privados por API autenticada; interfaz en español.
 
-Estado de ejecución 2026-11-02: gráfico, tabla, selector, formato y formulario de configuración
-implementados/probados **aisladamente**; páginas/contenedor, filtros y estados de consulta
-pendientes del proveedor 002. [Evidencia](../validation/acceptance.md). La ruta administrativa
-prevista debe coordinarse con las páginas reales `/administracion/...` de 006 antes del montaje.
+Estado de ejecución 2026-11-02: páginas/contenedor, consulta y administración conectados
+a los proveedores reales 001/002/006. [Evidencia y escenarios pendientes](../validation/increment-2026-11-02.md).
+La ruta administrativa implementada es `/administracion/consumo/`, integrada con las
+páginas españolas de 006; sustituye la ruta de diseño `/administration/consumption/`.
 
 ## Consulta /consumption/
 
@@ -64,7 +64,7 @@ y descartar toda respuesta con clave/generación antigua, incluso tras error/rei
 Alternar gráfico/tabla usa la misma respuesta. No guardar datos privados en localStorage
 ni mantenerlos tras cierre/vencimiento de sesión. 401/403 usan el flujo común de 006.
 
-## Administración /administration/consumption/
+## Administración /administracion/consumo/
 
 Solo Administrador técnico con permiso actual; navegación y protección del layout son
 de 006, formulario de consumo de 001. Listar siete categorías fijas con presencia y

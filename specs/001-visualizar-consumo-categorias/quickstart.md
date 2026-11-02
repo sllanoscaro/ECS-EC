@@ -2,10 +2,9 @@
 
 [Plan](plan.md), [modelo](data-model.md), [HTTP](contracts/http.md),
 [integraciones](contracts/integrations.md), [arquitectura](../../docs/architecture.md).
-Implementación parcial: catálogo/configuración, reglas puras y componentes aislados
-disponibles; recepción 002, consultas/rutas y aceptación de las cuatro historias pendientes.
-Resultados observados en [aceptación parcial](validation/acceptance.md). Los escenarios
-de extremo a extremo siguientes conservan su carácter previsto hasta contar con esos proveedores.
+Implementación parcial:48/61 tareas completas; consulta/API y administración web disponibles
+sobre recepción/almacenamiento 002 e identidad 006 reales. [Evidencia vigente y pendientes](validation/increment-2026-11-02.md).
+La aceptación integral de las cuatro historias, servicios externos, personas y VPS sigue pendiente.
 
 ## Comandos disponibles ahora
 
@@ -14,7 +13,7 @@ Con Python 3.14, uv y Node>=20.9 de plataforma, desde la raíz:
 ```sh
 uv sync --locked --group dev
 npm --prefix frontend ci
-uv run --locked pytest backend/tests/unit/consumption backend/tests/contract/consumption -q
+TEST_DATABASE_URL="$CONSUMPTION_TEST_DATABASE_URL" uv run --locked pytest backend/tests/unit/consumption backend/tests/contract/consumption backend/tests/integration/consumption -q
 npm --prefix frontend test
 npm --prefix frontend run typecheck
 npm --prefix frontend run build
@@ -88,8 +87,9 @@ las revisiones anteriores no se actualizan. La migración es `cb63a76198be`, sob
 
 ## Prerrequisitos y preparación
 
-Esta sección y las consultas HTTP posteriores describen el flujo **pendiente de integración**;
-no presentar esos comandos como una aplicación de consumo ya disponible.
+Las consultas HTTP y la administración ya están integradas localmente. La preparación
+de una instalación sigue exigiendo contexto/fuentes reales y configuración006; las
+fixtures de navegador y los límites de aceptación se describen al final de esta guía.
 
 Reutilizar plataforma 009 real: herramientas/build, PostgreSQL 18, UoW/reloj/auditoría y
 migraciones. Identidad 006 real para aceptación web: Administrador y Operador activos,
@@ -103,7 +103,7 @@ documentos, imágenes, pruebas ni archivos PAS600. Orígenes/revisiones mediante
 administrativo o fixture controlado; datos mediante `Reception.accept`, nunca INSERT que
 eluda validaciones. Correo/visores no son prerrequisitos para consultar consumo.
 
-Después de implementar, desde la raíz del repositorio:
+Para configurar el entorno local desde la raíz del repositorio:
 
 ```sh
 cp .env.example .env
@@ -153,7 +153,7 @@ el reloj de prueba >=15 minutos; no desactivar el límite para preparar datos.
 | Cero/base vacía/ausente, SC-004 | Ambas contribuciones cero; después sin ninguna categoría instalada; parcial sin medidor y parcial instalada sin lecturas. | Cero calculado válido con base; base vacía sin valor; "Sin medidor" distinto de "Sin datos". |
 | Equivalencia y rechazo, US2 / SC-003 | Reenvío 1000 Wh frente a 1 kWh; luego 2 kWh con identidad igual; otro intervalo solapado y otro contiguo. | Duplicate, rejected/conflict, rejected/overlap, accepted; original intacto. |
 | Entradas mixtas, FR-003/004 | Negativo, NaN/infinito, origen/categoría desconocidos, W en vez de energía, fechas inválidas y un registro válido independiente. | Resultado por registro con causa; el válido sigue disponible. |
-| Concurrencia/tiempo, integración 002 | Dos novedades simultáneas incompatibles, duplicado anticipado, datos nuevos a 14m59s/15m; completar candidato CAT-01 antes de su elegibilidad. | Sin duplicación/superposición; duplicado no reinicia plazo; novedades anticipadas rechazadas; CAT-01 pendiente hasta incorporación permitida por trabajo interno, incluso tras reinicio. GET no adelanta nada. |
+| Concurrencia/tiempo, integración 002 | Dos novedades simultáneas incompatibles, duplicado anticipado, datos nuevos a 14m59 s/15m; completar candidato CAT-01 antes de su elegibilidad. | Sin duplicación/superposición; duplicado no reinicia plazo; novedades anticipadas rechazadas; CAT-01 pendiente hasta incorporación permitida por trabajo interno, incluso tras reinicio. GET no adelanta nada. |
 | Período, US3 | Datos antes/dentro/después y uno cruzado; rango inválido. | Solo contención completa, aviso por cruce incluso si queda sin datos; rango inválido conserva última consulta válida. Cambiar categoría conserva rango. |
 | DST/zona, FR-013 | Dos instantes de hora repetida con offsets distintos; hora inexistente; navegador en otra zona. | Instantes distintos sin duplicar/omitir; corrección de fecha inexistente; etiquetas/offsets del edificio. No truncar microsegundos. |
 | Gráfico, FR-007/010/015 | Una sola lectura, cero, positivo `0.000001 Wh` (= `0.000000001 kWh`), hueco entre intervalos. | Todos visibles con cifras exactas; positivo no parece cero, hueco sin línea/filas inventadas. |
@@ -190,3 +190,49 @@ no acredita esta verificación ni confirma fuentes físicas reales.
 Crear evidencia durante implementación en `specs/001-visualizar-consumo-categorias/validation/acceptance.md`:
 commit, comandos/versiones, zona/tzdata, fixture/contratos, resultados esperados/observados
 de FR-001..019 y SC-001..007, fallos y pendientes. No marcar checklists por generar estos documentos.
+
+## Consulta integrada y fixture de navegador (continuación 2026-11-02)
+
+En una instalación provisionada, habilitar identidad 006 con sus claves externas,
+`IDENTITY_BUILDING_ID` igual al UUID de `BuildingContext`, `BUILDING_TIMEZONE` real y
+`WEB_DIRECTORY=frontend/out` al ejecutar desde el repositorio tras construir Next.
+En la imagen 009 el directorio web ya está copiado. Servir con el proceso Uvicorn común.
+Consultar `/consumption/`; administrar en `/administracion/consumo/`. El Operador solo
+consulta. El editor conserva borradores ante conflicto/fallo de límites, pide recargar
+antes de reemplazar una revisión y solo usa vigencia histórica en el alta inicial.
+Actualización/Reintentar siempre usa la selección vigente y no incorpora datos nuevos.
+
+Para repetir Playwright, preparar una **base migrada vacía separada**, terminada `_test`.
+`TEST_DATABASE_URL` debe ser distinta de la DB configurada de la aplicación. Crear un
+archivo0600 con la contraseña sintética y pasar únicamente su ruta:
+
+```sh
+TEST_DATABASE_URL="$CONSUMPTION_TEST_DATABASE_URL" uv run --locked python scripts/seed_consumption_reference.py --password-file "$CONSUMPTION_PASSWORD_FILE" --mode physical
+npm --prefix frontend exec playwright install chromium
+```
+
+La semilla crea cuentas 006 que requieren renovación normal y21 intervalos físicos a través
+del puerto 002. Para probar total calculado, repetir en **otra base vacía** con
+`--mode calculated` (seis intervalos físicos de CAT-03/05; no siete medidores ficticios).
+La cuenta administrativa puede cambiar etiquetas sin invalidar fuentes históricas.
+
+Arrancar Uvicorn contra esa base sintética, con `ENVIRONMENT=test`, identidad habilitada,
+claves HMAC de prueba externas distintas y estables, `IDENTITY_BUILDING_ID` correspondiente
+al UUID 99 sintético (`00000000-0000-0000-0000-000000000063`) y origen loopback explícito.
+Solo para HTTP local, `IDENTITY_DEVELOPMENT_HTTP=true`. No cambiar estas condiciones en
+producción. El script no publica rutas seed ni configura recepciónSFTP.
+
+```sh
+IDENTITY_E2E_PASSWORD_FILE="$CONSUMPTION_PASSWORD_FILE" CONSUMPTION_E2E_MODE=physical E2E_BASE_URL="$CONSUMPTION_BROWSER_ORIGIN" npm --prefix frontend run test:e2e -- tests/e2e/consumption.spec.ts --workers=1
+```
+
+Usar `CONSUMPTION_E2E_MODE=calculated` para la otra base. El primer recorrido renueva ambas
+cuentas por la UI 006. Para repetir contra la misma base ya renovada, añadir
+`CONSUMPTION_E2E_RENEWED=1`; no volver a ejecutar la semilla. Reiniciar aplicación/DB sin
+borrar volúmenes conserva los datos. Las bases/contenedores desechables se eliminan solo
+al terminar la verificación. No usar este script como bootstrap de una instalación real.
+
+La suite conserva **un xfail estricto** por diagnósticos cruzados no expuestos por 002;
+no equivale a una aceptación completa de períodos. Ver responsable y caso reproducible
+en [el incremento](validation/increment-2026-11-02.md). Instrumentación 007, perfilesSFTP 003,
+SMTP 008, evaluación humana y VPS permanecen gates separados.

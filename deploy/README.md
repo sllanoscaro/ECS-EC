@@ -3,8 +3,8 @@
 La plataforma es una imagen con un proceso Uvicorn y PostgreSQL 18 externo.
 Identidad, SMTP y observabilidad se incorporan desde sus funcionalidades propietarias.
 
-Consumo 001 entrega contexto/fuentes, configuración versionada y reglas puras; su consulta
-web aún espera recepción/almacenamiento 002. Para migración `cb63a76198be`, bootstrap
+Consumo 001 entrega contexto/fuentes, configuración versionada, reglas puras y consulta
+web de detalle sobre recepción/almacenamiento 002 real. Para migración `cb63a76198be`, bootstrap
 controlado, pruebas PostgreSQL aisladas y limitaciones, seguir su
 [quickstart](../specs/001-visualizar-consumo-categorias/quickstart.md). El CLI usa archivos
 locales y Settings 009, sin endpoints seed ni cuentas nuevas. Cambios posteriores al
@@ -14,11 +14,17 @@ Historial 002 aporta ahora recepción/almacenamiento internos, agregados sincró
 recuperación CAT-01 en el lifespan común. Migración `47457bdabdfa` y procedimientos de
 próxima aceptación, reenvío/recuperación y reconciliación de calendario están en su
 [quickstart](../specs/002-registro-retencion-consumo/quickstart.md).
-La fachada/UI de 001, consulta agrupada y retirada interna siguen pendientes; consultar la
+La fachada/UI de 001 está integrada; consulta agrupada y retirada interna de 002 siguen pendientes; consultar la
 [aceptación parcial](../specs/002-registro-retencion-consumo/validation/acceptance.md).
 Los procesos de recepción requieren bindings confiables por edificio, vacíos por defecto.
 Respaldo/restauración incluyen estas tablas junto con el resto de PostgreSQL; no restaurar
 solo el detalle omitiendo ledger, aportes, solicitudes, estados o auditoría.
+
+La consulta está en `/consumption/` y la configuración de fuentes en
+`/administracion/consumo/`, con permisos/sesión/CSRF de 006. `IDENTITY_BUILDING_ID`
+debe coincidir con el contexto provisionado. No habilitar una configuración que suponga
+historia vacía si falla el proveedor 002. Los límites de diagnósticos cruzados y gates
+restantes se describen en [la evidencia 001](../specs/001-visualizar-consumo-categorias/validation/increment-2026-11-02.md).
 
 ## Configuración local y construcción
 
@@ -140,7 +146,7 @@ Retirar después la anterior; conservar secreto/IDs según política externa de 
 
 El hashing usa64MiB por trabajo, máximo inicial dos; mediciones locales en
 [dependencias](../specs/006-acceso-usuarios-rbac/validation/dependencies.md). Medir recursos
-en VPS antes de aumentar concurrencia. La limpieza interna cada60s elimina lotes acotados
+en VPS antes de aumentar concurrencia. La limpieza interna cada60 s elimina lotes acotados
 de sesiones/presesiones inválidas tras24h y buckets inactivos, conservando cuentas/audit.
 La validez no depende del job; un fallo fija `identity_maintenance_failed` sin exponer SQL
 ni secretos. No se ha implementado un emisor técnico paralelo a 007.

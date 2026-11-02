@@ -2,7 +2,7 @@
 
 Propiedad según la [hoja de ruta](../../../docs/implementation-roadmap.md).
 [Modelo](../data-model.md), [HTTP](http.md). Son llamadas dentro del monolito;
-las rutas son futuras, no evidencia de implementación existente.
+la disponibilidad real se registra en [la evidencia vigente](../validation/increment-2026-11-02.md).
 
 ## Dominio 001 y almacenamiento 002
 
@@ -140,3 +140,19 @@ distintas del intervalo medido. Sin importar `notifications`, SMTP ni sus modelo
 007 recibe señales saneadas de validación/consulta/incorporación al existir su emisor;
 fallos de visores/correo no revierten commits ni impiden leer consumo. Los procedimientos
 local/VPS y evidencia se concretan en [quickstart](../quickstart.md).
+
+## Implementación comprobada de detalle 001 (2026-11-02)
+
+`backend/src/ecs_ec/consumption/queries.py` compone `MeasurementStore` real de 002 y
+expone `source_status`, `catalog` y `detail`. Cada captura abre REPEATABLE READ READ ONLY,
+con configuración, corte y almacenamiento coherentes. `main.py` instala esa instancia
+con el edificio configurado de identidad 006; no hay selección pública de otro edificio.
+Las rutas de configuración revalidan cuenta/sesión bajo locks antes de escribir y
+confirman revisión/evidencia/actividad de sesión en una UoW. La composición registra
+`consumption.configuration.changed` en el catálogo de historia administrativa existente.
+
+`read_general_snapshot`, `read_demand_history`, lecturas agrupadas y `FunctionalSummary.read`
+siguen pendientes de 002; encontrar esta fachada no acredita esos proveedores.
+`MeasurementStore.read_detail` devuelve IDs de registros cruzados, pero filtra diagnósticos
+cruzados sin exponerlos.002 debe ampliar su evidencia de lectura para que 001 pueda
+contarlos una sola vez;001 no crea otra consulta sobre tablas internas como sustituto.

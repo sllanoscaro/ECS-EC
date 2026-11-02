@@ -4,9 +4,10 @@
 [Modelo](../data-model.md) e [integraciones](integrations.md) fijan invariantes de dominio.
 Base `/api/v1`; mismo origen que el frontend estático del monolito.
 
-Estado de ejecución 2026-11-02: cliente/tipos disponibles contra este contrato; las cuatro
-rutas y sus esquemas HTTP todavía no están montados. La configuración interna y las reglas
-puras sí están verificadas. Véase [aceptación parcial](../validation/acceptance.md).
+Estado de ejecución 2026-11-02: las cuatro rutas están montadas con identidad 006,
+almacenamiento 002 y cliente tipado reales. [Evidencia vigente](../validation/increment-2026-11-02.md).
+El conteo de diagnósticos excluidos por cruzar límites sigue pendiente del proveedor 002;
+se conserva una regresión xfail estricta, sin declarar cumplimiento completo de ese caso.
 
 ## Acceso y respuestas comunes
 

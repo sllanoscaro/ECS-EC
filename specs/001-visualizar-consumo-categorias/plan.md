@@ -4,9 +4,9 @@
 
 **Rama Git real**: `develop`; este flujo no crea ni cambia ramas.
 **Input**: `specs/001-visualizar-consumo-categorias/spec.md` y el alcance trasladado, integrado en [tasks.md](tasks.md).
-**Estado**: fases 0 y 1 de planificación completas; implementación parcial de 23/61 tareas
-verificada localmente el 2026-11-02. Recepción 002, consulta web y aceptación integral
-pendientes; [evidencia](validation/acceptance.md).
+**Estado**: planificación completa; implementación parcial de 48/61 tareas verificada
+localmente el 2026-11-02. Recepción real 002, consulta web y administración integradas;
+aceptación integral pendiente. [Evidencia vigente](validation/increment-2026-11-02.md).
 **Aclaraciones aplicadas**: I1, U1 y A1 aprobadas expresamente el 2026-11-01; modelo,
 contratos, ejemplos y tareas sincronizados, sin acreditar implementación ni cerrar aceptación.
 
@@ -133,7 +133,7 @@ specs/001-visualizar-consumo-categorias/
 
 ### Source Code (repository root, this feature)
 
-Rutas previstas, todavía sin implementación:
+Estructura de diseño; disponibilidad y límites actuales en la evidencia vigente:
 
 ```text
 backend/src/ecs_ec/consumption/
@@ -206,7 +206,7 @@ y permisos de 006; a continuación consultas/UI P1, filtros/estados P2 y aceptac
 transversal. No esperar la aceptación completa de 001 para comenzar 002: recibe reglas
 de dominio y contratos; 001 recibe su almacenamiento. No ejecutar automáticamente tareas
 de otras funcionalidades. El flujo de planificación produjo el diseño; la posterior
-generación de tareas lo concreta en 61 tareas pendientes organizadas por las cuatro historias.
+generación de tareas lo concreta en 61 tareas organizadas por las cuatro historias.
 
 | Alcance | FR / SC | Diseño y verificación prevista |
 | --- | --- | --- |
@@ -217,8 +217,7 @@ generación de tareas lo concreta en 61 tareas pendientes organizadas por las cu
 | Local/VPS/acceso | FR-017..019; SC-006/007 | Contratos reales locales; perfiles de integración 003/007/008 cuando existan, HTTPS y red externa en aceptación final. |
 | Traslado 008 → 001 | [Trazabilidad en tasks.md](tasks.md#trazabilidad-del-traslado), T001/T002/T003 del borrador anterior de 001 | Pruebas semánticas, catálogo/validación y consulta/CAT-01 conservados e integrados en las cuatro historias; siguen pendientes. |
 
-La lista integral [tasks.md](tasks.md) ya fue generada con `$speckit-tasks`; todas sus
-tareas permanecen pendientes. Revisar la consistencia entre artefactos y satisfacer los
+La lista integral [tasks.md](tasks.md) ya fue generada con `$speckit-tasks`; sus marcas y la evidencia vigente reflejan el trabajo realizado y pendiente. Revisar la consistencia entre artefactos y satisfacer los
 gates de capacidad aplicables antes de implementar; la generación no acredita aceptación.
 
 ## Complexity Tracking
