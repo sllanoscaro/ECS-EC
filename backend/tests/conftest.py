@@ -54,3 +54,6 @@ def clock():
     """Provide an internally injected UTC/monotonic clock without a public control route."""
     from ecs_ec.core.clock import FrozenClock
     return FrozenClock(datetime(2026, 1, 1, tzinfo=UTC))
+
+#002's opt-in real-port fixtures are also available to sibling contract tests.
+from backend.tests.integration.consumption.conftest import consumption_reception_environment, history_environment, history_scenarios  # noqa: F401

@@ -311,6 +311,7 @@ class ReceptionResult(DomainModel):
     category_id: CategoryId | None = None
     next_admissible_at: Instant | None = None
     correlation_ref: str
+    first_incorporated_at: Instant | None = None
 
     @model_validator(mode="after")
     def reference(self):
@@ -321,3 +322,259 @@ class ReceptionResult(DomainModel):
         elif not self.reason_code or self.measurement_id is not None:
             raise ValueError("invalid_rejection")
         return self
+
+#002 owns the following PostgreSQL metadata.001 DTOs above do not import reception/storage.
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, ForeignKeyConstraint, Integer, Numeric, String, UniqueConstraint, func, text
+from sqlalchemy.dialects.postgresql import ExcludeConstraint, JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+from ecs_ec.core.database import Base
+
+
+class RetainedRow:
+    """Persist a minimum deadline; services only extend it on substantive incorporation/revision."""
+
+    retain_until: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class RevisionRow:
+    """Positive application-assigned revision; concrete tables add their database check."""
+
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+
+
+class ReceptionAttempt(RetainedRow, Base):
+    """Fixed complete input before category commits; adapter UUID differs from publication identity."""
+
+    __tablename__ = 'reception_attempt'
+    __table_args__ = (
+        CheckConstraint("status IN ('processing','completed','partial_failure')", name='state'),
+        CheckConstraint('input_schema_version > 0', name='schema_version'),
+        CheckConstraint("jsonb_typeof(input_manifest) = 'object'", name='manifest_object'),
+        CheckConstraint("length(input_digest) = 64", name='digest'),
+        CheckConstraint("(status = 'completed') = (completed_at IS NOT NULL)", name='completed_time'))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'))
+    publication_ref: Mapped[str] = mapped_column(String(200))
+    correlation_ref: Mapped[str] = mapped_column(String(200))
+    process_ref: Mapped[str] = mapped_column(String(200))
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(20))
+    input_schema_version: Mapped[int] = mapped_column(Integer)
+    input_manifest: Mapped[dict] = mapped_column(JSONB)
+    input_digest: Mapped[str] = mapped_column(String(64))
+
+
+class CategoryUpdate(RetainedRow, RevisionRow, Base):
+    """One category transaction with counts; calculated updates have no physical attempt."""
+
+    __tablename__ = 'category_update'
+    __table_args__ = (UniqueConstraint('attempt_id', 'category_id'),
+        CheckConstraint("kind IN ('physical','calculated')", name='kind'),
+        CheckConstraint('revision > 0 AND accepted_count >= 0 AND duplicate_count >= 0 AND rejected_count >= 0', name='counts_revision'),
+        CheckConstraint('(accepted_count > 0) = (new_data_at IS NOT NULL)', name='new_data'))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    attempt_id: Mapped[UUID | None] = mapped_column(ForeignKey('reception_attempt.id', ondelete='RESTRICT'))
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'))
+    category_id: Mapped[str] = mapped_column(ForeignKey('consumption_category.id', ondelete='RESTRICT'))
+    kind: Mapped[str] = mapped_column(String(20))
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    new_data_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    previous_new_data_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_admissible_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    accepted_count: Mapped[int] = mapped_column(Integer)
+    duplicate_count: Mapped[int] = mapped_column(Integer)
+    rejected_count: Mapped[int] = mapped_column(Integer)
+
+
+class ReceptionRecordResult(RetainedRow, Base):
+    """Position-stable committed classification; invalid categories have no update/category FK."""
+
+    __tablename__ = 'reception_record_result'
+    __table_args__ = (UniqueConstraint('attempt_id', 'input_position'),
+        CheckConstraint("status IN ('accepted','duplicate','rejected')", name='status'),
+        CheckConstraint('input_position >= 0', name='position'),
+        CheckConstraint("(status = 'rejected' AND reason_code IS NOT NULL AND record_id IS NULL) OR (status IN ('accepted','duplicate') AND record_id IS NOT NULL)", name='reference'))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    attempt_id: Mapped[UUID] = mapped_column(ForeignKey('reception_attempt.id', ondelete='RESTRICT'))
+    category_update_id: Mapped[UUID | None] = mapped_column(ForeignKey('category_update.id', ondelete='RESTRICT'))
+    input_position: Mapped[int] = mapped_column(Integer)
+    category_id: Mapped[str | None] = mapped_column(ForeignKey('consumption_category.id', ondelete='RESTRICT'))
+    record_id: Mapped[UUID | None] = mapped_column(ForeignKey('incorporated_record.id', ondelete='RESTRICT'))
+    status: Mapped[str] = mapped_column(String(20))
+    reason_code: Mapped[str | None] = mapped_column(String(100))
+    next_admissible_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class BuildingReceptionState(Base):
+    """Permanent global history flag; retiring payload never resets it."""
+
+    __tablename__ = 'building_reception_state'
+    __table_args__ = (CheckConstraint('has_accepted_history = (first_new_data_at IS NOT NULL)', name='history'),)
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'), primary_key=True)
+    has_accepted_history: Mapped[bool] = mapped_column(Boolean, default=False)
+    first_new_data_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class CategoryReceptionState(RevisionRow, Base):
+    """Durable900s admission and all-time maximum independent from retained payloads."""
+
+    __tablename__ = 'category_reception_state'
+    __table_args__ = (CheckConstraint('revision > 0', name='revision'),
+        CheckConstraint("(last_new_data_at IS NULL AND next_admissible_at IS NULL AND latest_interval_end IS NULL) OR (last_new_data_at IS NOT NULL AND next_admissible_at = last_new_data_at + interval '900 seconds' AND latest_interval_end IS NOT NULL)", name='admission'))
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'), primary_key=True)
+    category_id: Mapped[str] = mapped_column(ForeignKey('consumption_category.id', ondelete='RESTRICT'), primary_key=True)
+    last_new_data_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_admissible_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    latest_interval_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class IncorporatedRecord(RetainedRow, RevisionRow, Base):
+    """Permanent immutable normalized ledger; identity/exclusion survive allowed detail withdrawal."""
+
+    __tablename__ = 'incorporated_record'
+    __table_args__ = (
+        ForeignKeyConstraint(['building_id', 'configuration_revision'], ['consumption_installation.building_id', 'consumption_installation.revision'], ondelete='RESTRICT', name='fk_record_configuration'),
+        UniqueConstraint('building_id', 'source_id', 'category_id', 'start', 'end', name='uq_record_physical'),
+        UniqueConstraint('building_id', 'logical_source_key', 'category_revision', 'start', 'end', name='uq_record_calculated'),
+        ExcludeConstraint(('building_id', '='), ('category_id', '='), (func.tstzrange(text('start'), text('"end"'), '[)'), '&&'), using='gist', name='ex_record_overlap'),
+        CheckConstraint('start < "end"', name='interval'),
+        CheckConstraint('revision > 0 AND configuration_revision > 0 AND category_revision > 0', name='revisions'),
+        CheckConstraint("(kind='measured' AND source_id IS NOT NULL AND logical_source_key IS NULL AND energy_quanta < power(10::numeric,45)) OR (kind='calculated' AND category_id='CAT-01' AND source_id IS NULL AND logical_source_key IS NOT NULL AND energy_quanta <= 6*(power(10::numeric,45)-1))", name='source_energy'),
+        CheckConstraint('energy_quanta >= 0 AND energy_quanta = trunc(energy_quanta) AND energy_kwh * 1000000000000000::numeric = energy_quanta', name='exact_energy'),
+        CheckConstraint("(detail_state='retained' AND detail_withdrawn_at IS NULL) OR (detail_state='withdrawn' AND detail_withdrawn_at IS NOT NULL)", name='detail'))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'), index=True)
+    category_id: Mapped[str] = mapped_column(ForeignKey('consumption_category.id', ondelete='RESTRICT'))
+    kind: Mapped[str] = mapped_column(String(20))
+    source_id: Mapped[UUID | None] = mapped_column(ForeignKey('consumption_source.id', ondelete='RESTRICT'))
+    logical_source_key: Mapped[str | None] = mapped_column(String(100))
+    start: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    energy_kwh: Mapped[Decimal] = mapped_column(Numeric)
+    energy_quanta: Mapped[Decimal] = mapped_column(Numeric)
+    configuration_revision: Mapped[int] = mapped_column(Integer)
+    category_revision: Mapped[int] = mapped_column(Integer)
+    first_incorporated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    update_id: Mapped[UUID] = mapped_column(ForeignKey('category_update.id', ondelete='RESTRICT'))
+    source_evidence_ref: Mapped[str] = mapped_column(String(200))
+    correlation_ref: Mapped[str] = mapped_column(String(200))
+    provenance_snapshot: Mapped[dict] = mapped_column(JSONB)
+    detail_state: Mapped[str] = mapped_column(String(20))
+    detail_withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    retention_timezone: Mapped[str] = mapped_column(String(100))
+    tzdata_version: Mapped[str] = mapped_column(String(40))
+
+
+class AcceptedMeasurement(RetainedRow, Base):
+    """Retained first physical original; equivalent re-sends cannot replace representation/unit."""
+
+    __tablename__ = 'accepted_measurement'
+    __table_args__ = (CheckConstraint("original_unit IN ('Wh','kWh','MWh')", name='unit'),
+        CheckConstraint('original_value >= 0', name='nonnegative'))
+    record_id: Mapped[UUID] = mapped_column(ForeignKey('incorporated_record.id', ondelete='RESTRICT'), primary_key=True)
+    original_value: Mapped[Decimal] = mapped_column(Numeric)
+    original_unit: Mapped[str] = mapped_column(String(3))
+    original_value_text: Mapped[str] = mapped_column(String)
+    first_accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class IncorporatedTotal(RetainedRow, Base):
+    """Retained calculated payload with exact immutable basis and accepted-contribution snapshots."""
+
+    __tablename__ = 'incorporated_total'
+    __table_args__ = (CheckConstraint('jsonb_array_length(base_categories) > 0', name='basis'),)
+    record_id: Mapped[UUID] = mapped_column(ForeignKey('incorporated_record.id', ondelete='RESTRICT'), primary_key=True)
+    first_incorporated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    base_categories: Mapped[list] = mapped_column(JSONB)
+    basis_sources: Mapped[list] = mapped_column(JSONB)
+    contributions: Mapped[list] = mapped_column(JSONB)
+
+
+class TotalEvaluationRequest(RetainedRow, RevisionRow, Base):
+    """Durable work recorded atomically with partials, including before any candidate exists."""
+
+    __tablename__ = 'total_evaluation_request'
+    __table_args__ = (UniqueConstraint('building_id', 'start', 'end'),
+        CheckConstraint('start < "end" AND revision > 0', name='interval_revision'),
+        CheckConstraint("(status='pending' AND processed_at IS NULL) OR (status='processed' AND processed_at IS NOT NULL)", name='status'))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'))
+    start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    trigger_update_id: Mapped[UUID] = mapped_column(ForeignKey('category_update.id', ondelete='RESTRICT'))
+    correlation_ref: Mapped[str] = mapped_column(String(200))
+
+
+class TotalCalculationState(RetainedRow, RevisionRow, Base):
+    """Persisted diagnosis/pending candidate, never a numeric published measurement before incorporation."""
+
+    __tablename__ = 'total_calculation_state'
+    __table_args__ = (UniqueConstraint('building_id', 'start', 'end'),
+        CheckConstraint('start < "end" AND revision > 0', name='interval_revision'),
+        CheckConstraint("status IN ('incomplete','no_basis','pending','incorporated')", name='status'),
+        CheckConstraint("(status='incorporated') = (incorporated_record_id IS NOT NULL)", name='incorporation'))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'))
+    start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    reason_code: Mapped[str | None] = mapped_column(String(100))
+    configuration_segments: Mapped[list] = mapped_column(JSONB)
+    base_categories: Mapped[list] = mapped_column(JSONB)
+    contribution_refs: Mapped[list] = mapped_column(JSONB)
+    missing_categories: Mapped[list] = mapped_column(JSONB)
+    next_admissible_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    incorporated_record_id: Mapped[UUID | None] = mapped_column(ForeignKey('incorporated_record.id', ondelete='RESTRICT'))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ConsumptionAggregate(RetainedRow, RevisionRow, Base):
+    """Exact integer sum/real duration, updated directly from immutable records at each calendar level."""
+
+    __tablename__ = 'consumption_aggregate'
+    __table_args__ = (UniqueConstraint('building_id', 'category_id', 'granularity', 'timezone', 'start', 'end'),
+        CheckConstraint("granularity IN ('hour','day','month','year')", name='granularity'),
+        CheckConstraint('start < "end" AND revision > 0 AND contribution_count > 0 AND covered_duration_us > 0', name='interval_counts'),
+        CheckConstraint("energy_quanta >= 0 AND energy_quanta < 'Infinity'::numeric AND energy_quanta=trunc(energy_quanta)", name='quanta'),
+        CheckConstraint('covered_duration_us=trunc(covered_duration_us) AND covered_duration_us <= extract(epoch FROM ("end"-start))*1000000', name='coverage'))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'))
+    category_id: Mapped[str] = mapped_column(ForeignKey('consumption_category.id', ondelete='RESTRICT'))
+    granularity: Mapped[str] = mapped_column(String(10))
+    start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    timezone: Mapped[str] = mapped_column(String(100))
+    start_offset: Mapped[str] = mapped_column(String(20))
+    end_offset: Mapped[str] = mapped_column(String(20))
+    tzdata_version: Mapped[str] = mapped_column(String(40))
+    energy_quanta: Mapped[Decimal] = mapped_column(Numeric)
+    covered_duration_us: Mapped[Decimal] = mapped_column(Numeric)
+    contribution_count: Mapped[int] = mapped_column(BigInteger)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_new_data_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AggregateContribution(Base):
+    """Unique retained ledger reference/snapshot; withdrawal never subtracts this contribution."""
+
+    __tablename__ = 'aggregate_contribution'
+    __table_args__ = (CheckConstraint('record_revision > 0', name='revision'),)
+    aggregate_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_aggregate.id', ondelete='RESTRICT'), primary_key=True)
+    record_id: Mapped[UUID] = mapped_column(ForeignKey('incorporated_record.id', ondelete='RESTRICT'), primary_key=True)
+    record_revision: Mapped[int] = mapped_column(Integer)
+    snapshot: Mapped[dict] = mapped_column(JSONB)
+    incorporated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class CalculationContributionReference(Base):
+    """Relational protection for candidate/total JSON snapshots; referenced ledger evidence cannot vanish."""
+
+    __tablename__ = 'calculation_contribution_reference'
+    candidate_id: Mapped[UUID] = mapped_column(ForeignKey('total_calculation_state.id', ondelete='RESTRICT'), primary_key=True)
+    record_id: Mapped[UUID] = mapped_column(ForeignKey('incorporated_record.id', ondelete='RESTRICT'), primary_key=True)

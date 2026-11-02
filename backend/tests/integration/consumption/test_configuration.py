@@ -40,10 +40,9 @@ class BoundsStore:
 
 @pytest.fixture(autouse=True)
 async def clean_installation(database):
-    """Clear only consumption001 test configuration; no measurement tables exist or are created."""
+    """Isolate real consumption history/configuration on the dedicated test DB; CASCADE is fixture cleanup only."""
     async with database.engine.begin() as conn:
-        for table in (CategorySourceRow, InstallationRow, MeasurementSourceRow, BuildingRow):
-            await conn.execute(delete(table))
+        await conn.execute(text("TRUNCATE consumption_building CASCADE"))
         await conn.execute(delete(FunctionalEvent).where(FunctionalEvent.source_module == "consumption"))
         await conn.execute(delete(AuditRecord).where(AuditRecord.entity_type == "consumption_configuration"))
 

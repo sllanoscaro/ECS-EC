@@ -1,0 +1,13 @@
+{
+  "description": "Synthetic spec002 history, loaded through001 bootstrap and002 Reception.accept only; clock/zone are controlled by conftest, no direct measurement INSERT.",
+  "timezone": "America/Santiago",
+  "history_start": "2024-01-01T00:00:00Z",
+  "history_end": "2026-01-01T00:00:00Z",
+  "categories": ["CAT-01", "CAT-02", "CAT-03", "CAT-04", "CAT-05", "CAT-06", "CAT-07"],
+  "admission_seconds": [0, 899, 900],
+  "energy": {"q": "0.000000000000001", "maximum": "999999999999999999999999999999.999999999999999", "zero": "0"},
+  "calendar": ["2028-02-29", "2026-04-05", "2026-09-06"],
+  "hour": {"three_quarters_kwh": "3", "three_quarters_coverage": "75", "complete_kwh": "4"},
+  "crossing": {"start": "2025-01-01T00:30:00Z", "end": "2025-01-01T01:30:00Z"},
+  "total_modes": ["measured", "calculated"]
+}

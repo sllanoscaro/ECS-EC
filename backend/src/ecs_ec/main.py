@@ -16,11 +16,14 @@ def create_app(
     modules: tuple[Module, ...] = (),
     clock: Clock | None = None,
     identity_service=None,
+    consumption_bindings=None,
 ) -> FastAPI:
     """Compose installed modules explicitly; injected settings/clock are internal test seams.
 
     Startup fails if DB, migrations or export are missing. No credentials, business data,
-    SMTP or telemetry are needed in the public export or health responses.
+    SMTP or telemetry are needed in the public export or health responses. Trusted
+    consumption_bindings map internal process references to authorized building UUIDs;
+    the recovery job uses the same in-process lifecycle and never runs from GET.
     """
     settings = settings or Settings()
     if len({module.name for module in modules}) != len(modules):
@@ -49,10 +52,20 @@ def create_app(
                     await job
 
         modules = modules + (Module("identity", lifespan=identity_lifespan),)
+    from ecs_ec.consumption.pending_totals import PendingTotals
+    from ecs_ec.consumption.reception import Reception
+    from ecs_ec.consumption.store import MeasurementStore
+    pending_totals = PendingTotals(database, clock)
+    modules = modules + (Module("consumption-history", lifespan=pending_totals.lifespan),)
     app = FastAPI(title="ECS-EC", lifespan=application_lifespan(database, modules))
     app.state.settings = settings
     app.state.database = database
     app.state.clock = clock
+    #003 supplies explicit trusted process→building bindings at composition time. The
+    #default empty map grants no reception capability; no public ingestion route exists.
+    app.state.consumption_store = MeasurementStore()
+    app.state.consumption_reception = Reception(database, clock, authorized_processes=consumption_bindings or {})
+    app.state.consumption_pending_totals = pending_totals
     if identity_service:
         from fastapi.exceptions import RequestValidationError
         from ecs_ec.identity.api import IdentityMiddleware, router, problem_response, validation_response
