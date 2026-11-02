@@ -150,3 +150,13 @@ Sin resultados reales no se marcan checklists ni se declara SC-001..006 cumplido
 VPS requiere destino/secretos reales y configuración de red. Un PAS600 físico requiere
 además comprobar sus IDs/topología y frontera de sesión; las pruebas sintéticas no lo
 acreditan y no se reetiquetan como integración física.
+
+
+## Estado ejecutable local (2026-11-02)
+
+Disponibles validate/generate y los ejemplos normales/anómalos; ver
+[README del paquete](../../tools/pas600_simulator/README.md),
+[validación US1 parcial](validation/us1.md) y [US3 parcial](validation/us3.md).
+Los comandos de publicación/exportación/contraste de esta guía siguen siendo diseño
+pendiente de implementación; no se han ejecutado. T003 fue diferida por el usuario;
+los contratos locales permiten desarrollo, sin acreditar revisión documental19.

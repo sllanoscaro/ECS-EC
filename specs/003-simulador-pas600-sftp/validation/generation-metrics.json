@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-02",
+  "python": "3.14.4",
+  "installation": "uv --locked --no-dev",
+  "results": [
+    {
+      "example": "seven-meters.json",
+      "format": "csv",
+      "cycles": 1,
+      "files": 7,
+      "native_bytes": 30912,
+      "duration_seconds": 0.042
+    },
+    {
+      "example": "seven-meters.json",
+      "format": "json",
+      "cycles": 1,
+      "files": 1,
+      "native_bytes": 19033,
+      "duration_seconds": 0.038
+    },
+    {
+      "example": "partial-no-total.json",
+      "format": "csv",
+      "cycles": 1,
+      "files": 2,
+      "native_bytes": 8832,
+      "duration_seconds": 0.012
+    },
+    {
+      "example": "partial-no-total.json",
+      "format": "json",
+      "cycles": 1,
+      "files": 1,
+      "native_bytes": 5613,
+      "duration_seconds": 0.013
+    },
+    {
+      "example": "historical-12m.json",
+      "format": "csv",
+      "cycles": 365,
+      "files": 2555,
+      "native_bytes": 11769246,
+      "duration_seconds": 12.587
+    },
+    {
+      "example": "historical-12m.json",
+      "format": "json",
+      "cycles": 365,
+      "files": 365,
+      "native_bytes": 7469083,
+      "duration_seconds": 12.884
+    },
+    {
+      "example": "anomalies-100.json",
+      "format": "csv",
+      "cycles": 2,
+      "files": 14,
+      "native_bytes": 34804,
+      "duration_seconds": 0.047
+    },
+    {
+      "example": "anomalies-100.json",
+      "format": "json",
+      "cycles": 2,
+      "files": 2,
+      "native_bytes": 20387,
+      "duration_seconds": 0.047
+    }
+  ]
+}
