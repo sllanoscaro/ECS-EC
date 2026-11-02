@@ -62,8 +62,13 @@ la misma acción. El servidor mantiene la garantía ante reintentos o solicitude
 
 Asunto y cuerpo versionados, texto plano y HTML escapado; edificio, tipo, prioridad,
 regla/versión, fechas relevantes, ventana/corte, unidades/calidad y referencias protegidas.
-Resumen sin novedades lo dice expresamente; información insuficiente no se presenta
-como consumo cero. CAT-01 calculada identifica base/alcance sin repetir la suma.
+Resumen sin novedades lo dice expresamente solo si todos los contenidos tienen cobertura
+completa y conteo cero. Cada contenido muestra cobertura completa/incompleta/desconocida,
+períodos observados y huecos/motivo funcional. Conteos NULL se muestran como «No disponible»;
+conteos conocidos con cobertura limitada como «Eventos observados», sin afirmar total completo.
+Todos completos con algún suceso muestran información disponible; cualquier incompleto o
+desconocido produce información insuficiente sin ocultar resultados conocidos. Información
+insuficiente no se presenta como consumo cero. CAT-01 calculada identifica base/alcance sin repetir la suma.
 Recuperación enumera períodos omitidos; no oculta huecos de entregas ya intentadas.
 
 Solo To del destinatario efectivo, sin otras direcciones. No adjuntar automáticamente

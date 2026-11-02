@@ -2,8 +2,9 @@
 
 **Branch/contexto**: `008-notificaciones-programables` | **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 
-**Input**: `specs/008-notificaciones-programables/spec.md` y stack definido por el usuario.
-El identificador proviene de `.specify/feature.json`; no se pudo verificar una rama Git en este entorno.
+**Input**: [spec.md](spec.md), [arquitectura común](../../docs/architecture.md) y
+[hoja de ruta](../../docs/implementation-roadmap.md). El identificador es el contexto de
+funcionalidad; la selección de Spec Kit no equivale a una rama Git creada.
 
 ## Summary
 
@@ -15,40 +16,28 @@ Solo el Administrador técnico configura y reenvía; el Operador consulta sus pr
 FastAPI sirve la API y la exportación estática React/Next.js desde una única imagen.
 Planificación, evaluación y despacho viven en el monolito; PostgreSQL conserva sus estados.
 Docker Compose integra las dependencias de datos, correo local y observabilidad externa.
-Este plan termina en Fase 1 de diseño; no genera implementación ni `tasks.md`.
+Diseño previo a implementación, con trabajo propio en [tasks.md](tasks.md).
+La base común se construye en plataforma009; identidad en 006, consumo en 001/002
+y emisores/visores técnicos en 007. Esta spec integra esas capacidades sin construirlas.
 
 ## Technical Context
 
-**Language/Version**: CPython 3.14 convencional con GIL; `requires-python = ">=3.14,<3.15"`.
-TypeScript y Node.js >=20.9 para construir el frontend, fijando versiones exactas en implementación.
+**Language/Version**: Python 3.14 convencional y TypeScript conforme a la arquitectura común.
+**Primary Dependencies**: FastAPI, SQLAlchemy/Psycopg asíncronos y React/Next exportado;
+reutilizar manifiestos/lockfiles de plataforma009. SMTP estándar con executor dedicado.
+**Storage**: PostgreSQL 18; tablas propias de reglas, evidencia, episodios y entregas.
+**Testing**: pytest/HTTPX con PostgreSQL real, Vitest/Testing Library, Playwright y Mailpit;
+reloj/transporte inyectables para casos de calendario, concurrencia y aceptación incierta.
+**Target Platform**: Monolito local/VPS definido por plataforma009; correo local y producción configurables.
+**Project Type**: Módulo de notificaciones con programación, evaluación y despacho internos durables.
 
-**Primary Dependencies**: `fastapi==0.162.0`, uv como gestor Python, Pydantic 2, Uvicorn,
-SQLAlchemy 2 con Psycopg 3 y Alembic; React 19.x y Next.js 16.x App Router con `output: 'export'`.
-npm y `package-lock.json` administran dependencias JavaScript. Acceso de base asíncrono
-con `AsyncSession` y motor Psycopg; SMTP usa executor dedicado. Loguru produce logs JSON;
-Grafana Loki almacena logs y calcula métricas derivadas con LogQL; OpenTelemetry exporta
-trazas a Jaeger mediante OTLP. Grafana es el visor técnico y Alloy el recolector de logs.
-
-**Storage**: PostgreSQL 18 como versión inicial dentro de 18+; transacciones, claves únicas,
-JSONB para evidencia tipada e instantes `timestamptz` en UTC. Los mínimos 18+/19+/16+ del
-usuario se concretan en versiones y digests fijados; no implican upgrades mayores automáticos.
-
-**Testing**: pytest, HTTPX y PostgreSQL 18 real para contratos, concurrencia y recuperación;
-reloj/transporte inyectables para calendario y fallos. Vitest/Testing Library y Playwright
-para formularios, estados y permisos. Mailpit verifica SMTP local; un adaptador determinista
-reproduce fallos antes/después de aceptación. SQLite no acredita bloqueos de PostgreSQL.
-
-**Target Platform**: Linux con Docker Compose en desarrollo y VPS posterior con HTTPS.
-Una imagen de aplicación y un proceso Uvicorn inicial, sin servidor Node en ejecución.
-PostgreSQL, relay SMTP y observabilidad son dependencias, no servicios propios de negocio separados.
-
-**Project Type**: Aplicación web monolítica modular con API HTTP y tareas internas durables.
-
-**Performance Goals**: FR-008/SC-003: primer intento elegible <=60 s desde programación
-o detección válida con aplicación y correo operativos. Bucle interno cada 5 s y cuatro
-plazas de envío iniciales, prioridad urgente con equidad para periódicos; son parámetros
-operativos ajustables, no garantías nuevas de volumen. Medir retraso de cola y preparación
-end-to-end, también con competencia entre modalidades. No garantizar llegada a bandeja ni lectura.
+**Performance Goals**: FR-008/SC-003: cada primer intento <=60 s desde programación o
+detección válida en el perfil aprobado: 10 destinatarios elegibles, dos reglas periódicas
+y dos urgentes coincidentes, las cuatro dirigidas a esas diez cuentas, 40 entregas iniciales,
+cola vacía, cuatro plazas de envío y transporte local con aceptación confirmada <=1 s.
+Medir los 40 resultados con reloj real y registrar recursos/versiones; el bucle inicial
+es de 5 s. La selección urgente conserva equidad para periódicos. El perfil no garantiza
+volúmenes distintos ni llegada a bandeja o lectura.
 
 **Constraints**: Tres intentos totales solo ante no aceptación transitoria confirmada,
 con esperas de 1 y 5 minutos. Aceptación incierta exige decisión manual. Datos ausentes
@@ -57,8 +46,9 @@ desarrollo configurable, no confirmación de la ubicación del edificio. Conserv
 de 12 meses calendario; telemetría tiene política propia. Fallos SMTP/telemetría no bloquean negocio.
 
 **Scale/Scope**: Un edificio, siete categorías CAT-01..CAT-07, dos perfiles funcionales
-y Programador externo. No se especifican cantidades de usuarios, reglas o envíos; no se
-inventa un SLO de carga. Dimensionar la VPS con carga acordada, además de los casos de referencia.
+y Programador externo. El perfil de aceptación fija 10 destinatarios, cuatro reglas y
+40 entregas; no establece máximos del producto ni un SLO para cargas distintas. Dimensionar
+la VPS con su carga real y conservar los recursos del perfil medido en la evidencia.
 
 ## Constitution Check
 
@@ -93,67 +83,42 @@ specs/008-notificaciones-programables/
 │   ├── openapi.json
 │   ├── integrations.md
 │   └── ui.md
-└── checklists/requirements.md
+├── tasks.md
+└── checklists/{requirements.md,notificaciones.md}
 ```
 
-`tasks.md` corresponde a `$speckit-tasks` y no se crea en esta fase.
+`tasks.md` conserva únicamente trabajo propio de notificaciones; las dependencias
+externas y el orden de integración figuran en la hoja de ruta.
 
 ### Source Code (repository root, estructura propuesta)
 
 ```text
-pyproject.toml
-uv.lock
-.python-version
-.env.example
-Dockerfile
-compose.yaml
-backend/
-├── src/ecs_ec/
-│   ├── main.py
-│   ├── cli.py                 # bootstrap administrativo controlado
-│   ├── core/                  # configuración, reloj, unidad de trabajo y sesiones
-│   ├── identity/              # integración spec-006
-│   ├── consumption/           # integración specs-001/002
-│   ├── audit/                 # historial administrativo funcional
-│   ├── notifications/
-│   │   ├── api.py
-│   │   ├── schemas.py
-│   │   ├── models.py
-│   │   ├── services.py
-│   │   ├── calendar.py
-│   │   ├── evaluator.py
-│   │   ├── scheduler.py
-│   │   ├── dispatcher.py
-│   │   ├── repository.py
-│   │   └── transports.py
-│   ├── observability/         # instrumentación, sin visor funcional
-│   └── web/                   # export Next copiado durante build
-├── migrations/
-├── alembic.ini
-└── tests/{unit,integration,contract}/
-frontend/
-├── package.json
-├── package-lock.json
-├── next.config.ts
-├── src/app/notificaciones/
-├── src/components/notifications/
-├── src/lib/api/
-└── tests/{unit,e2e}/
-deploy/
-├── observability/            # Alloy, Loki, Grafana y Jaeger
-├── technical-gateway/        # Nginx y autorización técnica por entorno
-└── README.md                 # TLS VPS, secretos, respaldo y restauración
+backend/src/ecs_ec/notifications/
+  __init__.py, api.py, schemas.py, models.py, services.py, calendar.py
+  calendar_reconciliation.py, evaluator.py, scheduler.py, dispatcher.py
+  repository.py, transports.py, ports.py, adapters.py, lifecycle.py
+  idempotency.py, preview.py, catalog.py, recipients.py, templates.py
+  summaries.py, queries.py, resends.py, recovery.py, retention.py
+backend/migrations/versions/notifications_008_initial.py
+backend/tests/{unit,integration,contract}/notifications/
+backend/src/ecs_ec/observability/notifications.py
+frontend/src/app/notificaciones/
+frontend/src/components/notifications/
+frontend/src/lib/api/notifications.ts
+frontend/tests/{unit,e2e}/
+deploy/observability/grafana/dashboards/notifications.json
 ```
 
-**Structure Decision**: `backend/` y `frontend/` separan código/construcción dentro de un
-único entregable. uv administra Python desde la raíz; npm construye frontend. Dominio y
-servicios internos no dependen de HTTP/SMTP/Loki; adaptadores concretan sus contratos.
-El repositorio contiene especificaciones; estos directorios son propuestos, no código existente.
+**Structure Decision**: Este árbol muestra archivos del módulo y su instrumentación.
+La estructura general y los manifiestos son de [plataforma009](../009-fundaciones-plataforma/plan.md).
+Las migraciones propias se enlazan al head existente y no crean tablas de audit/identity/consumption.
+Notificaciones añade rutas, participante de identidad y servicios internos al registro común;
+el registro ampliable y el frontend base ya deben existir. El código todavía no está implementado.
 
 ## Phase 0: Research
 
-[research.md](research.md) resuelve versiones, export estático, persistencia, calendario,
-correo y observabilidad con fuentes oficiales. No quedan decisiones técnicas sin resolver.
+[research.md](research.md) resuelve persistencia propia, calendario y correo, y enlaza
+la investigación común trasladada a 009/007. No quedan decisiones técnicas sin resolver.
 Dominio público, credenciales del relay y zona real del edificio son configuración de
 entorno y no se inventan para completar el plan.
 
@@ -165,15 +130,24 @@ entorno y no se inventan para completar el plan.
    transacción. La creación queda desactivada. Una revisión sustituye la anterior,
    cancela pendientes y queda pausada hasta activación explícita con vista previa vigente.
 2. `lifespan` supervisa planificador, evaluador y despachador. Un advisory lock de sesión
-   PostgreSQL elige planificador; perder la conexión impide seguir programando.
+   PostgreSQL elige planificador; perder la conexión impide seguir programando. Antes de
+   habilitar planificación, el líder compara tzdata instalada con la versión registrada,
+   reconcilia solo futuros no materializados y preserva ocurrencias existentes e historial.
+   La reconciliación es transaccional/reanudable por regla y conserva el ancla nominal;
+   invalida previews afectados. Los vencidos conservan la política de recuperación existente.
 3. Eventos funcionales se registran atómicamente con su cambio de negocio en la misma
-   base. Evaluar identidades únicas y solo la ventana más reciente admisible por regla.
+   base mediante `audit/events.py` y `FunctionalEvent` de `audit/models.py`, compartidos
+   por productores y consumidores sin importar el módulo de notificaciones desde costos/PDF. Evaluar identidades únicas y solo la ventana más reciente admisible por regla.
    Un reloj detecta ausencias sin esperar datos. Episodio, cursor y entregas se confirman
    juntos. Datos insuficientes no normalizan episodios.
 4. Claves únicas protegen ocurrencias/entregas. Reservar capacidad antes de reclamar;
    revalidar regla, cuenta, correo y permisos en transacción corta; registrar `en_intento`
    y confirmar antes de invocar SMTP fuera del event loop. Mutaciones concurrentes usan
-   orden de bloqueos regla, cuenta, entrega. Ese inicio delimita la carrera con pausa/revocación.
+   orden de bloqueos regla, cuenta, entrega. El registro neutral de participantes se implementa en
+   [identidad006](../006-acceso-usuarios-rbac/contracts/coordination.md); esta spec conecta
+   su participante concreto antes de habilitar cualquier despacho. Para una mutación que
+   afecta varias reglas, bloquearlas por UUID ordenado antes de la cuenta, revalidar el conjunto
+   y reintentar si cambió. El inicio durable delimita la carrera con pausa/revocación/correo.
 5. Confirmación SMTP final produce `aceptada`; rechazo transitorio confirmado produce
    `pendiente` con próxima fecha hasta tres intentos. Timeout o reinicio con aceptación
    desconocida produce `indeterminada`. `Message-ID` no garantiza deduplicación externa.
@@ -189,19 +163,34 @@ entorno y no se inventan para completar el plan.
 - [contracts/integrations.md](contracts/integrations.md): eventos, calendario, SMTP y señales.
 - [contracts/ui.md](contracts/ui.md): navegación, formularios y contenido funcional.
 - [quickstart.md](quickstart.md): comandos previstos y escenarios de validación.
-- Integrar cuentas/sesiones/correos de spec-006, series/calidad de specs-001/002 y resultados
-  funcionales de costos, PDF y auditoría como módulos internos. Dobles de prueba no acreditan
-  integración final hasta ejecutar contra módulos reales.
+- Consumir [plataforma009](../009-fundaciones-plataforma/plan.md) para core/auditoría,
+  [identidad006](../006-acceso-usuarios-rbac/tasks.md) y
+  [consumo001](../001-visualizar-consumo-categorias/tasks.md)/[historial002](../002-registro-retencion-consumo/tasks.md)
+  como dependencias reales; completar su planificación/implementación en sus propias specs. Costos se construye mediante [plan004](../004-costos-tarifa-bt43/plan.md)
+  y [tareas004](../004-costos-tarifa-bt43/tasks.md); PDF mediante
+  [plan005](../005-generar-reportes-pdf/plan.md) y [tareas005](../005-generar-reportes-pdf/tasks.md).
+  Cada productor entrega resultados reales persistidos y su evento funcional de fallo en la
+  misma transacción del registro de ese fallo. La integración de 008 solo consume esos eventos
+  y no implementa cálculos BT4.3 ni genera PDF. Su dependencia bloquea las alertas de sistema
+  correspondientes y la aceptación integral, sin bloquear US1, US2 o urgencias de consumo.
+  No existe dependencia de los productores sobre scheduler, dispatcher ni consumidor de la spec-008;
+  los puertos compartidos de identidad/series/auditoría se reutilizan por capacidad, evitando ciclos.
+  Dobles no acreditan la integración final de un productor ausente.
+- Resúmenes: cada tipo conserva cobertura funcional y conteo conocido o NULL. Cobertura completa
+  requiere historia íntegra de toda la ventana; incompleta conserva huecos conocidos y alcance
+  observado; desconocida señala integridad no determinable o fuente no consultable. Solo todos
+  completos con cero eventos permiten `sin_novedades`; todos completos con algún evento,
+  `disponible`; cualquier incompleto/desconocido, `informacion_insuficiente`. Mantener conteos
+  observados con sus límites; una consulta fallida no crea cero. La evidencia de cobertura
+  pertenece a auditoría funcional y sobrevive a la retención técnica independiente.
 - Producción: relay SMTP submission autenticado con STARTTLS obligatorio y certificado
   verificado (587), remitente autorizado y secretos externos. Proveedor intercambiable;
   desarrollo usa Mailpit sin red remota.
-- Compose monta PostgreSQL 18 en `/var/lib/postgresql` y espera salud de base/migraciones.
-  SMTP y observabilidad no condicionan readiness funcional. VPS: HTTPS, dirección pública,
-  respaldo y restauración; no se ejecuta despliegue en esta fase.
-- Loguru emite eventos saneados; Alloy -> Loki y consultas LogQL. Heartbeats/pérdidas
-  hacen visible cobertura desconocida. Jaeger recibe OTLP; visores separados autorizan
-  exclusivamente Programador, sin heredar permisos funcionales. Nginx técnico verifica
-  credenciales externas por solicitud; sus fuentes permanecen en red privada.
+- Entorno común y respaldo/restauración: [plataforma009](../009-fundaciones-plataforma/quickstart.md).
+  Esta spec incorpora Mailpit al perfil local y documenta/valida relay SMTP y enlaces del correo.
+- Infraestructura técnica y acceso Programador: [spec-007](../007-observabilidad-externa/tasks.md).
+  Esta spec emite señales de sus etapas usando sus APIs y agrega su dashboard. La disponibilidad
+  de SMTP/visores no bloquea negocio y su retención no sustituye cobertura funcional.
 
 ### Cobertura
 
@@ -217,14 +206,13 @@ entorno y no se inventan para completar el plan.
 SC-001..007 y SC-009 se verifican según la guía. SC-008 necesita además administradores
 representativos: 9 de 10 tareas sin ayuda en <=3 minutos; no se sustituye por automatización.
 
-### Verificación documental de esta fase
+### Verificación documental
 
-Contrato JSON analizado, 38 esquemas comprobados con JSON Schema Draft 2020-12 y 141
-referencias locales resueltas. Se validaron nueve entradas de regla y se rechazaron diez
-entradas inválidas de referencia, además del reconocimiento obligatorio de posible
-repetición en reenvíos. Hay 13 operaciones con identificadores únicos y parámetros de
-ruta declarados. Estas comprobaciones no ejecutan FastAPI, SMTP, Compose ni la interfaz;
-la validación funcional prevista queda en `quickstart.md`.
+La reorganización requiere comprobar enlaces relativos, referencias locales OpenAPI,
+identificadores de tareas y resolución de rutas con los scripts oficiales de Spec Kit.
+Estas comprobaciones no ejecutan aplicación, SMTP, costos o PDF reales. La aceptación
+funcional, los participantes de usabilidad y la medición de 40 entregas siguen pendientes.
+Los marcadores de checklists conservan el estado de quien revisa.
 
 ## Complexity Tracking
 

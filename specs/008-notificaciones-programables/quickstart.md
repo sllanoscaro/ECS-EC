@@ -2,8 +2,8 @@
 
 Esta guía define los comandos y escenarios que deberá ofrecer la implementación.
 Actualmente solo existen especificaciones y artefactos de diseño: los comandos de app,
-migración y pruebas siguientes no son ejecutables todavía. `$speckit-tasks` deberá convertir
-estos requisitos en trabajo de implementación; no se afirma una validación funcional ya realizada.
+migración y pruebas siguientes no son ejecutables todavía. [tasks.md](tasks.md) recoge
+el trabajo propio pendiente; no se afirma una validación funcional ya realizada.
 
 Referencias: [plan](plan.md), [modelo](data-model.md), [API](contracts/openapi.json),
 [integraciones](contracts/integrations.md) e [interfaz](contracts/ui.md).
@@ -11,11 +11,22 @@ Los ejemplos usan datos sintéticos y una base local desechable, nunca el relay 
 
 ## Prerrequisitos y configuración
 
+Preparar la base según [plataforma009](../009-fundaciones-plataforma/quickstart.md),
+identidad según [spec-006](../006-acceso-usuarios-rbac/tasks.md), series según
+[spec-001](../001-visualizar-consumo-categorias/tasks.md)/[spec-002](../002-registro-retencion-consumo/tasks.md)
+y emisores/visores según [spec-007](../007-observabilidad-externa/tasks.md).
+Su planificación pendiente no se ejecuta dentro de notificaciones. Contexto:
+[arquitectura](../../docs/architecture.md) y [hoja de ruta](../../docs/implementation-roadmap.md).
+
 - Docker Engine con Compose v2, uv con soporte Python 3.14 y Node >=20.9/npm para pruebas
   fuera del contenedor. Las versiones exactas proceden de lockfiles e imágenes del proyecto.
 - Implementados los módulos de identidad/sesión de spec-006 y datos/calidad de specs-001/002,
-  además de puertos funcionales de auditoría, costos y PDF necesarios para cada escenario.
-  Tests unitarios usan dobles; la prueba final usa módulos reales.
+  además de auditoría funcional común. Los productores reales de costos/PDF se entregan con
+  [plan004](../004-costos-tarifa-bt43/plan.md), [tareas004](../004-costos-tarifa-bt43/tasks.md),
+  [plan005](../005-generar-reportes-pdf/plan.md) y [tareas005](../005-generar-reportes-pdf/tasks.md),
+  e integran `cost.failed`/`pdf.failed` mediante `audit/events.py` sin depender del consumidor de la spec-008.
+  Solo sus alertas de sistema y aceptación integral esperan esos productores; otros incrementos
+  con dependencias reales disponibles pueden validarse. Dobles no acreditan integración final.
 - `.env.example`, Dockerfile multietapa, Compose, Alembic y comandos de la aplicación
   deben existir después de implementar. `.env` y secretos no se confirman en Git.
 
@@ -112,9 +123,16 @@ Diaria 06:00 produce una ocurrencia y ventana `[06:00 anterior,06:00 actual)`. P
 hora inexistente -> primer instante válido posterior; repetida -> primera ocurrencia;
 31 de enero -> último de febrero -> 31 de marzo; anual 29 de febrero -> último válido.
 Los tests incluyen fechas DST reales de la versión tzdata fijada y expectativas explícitas.
+Con dos versiones controladas de reglas horarias, iniciar una versión nueva con una fecha
+futura afectada: antes de habilitar planificación, cambia solo el futuro no materializado,
+conserva ocurrencias existentes y sus versiones/cortes e invalida preview afectado. Repetir
+reinicio a mitad de reconciliación y demostrar reanudación sin duplicados ni scheduler prematuro.
 
-Activar después de varias fechas históricas no reproduce esos envíos. Sin novedades
-con cobertura disponible se envía «Sin novedades», sin afirmar consumo cero. Cada
+Activar después de varias fechas históricas no reproduce esos envíos. Solo con todos los contenidos completos y conteo cero se envía «Sin novedades», sin afirmar
+consumo cero. Probar primera ventana anterior al registro íntegro, conservación vencida,
+fuente no consultable y mezcla de recepción completa con cambios administrativos desconocidos:
+conservar conteos observados y períodos/huecos, mostrar NULL como no disponible y estado global
+información insuficiente. La disponibilidad de logs técnicos no cambia esa cobertura. Cada
 destinatario obtiene su entrega separada y no ve direcciones ajenas.
 
 ### 3. Urgencias y evidencia (SC-004)
@@ -142,11 +160,18 @@ medidor físico. Eventos funcionales PDF/costo/rechazo no adjuntan detalles téc
 
 ### 4. Tiempo del primer intento (SC-003)
 
-Una prueba de integración con reloj real crea un horario próximo y una detección urgente,
-mantiene app/PostgreSQL/SMTP operativos y mide `attempt.started_at - scheduled_at` o
-`attempt.started_at - detected_at`: cada caso <=60 s. Incluir mensajes periódicos y urgentes
-competidores con concurrencia configurada. No sustituir esta prueba por adelantar solo
-el reloj falso ni medir únicamente inserción en cola. Registrar parámetros/carga de prueba;
+Perfil aprobado y obligatorio con reloj real: diez destinatarios elegibles, dos reglas
+periódicas y dos urgentes coincidentes, cada una dirigida a las diez cuentas, 40 entregas
+iniciales, cola vacía, cuatro plazas de envío y transporte local que confirma cada aceptación
+en <=1 s. Mantener app/PostgreSQL/correo operativos y conservar la evidencia de ese límite
+del transporte; si no se cumple, el ensayo no acredita este perfil y debe repetirse en sus
+condiciones, sin ocultar los resultados observados.
+
+Medir los 40 valores `attempt.started_at - scheduled_at` o `attempt.started_at - detected_at`:
+cada uno <=60 s desde la referencia real correspondiente. El caso periódico aislado es una
+comprobación adicional; no sustituye este caso mixto ni la equidad entre modalidades.
+No sustituir reloj real por adelantar solo el falso ni medir únicamente inserción en cola.
+Registrar recursos CPU/memoria, versiones/tzdata, carga y las cuarenta referencias/resultados;
 el resultado no constituye una promesa para cualquier volumen de producción.
 
 ### 5. SMTP, reintentos y correo vigente (SC-005, SC-009)

@@ -1,6 +1,7 @@
 # Contratos internos y externos
 
-Diseño de spec-008; todos los puertos de negocio se implementan dentro del monolito.
+Diseño de integración de spec-008; todos los puertos viven en el monolito.
+Los proveedores pertenecen a sus specs según la [hoja de ruta](../../../docs/implementation-roadmap.md).
 [openapi.json](openapi.json) define HTTP y [data-model.md](../data-model.md) la persistencia.
 
 ## Puertos funcionales
@@ -20,21 +21,38 @@ serie configurada. Hora/día/mes/año usan límites de la zona de regla y cobert
 No escalar una ventana parcial para estimar un total. Las categorías sin fuente son no
 evaluables; la base calculada de CAT-01 no vacía cuenta como fuente lógica.
 
+## Cobertura funcional de resúmenes
+
+`FunctionalSummary.read` devuelve un ítem por contenido seleccionado, incluido aquel cuya
+fuente no se pueda consultar. No usa logs o heartbeats técnicos como prueba de integridad.
+
+| Estado | Criterio | Conteo y alcance |
+| --- | --- | --- |
+| `completa` | Historial funcional íntegro de toda `[inicio,fin)` al corte. | `count` entero >=0; períodos cubiertos abarcan la ventana y no hay huecos conocidos. |
+| `incompleta` | Existen intervalos faltantes conocidos, incluidos historia anterior al inicio de registro o conservación vencida. | Conteo observado si se conoce, NULL en caso contrario; períodos cubiertos y huecos identificados. |
+| `desconocida` | No puede determinarse la integridad o consultarse la fuente. | Conteo observado solo si existe evidencia disponible; NULL si no se conoce, nunca cero inventado. |
+
+Cada ítem incluye `covered_periods`, `known_gaps`, `limitation_code` y referencias de origen.
+Los períodos están acotados a la ventana del resumen y se evalúan al mismo corte. Fuera de
+cobertura completa, la UI/correo identifica todo conteo disponible como observado/parcial.
+Historia íntegra con cero sucesos es distinta de falta de historia o fuente no consultable.
+Estado global de resúmenes periódicos y de recuperación:
+
+- Todos los ítems completos y en cero: `sin_novedades`.
+- Todos completos y al menos uno positivo: `disponible`.
+- Cualquier incompleto/desconocido: `informacion_insuficiente`, preservando resultados conocidos.
+
+No hay resumen con lista vacía para ocultar una fuente fallida. Fallo de toda la base impide
+crear una captura consistente y mantiene el trabajo pendiente; una fuente funcional
+consultable parcialmente permite un ítem limitado sin convertir errores en cero.
+
 ## Eventos durables de aplicación
 
-Los productores escriben el evento en la misma transacción PostgreSQL que su resultado
-funcional; no se publica por HTTP ni se crea un broker. Esquema de sobre:
-
-| Campo | Contrato |
-| --- | --- |
-| `event_id` | UUID estable asignado por el productor confiable |
-| `type` | `consumption.accepted`, `reception.completed`, `cost.failed`, `pdf.failed`, `administration.changed`, `source.changed`, `identity.changed` |
-| `source_module`, `source_entity_id`, `source_revision` | Identidad de procedencia y deduplicación |
-| `occurred_at`, `recorded_at` | UTC; diferenciar cambio/recepción del período medido |
-| `category_id`, `measurement_window` | Opcionales según tipo, nunca inferidos de recorded_at |
-| `accepted_new_data` | Booleano para reiniciar silencio solo con aceptación de novedades |
-| `functional_result`, `safe_payload` | Campos aprobados por tipo; sin excepciones ni secretos |
-| `correlation_ref` | Referencia opaca generada internamente para enlazar etapas |
+El sobre, deduplicación, atomicidad y persistencia pertenecen al
+[contrato común de plataforma009](../../009-fundaciones-plataforma/contracts/integrations.md#eventwriter-y-functionalaudit).
+Costos/PDF construyen sus resultados y eventos en specs-004/005; aquí solo se consumen
+`cost.failed`/`pdf.failed` y los eventos de consumo, recepción, identidad y administración.
+Los productores no importan notificaciones ni dependen de su consumidor o SMTP.
 
 Consumo aceptado dispara revisión de la ventana más reciente; recepción rechazada y
 fallos de costo/PDF pueden disparar eventos puntuales; cambios administrativos alimentan
@@ -60,8 +78,13 @@ plazo explícito >=15 minutos, sin interpretar la separación mínima de recepci
    al hueco, no simplemente hora solicitada más duración del cambio. Día mensual/anual
    inexistente: último válido de ese mes, manteniendo ancla original para el mes siguiente.
 4. Una sola clave lógica por slot. Registrar política y versión de tzdata con el resultado.
-   Una actualización de tzdata recalcula únicamente futuros no materializados y exige
-   nueva vista previa si cambió el resultado de una activación aún no confirmada.
+   Al iniciar una versión nueva, el líder compara tzdata instalada con la registrada antes
+   de habilitar el planificador. Si cambió, recalcula solo futuros no materializados y exige
+   nueva vista previa si cambió el resultado de una activación aún no confirmada. Conserva
+   ocurrencias ya materializadas, slots, cortes, evidencia y versiones históricas; preserva
+   intención/ancla nominal y no transforma vencidos en fechas futuras para eludir recuperación.
+   Reconciliación transaccional e idempotente por regla: después de un reinicio incompleto
+   se retoma y no se habilita planificación hasta terminar. Perder liderazgo detiene el proceso.
 5. Resumen diario 06:00 usa `[06:00 lógica anterior,06:00 actual)`, que puede durar 23/25 h.
    En la primera ocurrencia se calcula la anterior lógica sin enviar ese correo anterior;
    si `starts_at` impide una anterior, el primer límite es `starts_at` y se identifica la
@@ -110,6 +133,8 @@ SMTP no ocupan locks de mediciones, consultas, costos ni PDF.
 
 ## Recuperación e idempotencia
 
+- El protocolo de coordinación con identidad/regla es una fundación compartida previa
+  a cualquier despacho periódico o urgente; no se difiere hasta el historial/reenvío.
 - Reclamar entregas únicamente después de reservar plaza. Transacción corta revalida
   versión/activación, cuenta, destinatario, correo y permisos; inicia intento e incrementa
   contador. Mutaciones de regla e identidad comparten orden de bloqueos regla -> cuenta -> entrega.

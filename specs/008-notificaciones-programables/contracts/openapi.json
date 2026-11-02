@@ -1206,8 +1206,16 @@
             ]
           },
           "count": {
-            "type": "integer",
-            "minimum": 0
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Conteo conocido; con cobertura limitada es observado, no total completo. NULL significa desconocido y nunca se sustituye por cero."
           },
           "coverage": {
             "type": "string",
@@ -1222,14 +1230,139 @@
             "items": {
               "$ref": "#/components/schemas/SourceReference"
             }
+          },
+          "covered_periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Window"
+            },
+            "description": "Períodos de historia íntegra demostrada, acotados a la ventana/corte del resumen."
+          },
+          "known_gaps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Window"
+            },
+            "description": "Intervalos faltantes conocidos; vacío no demuestra por sí solo cobertura completa."
+          },
+          "limitation_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Razón funcional saneada de limitación o NULL si no hay limitación."
           }
         },
         "required": [
           "kind",
           "count",
           "coverage",
-          "source_refs"
-        ]
+          "source_refs",
+          "covered_periods",
+          "known_gaps",
+          "limitation_code"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "coverage": {
+                  "const": "completa"
+                }
+              },
+              "required": [
+                "coverage"
+              ]
+            },
+            "then": {
+              "properties": {
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "known_gaps": {
+                  "maxItems": 0
+                },
+                "limitation_code": {
+                  "type": "null"
+                },
+                "covered_periods": {
+                  "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "coverage": {
+                  "const": "incompleta"
+                }
+              },
+              "required": [
+                "coverage"
+              ]
+            },
+            "then": {
+              "properties": {
+                "known_gaps": {
+                  "minItems": 1
+                },
+                "limitation_code": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "coverage": {
+                  "const": "desconocida"
+                }
+              },
+              "required": [
+                "coverage"
+              ]
+            },
+            "then": {
+              "properties": {
+                "limitation_code": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "limitation_code": {
+                  "const": "fuente_no_consultable"
+                }
+              },
+              "required": [
+                "limitation_code"
+              ]
+            },
+            "then": {
+              "properties": {
+                "coverage": {
+                  "const": "desconocida"
+                },
+                "count": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Un ítem por contenido seleccionado. Cobertura completa exige historia íntegra de toda la ventana y conteo conocido; incompleta tiene huecos conocidos; desconocida no permite determinar integridad o consultar fuente. Las limitaciones conservan datos observados sin presentarlos como totales."
       },
       "Evidence": {
         "type": "object",
@@ -2164,6 +2297,102 @@
           "evidence",
           "summary_items",
           "protected_paths"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "resumen_periodico",
+                    "resumen_recuperacion"
+                  ]
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            "then": {
+              "properties": {
+                "summary_items": {
+                  "minItems": 1
+                }
+              },
+              "oneOf": [
+                {
+                  "properties": {
+                    "data_status": {
+                      "const": "sin_novedades"
+                    },
+                    "summary_items": {
+                      "items": {
+                        "properties": {
+                          "coverage": {
+                            "const": "completa"
+                          },
+                          "count": {
+                            "const": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "data_status": {
+                      "const": "disponible"
+                    },
+                    "summary_items": {
+                      "items": {
+                        "properties": {
+                          "coverage": {
+                            "const": "completa"
+                          }
+                        }
+                      },
+                      "contains": {
+                        "properties": {
+                          "count": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        },
+                        "required": [
+                          "count"
+                        ]
+                      },
+                      "minContains": 1
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "data_status": {
+                      "const": "informacion_insuficiente"
+                    },
+                    "summary_items": {
+                      "contains": {
+                        "properties": {
+                          "coverage": {
+                            "enum": [
+                              "incompleta",
+                              "desconocida"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "coverage"
+                        ]
+                      },
+                      "minContains": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
         ]
       },
       "DeliverySummary": {

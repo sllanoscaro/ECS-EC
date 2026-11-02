@@ -1,43 +1,18 @@
 # Research: Notificaciones programables
 
-Consultado: 2026-11-01. Alcance: spec-008 y stack indicado por el usuario. Las decisiones
+Consultado: 2026-11-01. Alcance: decisiones de notificaciones y referencias a las decisiones compartidas. Las decisiones
 arquitectónicas son propuestas de este diseño; la documentación no acredita la ejecución
 de la combinación completa de dependencias.
 
 ## R1. Versiones reproducibles
 
-**Decision**: Python 3.14 convencional con GIL, `fastapi==0.162.0` y uv; `.python-version`,
-`pyproject.toml` y `uv.lock`, verificados con `uv sync --locked`. React 19.x/Next.js 16.x
-con TypeScript, Node >=20.9 y npm con lockfile. Fijar parches e imágenes en implementación.
-
-**Rationale**: FastAPI 0.162.0 está publicado y declara Python 3.14; uv lo soporta. Next.js
-16 requiere Node >=20.9 y TypeScript >=5.1. Python y JavaScript necesitan lockfiles propios.
-Los mínimos 18+/19+/16+ no se convierten en upgrades mayores automáticos.
-
-**Alternatives considered**: Cambiar FastAPI sin necesidad, rangos sin lock o intentar
-administrar npm mediante uv. La resolución real y los wheels se comprobarán al implementar.
-
-**Sources**: [FastAPI 0.162.0](https://pypi.org/project/fastapi/0.162.0/),
-[uv/Python](https://docs.astral.sh/uv/reference/policies/python/),
-[lock/sync](https://docs.astral.sh/uv/concepts/projects/sync/),
-[Next.js 16](https://nextjs.org/docs/app/guides/upgrading/version-16).
+Decisión común trasladada a [plataforma009](../009-fundaciones-plataforma/research.md#r1-versiones-reproducibles).
+Las versiones de referencia se centralizan en la [arquitectura](../../docs/architecture.md).
 
 ## R2. Next.js dentro del monolito
 
-**Decision**: Build multietapa; Next `output: 'export'` genera `out/`, incorporado a la
-imagen Python y servido por FastAPI junto con `/api/v1`. Datos privados llegan por API
-autenticada; identificadores de reglas/entregas se seleccionan en query/estado cliente.
-
-**Rationale**: Preserva una unidad de aplicación. La exportación no admite Server Actions,
-SSR por solicitud, cookies de Next ni rutas dinámicas desconocidas al construir. Sesiones
-y autorización corresponden a FastAPI; el HTML exportado no contiene datos privados.
-
-**Alternatives considered**: Next SSR separado incumple la unidad actual; dos runtimes
-en un contenedor añaden supervisión innecesaria. Sustituir Next contradice la elección.
-
-**Sources**: [Export estático](https://nextjs.org/docs/app/guides/static-exports),
-[StaticFiles FastAPI](https://fastapi.tiangolo.com/tutorial/static-files/),
-[Docker multietapa](https://docs.docker.com/build/building/multi-stage/).
+Construcción/exportación comunes: [plataforma009](../009-fundaciones-plataforma/research.md#r2-nextjs-dentro-del-monolito).
+Este módulo consume la API autenticada y usa query/estado cliente para reglas/entregas.
 
 ## R3. Estado durable y concurrencia
 
@@ -112,45 +87,14 @@ para fijar el contrato ni validar localmente.
 
 ## R7. Loguru, métricas Loki y Jaeger
 
-**Decision**: Loguru JSON saneado -> Alloy -> Loki; métricas derivadas con LogQL y visor
-Grafana. Jaeger recibe trazas OTel/OTLP. Conserva Loki para las métricas solicitadas sin
-describirlo como almacén general de métricas instrumentadas.
-
-**Rationale**: LogQL permite conteos, tasas, agregación de valores y detección de ausencia.
-Emitir un evento terminal por operación/intento y heartbeats. Pérdidas/cobertura desconocida
-son visibles; métricas derivadas no sustituyen historial durable ni son exactas si faltan logs.
-Etiquetas acotadas; referencias opacas en campos, nunca dimensiones por persona u operación.
-
-**Alternatives considered**: Prometheus/Mimir serviría para métricas nativas generales,
-pero añade una selección no solicitada. Envío de red síncrono en negocio o cola ilimitada
-incumplen aislamiento; `enqueue=True` de Loguru no acredita por sí solo un límite de memoria.
-
-**Sources**: [Loguru](https://loguru.readthedocs.io/en/stable/api/logger.html),
-[LogQL métricas](https://grafana.com/docs/loki/latest/query/metric_queries/),
-[Alloy](https://grafana.com/docs/alloy/latest/collect/logs-in-loki/),
-[Jaeger APIs](https://www.jaegertracing.io/docs/latest/architecture/apis/),
-[Badger persistente de instancia única](https://www.jaegertracing.io/docs/2.22/storage/badger/).
+Infraestructura y políticas trasladadas a [spec-007](../007-observabilidad-externa/research.md#r7-loguru-métricas-loki-y-jaeger).
+Notificaciones conserva instrumentación de programación/evaluación/entrega y su dashboard.
 
 ## R8. Compose, local y VPS
 
-**Decision**: Aplicación y PostgreSQL; perfil local Mailpit y perfil técnico Alloy/Loki/
-Grafana/Jaeger. PG18 monta `/var/lib/postgresql` y usa PGDATA `/var/lib/postgresql/18/docker`.
-Salud de base/migraciones antes de app; SMTP/telemetría no condicionan readiness funcional.
-VPS con HTTPS, URL pública y secretos externos. Consulta técnica separada de perfiles web.
-La puerta técnica es Nginx de infraestructura con autenticación Basic sobre TLS y archivo
-de Programadores por entorno, externo a cuentas funcionales. Cada solicitud revalida el
-archivo sin caché; revocar sustituye el archivo y debe denegar la siguiente consulta.
-Grafana usa permiso Viewer y Jaeger consulta solamente; las fuentes permanecen privadas.
-
-**Rationale**: Compose no espera disponibilidad solo por iniciar contenedores; PG18 cambió
-el volumen oficial. El desarrollo debe verificar correo y señales sin VPS ni servicios remotos.
-
-**Alternatives considered**: Depender del proveedor final impide FR-026; enlaces localhost
-en correo de producción no permiten acceso desde otras redes.
-
-**Sources**: [Compose y salud](https://docs.docker.com/compose/how-tos/startup-order/),
-[imagen PG18](https://github.com/docker-library/docs/blob/master/postgres/README.md),
-[autenticación Nginx](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html).
+Base común y operación: [plataforma009](../009-fundaciones-plataforma/research.md#r3-compose-y-persistencia-localvps).
+Acceso técnico: [spec-007](../007-observabilidad-externa/research.md#acceso-técnico-localvps).
+Mailpit, relay SMTP y enlaces autenticados de correo se validan en [quickstart](quickstart.md).
 
 ## Resultado
 

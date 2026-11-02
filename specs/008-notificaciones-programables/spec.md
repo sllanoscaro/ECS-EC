@@ -25,6 +25,16 @@ de la spec-007.
 [spec-006: permisos funcionales](../006-acceso-usuarios-rbac/spec.md) y
 [spec-007: observabilidad externa](../007-observabilidad-externa/spec.md).
 
+## Clarifications
+
+### Session 2026-11-01
+
+- Q: ¿Dónde se implementan los productores reales de costos y PDF y sus eventos de fallo? → A: En sus propias funcionalidades, specs 004 y 005, con planes y tareas explícitos para cálculo/generación reales, resultados persistidos y eventos funcionales de fallo; la integración de notificaciones solo conecta esos eventos.
+- Q: ¿Qué perfil reproducible acredita el plazo de 60 segundos? → A: 10 destinatarios elegibles; dos reglas periódicas y dos urgentes coincidentes dirigidas a todos; 40 entregas iniciales, cola vacía, cuatro plazas y aceptación del transporte de prueba en <=1 s; todos los primeros intentos en <=60 s desde programación o detección válida.
+- Q: ¿Cuándo debe estar disponible la coordinación entre envíos y cambios de identidad o regla? → A: Desde las fundaciones de identidad y antes del primer despacho periódico; la historia de revisión de entregas conserva las funciones administrativas de historial y reenvío.
+- Q: ¿Cómo se aplica una actualización de reglas de zona horaria al iniciar una versión nueva? → A: Reconciliación automática antes de habilitar el planificador: comparar versiones, recalcular solo futuros no materializados, conservar ocurrencias existentes e invalidar previsualizaciones afectadas.
+- Q: ¿Cómo se informa la cobertura de recepción, calidad y cambios administrativos? → A: Por contenido: completa con historial íntegro de toda la ventana; incompleta con intervalos faltantes conocidos; desconocida si no puede determinarse integridad o consultarse la fuente. Se conservan conteos conocidos y un desconocido no se convierte en cero.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Configurar notificaciones como Administrador técnico (Priority: P1)
@@ -229,8 +239,10 @@ reinicio del sistema y cambios de permisos de destinatarios antes de enviar.
   enviando a una dirección anterior conservada en una entrega pendiente.
 - Una condición puede aparecer en un resumen periódico aunque ya haya producido una
   alerta urgente; son comunicaciones con propósito y referencia distintos.
-- Sin datos suficientes se informa esa limitación; sin eventos conocidos en una ventana
-  con cobertura válida se puede indicar "Sin novedades".
+- Sin datos suficientes se informa esa limitación por contenido. «Sin novedades» requiere
+  cobertura completa y conteo cero en todos los contenidos seleccionados; una fuente
+  desconocida o una ventana con huecos conserva los resultados conocidos y no se presenta
+  como cero eventos.
 - Una entrega con resultado indeterminado no equivale a un rechazo confirmado y no
   permite prometer una única copia en una bandeja externa.
 - La separación mínima de 15 minutos de recepción no limita envíos urgentes, ejecución
@@ -262,6 +274,10 @@ La autorización funcional se amplía con estas acciones:
   ausencia de datos con plazo configurado, fallos funcionales de cálculo o generación PDF
   y resúmenes de recepción, calidad y cambios administrativos. Los cambios administrativos
   solo DEBEN incluirse para destinatarios con permiso de consultar la auditoría de la spec-006.
+  El cálculo real y sus resultados persistidos pertenecen a la spec-004; la generación real
+  de PDF y sus resultados persistidos pertenecen a la spec-005. Sus propios planes y tareas
+  DEBEN entregar también los eventos funcionales de fallo. Esta funcionalidad consume esos
+  eventos; su integración no sustituye la construcción de los productores reales.
 - **FR-004**: Las reglas configurables de consumo DEBEN indicar una categoría de las siete
   existentes, energía en kWh, ventana de intervalo, hora, día, mes o año, comparación mayor,
   mayor o igual, menor o menor o igual y umbral finito no negativo. CAT-01 DEBE utilizar
@@ -278,15 +294,30 @@ La autorización funcional se amplía con estas acciones:
 - **FR-007**: Las recurrencias DEBEN respetar la zona horaria configurada. Una hora local
   inexistente DEBE trasladarse al primer instante válido posterior; una
   hora repetida DEBE usar solo su primera ocurrencia. Un día mensual o anual inexistente
-  DEBE usar el último día válido del mes, conservando una sola ocurrencia lógica.
+  DEBE usar el último día válido del mes, conservando una sola ocurrencia lógica. Al iniciar
+  una versión nueva, antes de habilitar el planificador, DEBE compararse la versión instalada
+  de las reglas de zona horaria con la registrada. Si cambió, se DEBEN recalcular únicamente
+  las fechas futuras todavía no materializadas, conservar las ocurrencias existentes e
+  invalidar las previsualizaciones afectadas, manteniendo una sola ocurrencia lógica.
 - **FR-008**: Para entregas elegibles, el primer intento periódico DEBE iniciarse dentro
   de 60 segundos de su hora programada y el urgente dentro de 60 segundos de su detección
   válida, con aplicación y servicio de correo operativos. La urgencia NO DEBE esperar al
-  siguiente horario periódico ni a otra actualización de mediciones.
+  siguiente horario periódico ni a otra actualización de mediciones. El cumplimiento se
+  acredita con el perfil reproducible de SC-003; ese perfil no constituye una garantía
+  para un volumen de envíos no especificado.
 - **FR-009**: Los resúmenes periódicos DEBEN identificar como ventana la comprendida entre
   la ocurrencia programada anterior y la actual, con inicio incluido y fin excluido y corte
   de datos explícito. DEBEN diferenciar recepción, cambios y períodos de medición.
-  Sin novedades DEBEN poder enviarse indicando ese estado, sin confundirlo con consumo cero.
+  Cada contenido seleccionado —recepción, calidad o cambios administrativos— DEBE informar
+  su cobertura: completa si existe historial funcional íntegro de toda la ventana; incompleta
+  si se conocen intervalos faltantes, incluida conservación vencida; desconocida si no puede
+  determinarse la integridad o consultarse la fuente. Los conteos conocidos se DEBEN conservar
+  con su alcance; un conteo desconocido DEBE identificarse como ausente, nunca como cero.
+  «Sin novedades» solo corresponde si todos los contenidos seleccionados tienen cobertura
+  completa y conteo cero. Si todos están completos y existe algún suceso, el resumen indica
+  información disponible. Si alguno tiene cobertura incompleta o desconocida, indica
+  información insuficiente conservando los resultados conocidos y sus límites. La cobertura
+  funcional no depende de la disponibilidad de logs o trazas técnicas.
 - **FR-010**: Las condiciones de consumo DEBEN evaluarse solo con mediciones aceptadas
   o totales calculados válidos conforme a la spec-001 y ventanas completas con cobertura
   válida. Las categorías sin fuente configurada y los datos insuficientes DEBEN producir
@@ -315,7 +346,11 @@ La autorización funcional se amplía con estas acciones:
 - **FR-015**: Antes de cada intento DEBEN verificarse cuenta activa, destinatario vigente,
   correo actual, permisos sobre todo el contenido y vigencia de la regla. Una pérdida de
   elegibilidad DEBE cancelar solo la entrega afectada. Cada destinatario DEBE tener mensaje
-  y resultado propios sin exponer las direcciones o información de los demás.
+  y resultado propios sin exponer las direcciones o información de los demás. La coordinación
+  con cambios de cuenta, correo, permisos y regla DEBE estar disponible desde el primer
+  incremento que envía correos. Si el cambio se confirma antes del inicio registrado del
+  intento, DEBE impedirlo cuando lo vuelve inelegible; un intento ya iniciado conserva
+  su resultado e historial. La selección del correo efectivo usa ese mismo límite.
 - **FR-016**: La pausa o sustitución de una versión de regla DEBE cancelar sus entregas
   pendientes antes de nuevos intentos, sin alterar intentos ya registrados. Las nuevas
   programaciones DEBEN comenzar en su siguiente ocurrencia admisible y NO DEBEN reproducir
@@ -375,7 +410,8 @@ La autorización funcional se amplía con estas acciones:
 - **Destinatario elegible**: Cuenta funcional registrada, activa y autorizada para consultar
   el contenido, con correo obtenido de su estado vigente al intentar el envío.
 - **Notificación y entrega**: Contenido de una ocurrencia o episodio y su envío individual
-  a una cuenta, con identidad, estado y vínculos a la versión de regla.
+  a una cuenta, con identidad, estado y vínculos a la versión de regla. Cada contenido del
+  resumen incluye cobertura, conteo conocido o ausente y referencias al alcance de la historia.
 - **Intento e historial**: Registro de fecha, destinatario efectivo, resultado, causa,
   proceso o actor y decisión de recuperación o reenvío, sin secretos técnicos.
 
@@ -385,12 +421,22 @@ La autorización funcional se amplía con estas acciones:
 
 - **SC-001**: En el 100 % de los casos de permisos, solo el Administrador técnico configura
   o reenvía notificaciones; los demás perfiles no modifican reglas ni consultan contenidos
-  que no les corresponden, incluidos accesos directos.
+  que no les corresponden, incluidos accesos directos. Los casos incluyen cambios
+  concurrentes de correo/permisos/estado de una cuenta con varias reglas y pausa de regla;
+  una pérdida de elegibilidad confirmada antes del inicio registrado impide el intento.
 - **SC-002**: En todos los casos de programación, las ocurrencias y ventanas coinciden con
   el calendario esperado, incluidos el resumen diario de las 06:00, cambios horarios,
-  días inexistentes y recuperación tras reinicio, sin duplicados lógicos.
-- **SC-003**: Con los servicios operativos, el 100 % de los primeros intentos de referencia
-  comienza dentro de 60 segundos de la programación o detección urgente correspondiente.
+  días inexistentes y recuperación tras reinicio, sin duplicados lógicos. Ante una actualización
+  de reglas horarias, las fechas futuras no materializadas se ajustan antes de planificar;
+  las ocurrencias existentes conservan su fecha, evidencia y versión, y las previsualizaciones
+  afectadas requieren renovación.
+- **SC-003**: Con aplicación, datos y correo operativos, el 100 % de los 40 primeros intentos
+  DEBE comenzar dentro de 60 segundos de su programación o detección válida. El perfil de
+  aceptación usa 10 destinatarios elegibles y cuatro reglas coincidentes, dos periódicas
+  y dos urgentes, cada una dirigida a esas diez cuentas; cola inicialmente vacía, cuatro
+  plazas de envío y transporte de prueba que confirma cada aceptación en un máximo de
+  un segundo. Se registran entorno, recursos, versiones y los tiempos observados con
+  reloj real, desde la programación o detección hasta el inicio de cada intento.
 - **SC-004**: Las reglas de consumo de referencia producen exactamente los episodios
   esperados en los límites de comparación, con cero alertas originadas por reemplazar
   datos ausentes con ceros o por recorrer íntegramente un lote histórico.
@@ -460,6 +506,19 @@ La autorización funcional se amplía con estas acciones:
   spec-006 y la separación técnica de la spec-007; no se incorporan recuperación de
   contraseñas por correo ni notificaciones técnicas externas.
 - **Dependencias y gobierno**: Se requieren datos y estados funcionales, cuentas y correos
-  vigentes, zona horaria y servicio de correo configurado. El plan debe concretar su integración,
+  vigentes, zona horaria y servicio de correo configurado. Los entregables de costos y PDF
+  se planifican en [spec-004](../004-costos-tarifa-bt43/plan.md) y
+  [spec-005](../005-generar-reportes-pdf/plan.md), con tareas para sus resultados persistidos
+  y eventos de fallo. Son prerrequisitos de sus alertas de sistema y de la aceptación integral;
+  no bloquean la configuración, el correo periódico ni las alertas de consumo que ya cuenten
+  con sus dependencias reales. El plan debe concretar su integración,
   ejecución programada y evidencia de aceptación sin seleccionar aquí proveedor o tecnología,
   manteniendo la arquitectura monolítica y documentación integral.
+
+## Contexto de planificación compartido
+
+La [arquitectura](../../docs/architecture.md) y la
+[hoja de ruta](../../docs/implementation-roadmap.md) centralizan decisiones y orden del
+sistema. La infraestructura es de [plataforma009](../009-fundaciones-plataforma/spec.md);
+identidad/consumo/observabilidad se entregan en sus propias funcionalidades. Los contratos
+y tareas de esta carpeta describen notificaciones y su integración con esas capacidades.

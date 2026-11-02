@@ -102,6 +102,12 @@ Activación: `id`, `version_id`, `activated_at`, `ended_at`, `next_due_at`,
 `last_materialized_slot`, `tzdata_version`, actor y revisión. Una activación vigente por
 regla mediante índice único parcial. Pausa termina la activación; reactivar inicia otra
 sin reproducir fechas anteriores. Cada ocurrencia sigue incluyendo su versión de regla.
+Antes de habilitar planificación tras un inicio de versión, comparar `tzdata_version`
+registrada e instalada; reconciliar las activaciones con futuros no materializados bajo
+liderazgo y transacción por regla. Actualizar `next_due_at`/versión preservando ancla nominal
+sin modificar slots existentes, evidencia, cortes o historial. Un reinicio intermedio retoma
+la reconciliación idempotente; no habilitar planificación con reglas aún sin reconciliar.
+Las previsualizaciones afectadas quedan inválidas; los vencidos mantienen recuperación.
 
 Estado: UNIQUE `(activation_id, scope_key)`; guarda `last_valid_window_end`,
 `last_evaluated_window_end`, `last_new_data_accepted_at`, `last_result`, `open_episode_id`
@@ -111,10 +117,11 @@ se registran sin cerrar episodio. Actualizar estado/episodio/entregas en una tra
 
 ### Evento funcional y evaluación
 
-`functional_event`: `id`, `event_type`, `source_module`, `source_entity_id`, `source_revision`,
-`occurred_at`, `recorded_at`, `effective_window`, `accepted_new_data`, `safe_payload`,
-`correlation_ref`; UNIQUE identidad del módulo/emisor + entidad/revisión/tipo.
-Se crea con el cambio funcional original. No modificar formatos nativos PAS600 para añadirlo.
+`FunctionalEvent` es una referencia externa a audit de plataforma009, cuyo
+[modelo](../009-fundaciones-plataforma/data-model.md) y
+[contrato](../009-fundaciones-plataforma/contracts/integrations.md) poseen campos,
+unicidad, cobertura y conservación comunes. Este módulo no crea ni migra esa tabla.
+La evaluación referencia la identidad estable de un evento confirmado por su productor.
 
 `notification_evaluation`: `id`, `activation_id`, `source_event_id` opcional,
 `window_start/end`, `cutoff_at`, `evaluated_at`, `result` (`cumple`, `no_cumple`,
@@ -134,6 +141,22 @@ Valor ausente es NULL con razón explícita. Un total CAT-01 calculado identific
 de base y sus fuentes; este módulo consume el total existente y no vuelve a sumarlas.
 Solo una ventana completa y válida permite `cumple`/`no_cumple` en una condición de consumo.
 Para resúmenes conservar conteos funcionales y sus referencias, sin archivos recibidos ni secretos.
+Cada `summary_item` identifica tipo, `count` entero no negativo o NULL, `coverage`
+(`completa`, `incompleta`, `desconocida`), períodos cubiertos, huecos conocidos y motivo
+funcional de limitación. Cobertura completa exige conteo conocido e historia íntegra
+para toda la ventana; en otro caso un conteo disponible es observado y no un total completo.
+NULL significa conteo desconocido y nunca se serializa como cero. Se incluye un ítem
+por cada contenido seleccionado aunque su fuente no pueda consultarse.
+
+La evidencia de integridad del historial pertenece a auditoría: `functional_history_coverage`
+con tipo de contenido/módulo, período registrado, alcance conservado, huecos conocidos,
+revisión, origen y fechas. El resumen toma una captura al mismo corte de los conteos;
+una fuente no consultable o sin evidencia suficiente queda desconocida. La conservación
+vencida o una ventana anterior al registro íntegro son huecos conocidos. No inferir
+cobertura funcional a partir de heartbeats/logs de observabilidad técnica.
+El estado global es `sin_novedades` solo si todos los ítems están completos y en cero;
+`disponible` si todos completos y alguno positivo; `informacion_insuficiente` si cualquiera
+está incompleto/desconocido, conservando los resultados observados y su alcance.
 
 ### Episodio (`notification_episode`)
 
