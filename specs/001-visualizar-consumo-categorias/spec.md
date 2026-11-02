@@ -31,6 +31,9 @@ externas al edificio. La pila tecnológica permanece pendiente de definición.
 - Q: ¿Debe el total calculado desde las categorías presentes poder utilizarse también en el análisis de costos BT4.3 de la spec-004? → A: No; los costos BT4.3 requieren un medidor total asociado al suministro general. El total calculado se admite en visualización, historial, PDF y reglas de consumo, con su procedencia y alcance visibles.
 - Q: ¿En qué entornos se desarrollará y se desplegará ECS-EC? → A: El desarrollo actual es exclusivamente local; el producto final se desplegará en una VPS y será accesible por internet desde cualquier ubicación, con los permisos existentes. La pila tecnológica aún no está definida.
 - Q: Durante el desarrollo local, ¿las pruebas funcionales deben poder ejecutarse sin depender de servicios remotos de correo, observabilidad o recepción de archivos? → A: Sí; deben poder ejecutarse con componentes o sustitutos de prueba locales, sin requerir servicios remotos ni la futura VPS. La integración definitiva se verificará durante la etapa de despliegue.
+- Q: ¿Una revisión global de configuración debe invalidar una lectura de una categoría cuya fuente no cambió durante su intervalo? → A: No. La validez se comprueba por categoría durante todo el intervalo; solo un cambio de su propia presencia o fuente impide aceptar esa lectura. CAT-01 calculada exige además una base y fuentes contribuyentes estables durante el intervalo; si cambian, conserva las parciales e informa la limitación sin total numérico. Decisión I1 aprobada expresamente en esta sesión.
+- Q: ¿Cómo debe protegerse un cambio de configuración frente a incorporaciones concurrentes o detalle histórico retirado? → A: Comprobando, en la misma operación y bajo la misma coordinación que la recepción, el último fin aceptado por categoría afectada y la existencia de historia aceptada. Esos límites se conservan tras retirar detalle; falta o fallo del proveedor no equivale a ausencia de historia. La primera configuración puede prepararse antes de disponer de recepción; las modificaciones posteriores requieren ese estado real. Decisión U1 aprobada expresamente en esta sesión.
+- Q: ¿Qué dominio numérico debe admitirse sin depender de la unidad original y qué ocurre en sus fronteras? → A: Cada medición convertida exactamente a kWh debe satisfacer 0 ≤ E < 10^30 y ser múltiplo de 10^-15 kWh. Fuera de ese dominio se rechaza con causa explícita, sin redondear; valores equivalentes reciben el mismo resultado en Wh, kWh o MWh. CAT-01 calculada admite la suma exacta de hasta seis mediciones máximas válidas. Decisión A1 aprobada expresamente en esta sesión.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -73,6 +76,15 @@ gráficos y tablas, incluidas las categorías sin medidor.
    edificio y al equipo de desarrollo, **Then** puede autenticarse y consultar sus datos
    permitidos mediante la dirección pública de la aplicación, sin requerir conexión a la
    red local del edificio ni mantener encendido el equipo de desarrollo.
+8. **Given** una modificación de fuente y una incorporación concurrentes, **When** se
+   procesan, **Then** ambas se coordinan con un orden único y el cambio no atraviesa
+   mediciones ya aceptadas de las categorías cuya configuración cambia.
+9. **Given** historia aceptada cuyo detalle ya se retiró conforme a su conservación,
+   **When** se comprueba una modificación de configuración, **Then** se conservan sus
+   límites de aceptación y la restricción de cambio de zona; no se interpreta como instalación nueva.
+10. **Given** una configuración existente y estado de incorporaciones no consultable,
+    **When** se solicita modificarla, **Then** la operación informa el fallo y conserva
+    configuración y datos; no interpreta el fallo como ausencia de incorporaciones.
 
 ---
 
@@ -105,6 +117,19 @@ el conjunto aceptado, incluyendo reenvíos y registros inválidos, sin depender 
 6. **Given** un intervalo ya aceptado, **When** llega otro distinto que se superpone en la
    misma categoría, **Then** el nuevo se rechaza sin cambiar el aceptado; un intervalo
    contiguo sí se acepta.
+7. **Given** una revisión de instalación a las 10:05 que cambia CAT-03 y mantiene la fuente
+   de CAT-05, **When** se recibe una lectura válida y temporalmente admisible de CAT-05
+   para [10:00,10:15), **Then** se acepta completa, aunque cruce esa revisión global.
+8. **Given** un cambio de la propia fuente o presencia de CAT-05 dentro de [10:00,10:15),
+   **When** se recibe una lectura que cruza ese cambio, **Then** se rechaza explicando el
+   cambio de fuente o presencia, sin dividir el intervalo ni modificar datos aceptados.
+9. **Given** lecturas equivalentes de 0.000000000001 Wh, 0.000000000000001 kWh o
+   0.000000000000000001 MWh, **When** se validan en escenarios independientes admisibles,
+   **Then** todas representan exactamente 10^-15 kWh y se admiten; 10^-16 kWh se rechaza
+   por precisión no admitida y nunca se convierte en cero.
+10. **Given** lecturas de cero, 10^30 − 10^-15 kWh y 10^30 kWh, **When** se validan,
+    **Then** las dos primeras se admiten y la última se rechaza por exceder el dominio;
+    expresar cada cantidad equivalente en otra unidad no cambia ese resultado.
 
 ---
 
@@ -177,6 +202,14 @@ con intervalos faltantes; simular una consulta fallida y verificar cada estado v
 9. **Given** un medidor total instalado sin lectura válida para un intervalo y categorías
    parciales con lecturas disponibles, **When** se consulta CAT-01, **Then** se indica
    "Total medido" y "Sin datos" para ese intervalo, sin sustituirlo por una suma.
+10. **Given** un intervalo observado en las parciales durante el cual cambia la base o una
+    fuente contribuyente del total calculado, **When** se consulta CAT-01, **Then** no se
+    publica un total numérico, se indica que cambió la configuración de cálculo y se
+    identifican sus segmentos; las mediciones parciales válidas permanecen consultables.
+11. **Given** seis categorías parciales presentes, cada una con 10^30 − 10^-15 kWh para
+    el mismo intervalo y una configuración de cálculo estable, **When** se incorpora su
+    total calculado conforme al límite temporal aplicable, **Then** se conserva y muestra
+    exactamente 6 × (10^30 − 10^-15) kWh, sin aplicar al total el máximo de una lectura individual.
 
 ### Edge Cases
 
@@ -205,6 +238,14 @@ con intervalos faltantes; simular una consulta fallida y verificar cada estado v
   que se informa como duplicado. Un rechazo no elimina mediciones previamente aceptadas.
 - Si el filtro excluye todos los intervalos disponibles por cruzar sus límites, la consulta
   muestra "Sin datos" e informa de esa exclusión, sin prorratearlos.
+- Una revisión global ajena a la fuente de una categoría no invalida sus lecturas; cambiar
+  su propia fuente o presencia dentro del intervalo sí impide atribuirlo a una fuente única.
+- Un cambio de base o fuentes del total calculado dentro de un intervalo se informa sin
+  total numérico y sin descartar las mediciones parciales que sigan siendo válidas.
+- El dominio de una medición se comprueba en kWh después de la conversión exacta: no
+  admite 10^30 kWh ni positivos menores que 10^-15 kWh o no múltiplos de ese quantum.
+  Los ceros finales de una representación no cambian su valor ni su admisibilidad.
+  El total calculado admite hasta 6 × (10^30 − 10^-15) kWh, incluido ese máximo exacto.
 
 ## Requirements *(mandatory)*
 
@@ -227,12 +268,24 @@ en cada instalación es opcional:
   y permitir seleccionar cualquiera incluso cuando carezca de mediciones. DEBE permitir
   configurar qué categorías tienen medidor, sin exigir siete equipos físicos. Las categorías
   parciales sin medidor DEBEN identificarse como "Sin medidor", separadas de "Sin datos".
+  Cada modificación DEBE comprobar, en la misma operación coordinada con la recepción,
+  el último fin aceptado de las categorías cuya configuración cambia y la existencia de
+  historia aceptada. DEBE conservar esos límites tras retirar detalle y NO DEBE admitir
+  cambios de zona después de aceptar historia. Un estado no consultable DEBE impedir
+  modificar una configuración existente, sin cambios parciales ni ausencia de historia ficticia.
 - **FR-002**: ECS-EC DEBE recibir y conservar por separado mediciones de cualquier subconjunto
   de categorías con fuente configurada, sin exigir registros para las categorías ausentes.
   Cada medición DEBE identificar categoría, origen, valor de energía, unidad, inicio y fin del intervalo.
 - **FR-003**: La recepción DEBE aceptar valores numéricos finitos de consumo mayores o iguales a cero
-  en Wh, kWh o MWh, con origen y categoría conocidos e inicio anterior al fin. DEBE rechazar
-  otros registros indicando la causa, sin impedir la aceptación de registros válidos independientes.
+  en Wh, kWh o MWh, con origen y categoría conocidos e inicio anterior al fin, cuyo consumo
+  convertido exactamente a kWh satisfaga 0 ≤ E < 10^30 y sea múltiplo de 10^-15 kWh.
+  DEBE rechazar otros registros indicando la causa, sin impedir la aceptación de registros
+  válidos independientes. La validación de este dominio DEBE ser equivalente entre unidades
+  y NO DEBE redondear valores para admitirlos ni convertir un positivo en cero.
+  La presencia y fuente DEBEN ser válidas para esa categoría durante todo el intervalo.
+  Cruzar una revisión global que no cambie esa configuración NO DEBE invalidar la lectura;
+  un cambio de su propia fuente o presencia dentro del intervalo DEBE rechazarse con causa
+  explícita y sin dividirlo. La lectura conserva las revisiones aplicables a su procedencia.
 - **FR-004**: La recepción DEBE informar por registro si fue aceptado, omitido por duplicado
   o rechazado. Origen, categoría e intervalo identifican un reenvío: un valor equivalente se
   omite; un valor diferente se rechaza como conflicto, sin sobrescribir la medición existente.
@@ -250,6 +303,11 @@ en cada instalación es opcional:
   y las categorías faltantes hasta disponer de sus lecturas. Las categorías sin medidor se
   excluyen de la base. Un resultado calculado DEBE conservar la identificación de sus
   contribuciones y NO DEBE presentarse como una medición física del total.
+  La base y las fuentes contribuyentes DEBEN permanecer estables durante todo el intervalo.
+  Si cambian dentro de él, DEBE informarse la configuración por segmento y el motivo por
+  el que no hay total numérico; las mediciones parciales válidas DEBEN conservarse.
+  El total calculado DEBE admitir la suma exacta de sus hasta seis contribuciones válidas,
+  con máximo inclusivo 6 × (10^30 − 10^-15) kWh; no se le aplica el máximo individual de FR-003.
 - **FR-007**: Para cada categoría, la persona DEBE poder consultar un gráfico temporal con
   intervalos y valores identificables, incluidos los casos con una única medición o valor cero.
 - **FR-008**: Para cada categoría, la persona DEBE poder consultar una tabla con inicio y fin
@@ -302,13 +360,16 @@ en cada instalación es opcional:
 - **Categoría de consumo**: Uno de los siete elementos del catálogo, con identificador,
   nombre, alcance y presencia de medidor configurada; agrupa su serie. CAT-01 admite una
   procedencia medida o calculada y las categorías parciales pueden carecer de medidor.
+  Su revisión de fuente es propia de la categoría y no cambia por revisiones globales ajenas.
 - **Origen de medición**: Fuente identificable que entrega la serie consolidada de una categoría;
   permite rastrear los registros sin presuponer un equipo ni un mecanismo de envío concreto.
 - **Medición de energía**: Consumo recibido de una categoría durante un intervalo, con
   origen, valor, unidad originales y equivalencia en kWh para su consulta.
+  Conserva la revisión global vigente al inicio y la revisión de fuente válida en todo el intervalo.
 - **Total calculado**: Resultado de sumar las categorías presentes para un intervalo común,
   con valor en kWh, base configurada y referencias a todas las mediciones contribuyentes;
   su trazabilidad permite distinguirlo de una lectura directa y detectar datos incompletos.
+  Solo tiene valor numérico si su base y fuentes son estables en todo el intervalo.
 - **Período de consulta**: Inicio, fin y zona horaria elegidos, compartidos por gráfico y tabla.
 - **Resultado de recepción**: Clasificación de cada registro recibido como aceptado, duplicado
   o rechazado, con su causa cuando corresponda.
@@ -327,6 +388,8 @@ en cada instalación es opcional:
 - **SC-003**: Al recibir mediciones de subconjuntos de las siete categorías, reenvíos,
   conflictos y registros inválidos, el 100 % de los registros obtiene el resultado esperado:
   ningún duplicado, conflicto o rechazo modifica las mediciones válidas ya aceptadas.
+  Esto incluye cambios de revisión ajenos o propios de la fuente y fronteras numéricas
+  equivalentes en las tres unidades admitidas.
 - **SC-004**: En todos los escenarios de aceptación de categorías sin medidor, ausencia de
   lecturas, total calculado incompleto, cero medido o calculado, vacíos, carga y error,
   las personas pueden identificar el estado correcto y no encuentran valores inventados
@@ -354,6 +417,12 @@ en cada instalación es opcional:
 - **Configuración por entorno**: Desarrollo y producción tienen configuraciones, destinos,
   credenciales y datos propios. El plan debe concretar su provisión y documentación para
   que los valores del equipo local no se conviertan en destinos obligatorios en la VPS.
+- **Cambios de configuración**: La primera configuración puede cubrir una importación
+  histórica. Las posteriores entran en vigor al aplicarse, sin retroactividad ni programación,
+  respetando las incorporaciones ya aceptadas de las categorías afectadas, incluida CAT-01
+  si cambia su modo o configuración de cálculo. Las etiquetas descriptivas no cambian la
+  identidad de una fuente. La inicialización anterior a la recepción y las modificaciones
+  posteriores se distinguen; las segundas requieren comprobar el estado real de aceptación.
 - **Pila tecnológica pendiente**: Lenguajes, frameworks, almacenamiento, herramientas de
   despliegue, proveedor y características de la VPS se definirán en los planes técnicos
   antes de implementar las partes que dependan de ellos. Esta aclaración fija los entornos
@@ -377,7 +446,8 @@ en cada instalación es opcional:
   No sustituye la medición general requerida por el análisis de costos BT4.3 de la spec-004;
   sin medidor total debe identificarse la falta de esa base para los costos.
 - **Fórmula y alcance del total calculado**: Para un intervalo I y la base no vacía P de
-  categorías parciales presentes, T(I) = suma de E(c, I) para cada c de P, convertidas a kWh.
+  categorías parciales presentes, con P y sus fuentes estables durante I,
+  T(I) = suma de E(c, I) para cada c de P, convertidas a kWh.
   Cada contribución debe cubrir exactamente I. No se prorratea ni se interpolan lecturas;
   si alguna falta o es inválida, el total queda sin valor e identificado como incompleto.
   Se registran la base aplicable y los orígenes utilizados, sin inferir qué cargas del
@@ -386,6 +456,10 @@ en cada instalación es opcional:
   agregaciones adicionales por día, mes o año; cada valor representa su intervalo recibido
   o calculado según FR-006.
   Se conserva la precisión del dato convertido en ambas vistas.
+- **Dominio numérico**: El límite individual se define en energía normalizada, no como rango
+  físico del edificio: 0 ≤ E < 10^30 kWh, con quantum exacto de 10^-15 kWh. El cero es válido;
+  el mínimo positivo admitido es 10^-15 kWh. Los originales y su precisión se conservan.
+  La suma CAT-01 tiene el dominio derivado de hasta seis contribuciones, sin redondeo.
 - **Período inicial**: Sin una selección previa, se consulta desde el inicio de la medición
   más antigua hasta el fin de la más reciente del edificio. Si no hay mediciones, se usa
   el día actual del edificio y se muestra "Sin datos". El período es común a las siete
@@ -399,3 +473,10 @@ en cada instalación es opcional:
   control de equipos, comparación simultánea de categorías ni conciliación entre total y parciales.
 - **Gobierno del proyecto**: Aplica la constitución de ECS-EC v1.0.0. El plan debe comprobar
   sus restricciones de arquitectura, documentación e integridad antes de la implementación.
+
+## Contexto de planificación compartido
+
+Consultar [arquitectura](../../docs/architecture.md) y
+[hoja de ruta](../../docs/implementation-roadmap.md). Las [tareas integrales](tasks.md)
+conservan la trazabilidad de responsabilidades antes concentradas en 008 e incluyen las
+cuatro historias; su generación no cambia los requisitos ni acredita implementación.

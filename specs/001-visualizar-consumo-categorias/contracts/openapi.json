@@ -1,0 +1,2356 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ECS-EC — Consumo por categorías",
+    "version": "1.0.0",
+    "description": "Diseño spec-001; ver http.md e integrations.md. No acredita implementación. Aclaraciones I1/U1/A1 aprobadas: vigencia por categoría, límites históricos de reconfiguración y dominio numérico exacto."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "SessionCookie": []
+    }
+  ],
+  "paths": {
+    "/consumption/catalog": {
+      "get": {
+        "operationId": "readConsumptionCatalog",
+        "summary": "Catálogo y período inicial común",
+        "description": "Operador/Administrador; siete categorías y extensión global conservada o día actual del edificio. Cambiar categoría no reinicia período.",
+        "tags": [
+          "Consumption"
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado coherente; sin datos es éxito con estado explícito.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catalog"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida o ausente.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos/renovación/CSRF/origen rechazados.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos o período inválidos.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependencia de datos no disponible.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/consumption/categories/{category_id}/detail": {
+      "get": {
+        "operationId": "readConsumptionDetail",
+        "summary": "Detalle por intervalo para gráfico y tabla",
+        "description": "Operador/Administrador; contención completa y orden UTC. GET no incorpora totales ni modifica conservación. No sustituir CAT-01 física por suma. Revisiones globales ajenas no invalidan lecturas. Firma calculada cambiante se informa como calculation_configuration_changed con segmentos y sin valor; lecturas individuales y totales tienen dominios diferentes.",
+        "tags": [
+          "Consumption"
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado coherente; sin datos es éxito con estado explícito.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida o ausente.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos/renovación/CSRF/origen rechazados.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Categoría inexistente.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos o período inválidos.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependencia de datos no disponible.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CAT-01",
+                "CAT-02",
+                "CAT-03",
+                "CAT-04",
+                "CAT-05",
+                "CAT-06",
+                "CAT-07"
+              ]
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+              "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+              "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+            }
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ]
+      }
+    },
+    "/consumption/configuration": {
+      "get": {
+        "operationId": "readConsumptionConfiguration",
+        "summary": "Consultar configuración de fuentes",
+        "description": "Solo Administrador técnico; no revelar configuración al Operador.",
+        "tags": [
+          "Consumption"
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado coherente; sin datos es éxito con estado explícito.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Configuration"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida o ausente.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos/renovación/CSRF/origen rechazados.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Primera configuración aún no registrada.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos o período inválidos.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependencia de datos no disponible.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "replaceConsumptionConfiguration",
+        "summary": "Crear revisión de configuración de fuentes",
+        "description": "Solo Administrador; origen permitido y CSRF. Operación atómica con auditoría/eventos. No modifica historia ni zona con datos. Sin cambio efectivo conserva revisión sin nuevo evento. Primera configuración puede preceder a 002. Modificaciones posteriores requieren read_reconfiguration_bounds bajo los bloqueos de recepción, sin pérdida de historia tras retirar detalle; ausencia/fallo/claves incompletas produce 503. category_revision es derivada por servidor.",
+        "tags": [
+          "Consumption"
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado coherente; sin datos es éxito con estado explícito.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Configuration"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida o ausente.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permisos/renovación/CSRF/origen rechazados.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revisión esperada o configuración incompatible.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos o período inválidos.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependencia de datos no disponible.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigurationInput"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "SessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "ecs_ec_session",
+        "description": "Sesión opaca y permisos actuales spec-006; HttpOnly, SameSite=Lax, Secure bajo HTTPS."
+      }
+    },
+    "schemas": {
+      "Period": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "timezone"
+        ],
+        "description": "Intervalo [start,end), start < end; zona IANA del edificio."
+      },
+      "Category": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "CAT-01",
+              "CAT-02",
+              "CAT-03",
+              "CAT-04",
+              "CAT-05",
+              "CAT-06",
+              "CAT-07"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "scope"
+        ]
+      },
+      "CategoryStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "CAT-01",
+              "CAT-02",
+              "CAT-03",
+              "CAT-04",
+              "CAT-05",
+              "CAT-06",
+              "CAT-07"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "has_meter": {
+            "type": "boolean"
+          },
+          "source_mode": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "calculated",
+              "unavailable"
+            ]
+          },
+          "base_categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CAT-02",
+                "CAT-03",
+                "CAT-04",
+                "CAT-05",
+                "CAT-06",
+                "CAT-07"
+              ]
+            },
+            "uniqueItems": true,
+            "maxItems": 6
+          },
+          "category_revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true,
+            "description": "Positiva tras configurar; null antes de la primera configuración. Cambios globales ajenos no la incrementan."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "scope",
+          "has_meter",
+          "source_mode",
+          "base_categories",
+          "category_revision"
+        ]
+      },
+      "Catalog": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "building_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cutoff_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "default_period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryStatus"
+            },
+            "minItems": 7,
+            "maxItems": 7
+          }
+        },
+        "required": [
+          "building_id",
+          "timezone",
+          "cutoff_at",
+          "default_period",
+          "categories"
+        ],
+        "description": "Exactamente CAT-01..07 ordenadas y estado actual; sin correspondencias nativas ni secretos."
+      },
+      "SourceEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category_id": {
+            "type": "string",
+            "enum": [
+              "CAT-01",
+              "CAT-02",
+              "CAT-03",
+              "CAT-04",
+              "CAT-05",
+              "CAT-06",
+              "CAT-07"
+            ]
+          },
+          "has_meter": {
+            "type": "boolean"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "category_id",
+          "has_meter",
+          "source_id",
+          "source_label"
+        ],
+        "description": "Con medidor UUID/etiqueta obligatorios; sin medidor ambos null. Fuente única por categoría.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "has_meter": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "source_label": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "has_meter": {
+                  "const": false
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source_id": {
+                  "type": "null"
+                },
+                "source_label": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ConfigurationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "effective_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceEntry"
+            },
+            "minItems": 7,
+            "maxItems": 7
+          }
+        },
+        "required": [
+          "expected_revision",
+          "effective_from",
+          "timezone",
+          "categories"
+        ],
+        "description": "Reemplazo completo; primera revisión expected_revision=0. effective_from=null usa reloj; revisiones posteriores efectivas al aplicar, sin retroactividad ni programación. Solo primera configuración puede preceder al proveedor 002; posteriores cambios consultan límites históricos atómicos, fallo/incompletitud produce 503. No enviar category_revision.",
+        "examples": [
+          {
+            "expected_revision": 0,
+            "effective_from": "2026-10-01T00:00:00-03:00",
+            "timezone": "America/Santiago",
+            "categories": [
+              {
+                "category_id": "CAT-01",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null
+              },
+              {
+                "category_id": "CAT-02",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null
+              },
+              {
+                "category_id": "CAT-03",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null
+              },
+              {
+                "category_id": "CAT-04",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null
+              },
+              {
+                "category_id": "CAT-05",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null
+              },
+              {
+                "category_id": "CAT-06",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null
+              },
+              {
+                "category_id": "CAT-07",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null
+              }
+            ]
+          }
+        ]
+      },
+      "Configuration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "building_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConfiguredSourceEntry"
+            },
+            "minItems": 7,
+            "maxItems": 7
+          }
+        },
+        "required": [
+          "id",
+          "building_id",
+          "revision",
+          "effective_from",
+          "recorded_at",
+          "timezone",
+          "categories"
+        ],
+        "examples": [
+          {
+            "effective_from": "2026-10-01T00:00:00-03:00",
+            "timezone": "America/Santiago",
+            "categories": [
+              {
+                "category_id": "CAT-01",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null,
+                "category_revision": 1
+              },
+              {
+                "category_id": "CAT-02",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null,
+                "category_revision": 1
+              },
+              {
+                "category_id": "CAT-03",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null,
+                "category_revision": 1
+              },
+              {
+                "category_id": "CAT-04",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null,
+                "category_revision": 1
+              },
+              {
+                "category_id": "CAT-05",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null,
+                "category_revision": 1
+              },
+              {
+                "category_id": "CAT-06",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null,
+                "category_revision": 1
+              },
+              {
+                "category_id": "CAT-07",
+                "has_meter": false,
+                "source_id": null,
+                "source_label": null,
+                "category_revision": 1
+              }
+            ],
+            "id": "00000000-0000-4000-8000-000000000800",
+            "building_id": "00000000-0000-4000-8000-000000000004",
+            "revision": 1,
+            "recorded_at": "2026-10-01T00:00:00Z"
+          }
+        ]
+      },
+      "ConfigurationSegment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "configuration_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source_mode": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "calculated",
+              "unavailable"
+            ]
+          },
+          "base_categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CAT-02",
+                "CAT-03",
+                "CAT-04",
+                "CAT-05",
+                "CAT-06",
+                "CAT-07"
+              ]
+            },
+            "uniqueItems": true,
+            "maxItems": 6
+          },
+          "category_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "basis_sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BasisSource"
+            },
+            "uniqueItems": true,
+            "maxItems": 6
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "configuration_revision",
+          "source_mode",
+          "base_categories",
+          "category_revision",
+          "source_id",
+          "basis_sources"
+        ],
+        "description": "Segmento histórico de categoría; revisión global y category_revision distintas. Revisiones globales ajenas pueden compartir categoría revision. base_categories y basis_sources identifican exactamente el mismo conjunto.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "source_mode": {
+                  "const": "measured"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "base_categories": {
+                  "maxItems": 0
+                },
+                "basis_sources": {
+                  "maxItems": 0
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "source_mode": {
+                  "const": "calculated"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source_id": {
+                  "type": "null"
+                },
+                "base_categories": {
+                  "minItems": 1
+                },
+                "basis_sources": {
+                  "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "source_mode": {
+                  "const": "unavailable"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source_id": {
+                  "type": "null"
+                },
+                "base_categories": {
+                  "maxItems": 0
+                },
+                "basis_sources": {
+                  "maxItems": 0
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Contribution": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "measurement_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "measurement_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "category_id": {
+            "type": "string",
+            "enum": [
+              "CAT-02",
+              "CAT-03",
+              "CAT-04",
+              "CAT-05",
+              "CAT-06",
+              "CAT-07"
+            ]
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "energy_kwh": {
+            "$ref": "#/components/schemas/MeasurementEnergyKwh"
+          },
+          "category_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "measurement_id",
+          "measurement_revision",
+          "category_id",
+          "source_id",
+          "start",
+          "end",
+          "energy_kwh",
+          "category_revision"
+        ]
+      },
+      "MeasuredOrigin": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "measured"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "original_value": {
+            "$ref": "#/components/schemas/OriginalEnergyValue"
+          },
+          "original_unit": {
+            "type": "string",
+            "enum": [
+              "Wh",
+              "kWh",
+              "MWh"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "source_id",
+          "original_value",
+          "original_unit"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "original_unit": {
+                  "const": "Wh"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "original_value": {
+                  "pattern": "^(?:0|[1-9][0-9]{0,32})(?:\\.[0-9]{1,12})?$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "original_unit": {
+                  "const": "kWh"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "original_value": {
+                  "pattern": "^(?:0|[1-9][0-9]{0,29})(?:\\.[0-9]{1,15})?$"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "original_unit": {
+                  "const": "MWh"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "original_value": {
+                  "pattern": "^(?:0|[1-9][0-9]{0,26})(?:\\.[0-9]{1,18})?$"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "CalculatedOrigin": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "calculated"
+          },
+          "base_categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CAT-02",
+                "CAT-03",
+                "CAT-04",
+                "CAT-05",
+                "CAT-06",
+                "CAT-07"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 6,
+            "uniqueItems": true
+          },
+          "contributions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contribution"
+            },
+            "minItems": 1,
+            "maxItems": 6
+          }
+        },
+        "required": [
+          "kind",
+          "base_categories",
+          "contributions"
+        ],
+        "description": "Una contribución por categoría de base, todas en el mismo intervalo; CAT-01 no contribuye."
+      },
+      "DetailRow": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "energy_kwh": {
+            "$ref": "#/components/schemas/CalculatedEnergyKwh"
+          },
+          "first_incorporated_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "configuration_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "origin": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MeasuredOrigin"
+              },
+              {
+                "$ref": "#/components/schemas/CalculatedOrigin"
+              }
+            ],
+            "discriminator": {
+              "propertyName": "kind",
+              "mapping": {
+                "measured": "#/components/schemas/MeasuredOrigin",
+                "calculated": "#/components/schemas/CalculatedOrigin"
+              }
+            }
+          },
+          "category_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "record_id",
+          "revision",
+          "start",
+          "end",
+          "energy_kwh",
+          "first_incorporated_at",
+          "configuration_revision",
+          "origin",
+          "category_revision"
+        ],
+        "description": "Registro incorporado totalmente contenido. configuration_revision es global vigente en start; category_revision es estable en todo [start,end). first_incorporated_at unifica aceptación física/incorporación calculada. Intervalos con offset del edificio.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "origin": {
+                  "properties": {
+                    "kind": {
+                      "const": "measured"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "energy_kwh": {
+                  "$ref": "#/components/schemas/MeasurementEnergyKwh"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Diagnostic": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "configuration_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "missing_contributions",
+              "pending_incorporation",
+              "calculation_configuration_changed"
+            ]
+          },
+          "missing_categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CAT-02",
+                "CAT-03",
+                "CAT-04",
+                "CAT-05",
+                "CAT-06",
+                "CAT-07"
+              ]
+            },
+            "uniqueItems": true,
+            "maxItems": 6
+          },
+          "next_admissible_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "configuration_segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConfigurationSegment"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "configuration_revision",
+          "reason_code",
+          "missing_categories",
+          "next_admissible_at",
+          "category_revision",
+          "configuration_segments"
+        ],
+        "description": "Diagnóstico sin valor numérico. Cambio de firma calculada conserva segmentos con al menos dos category_revision distintas; nunca se presenta como faltantes ni espera. Los segmentos cubren el intervalo.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "reason_code": {
+                  "const": "missing_contributions"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "category_revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "missing_categories": {
+                  "minItems": 1
+                },
+                "next_admissible_at": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "reason_code": {
+                  "const": "pending_incorporation"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "category_revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "missing_categories": {
+                  "maxItems": 0
+                },
+                "next_admissible_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+                  "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "reason_code": {
+                  "const": "calculation_configuration_changed"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "category_revision": {
+                  "type": "null"
+                },
+                "missing_categories": {
+                  "maxItems": 0
+                },
+                "next_admissible_at": {
+                  "type": "null"
+                },
+                "configuration_segments": {
+                  "minItems": 2
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Warning": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "crossing_intervals_excluded",
+              "observed_gaps",
+              "no_calculation_basis",
+              "partial_calculation_scope",
+              "source_unavailable_in_segment"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "code",
+          "count",
+          "message"
+        ]
+      },
+      "DetailResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_ref": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "building_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "cutoff_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+            "description": "Instante ISO 8601 con offset; precisión máxima de microsegundos."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "available",
+              "no_meter",
+              "no_data",
+              "incomplete"
+            ]
+          },
+          "source_mode": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "calculated",
+              "mixed",
+              "unavailable"
+            ]
+          },
+          "configuration_segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConfigurationSegment"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DetailRow"
+            }
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Diagnostic"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          }
+        },
+        "required": [
+          "request_ref",
+          "building_id",
+          "category",
+          "period",
+          "cutoff_at",
+          "state",
+          "source_mode",
+          "configuration_segments",
+          "rows",
+          "diagnostics",
+          "warnings"
+        ],
+        "description": "Conjunto completo y ordenado para ambas vistas, sin truncamiento ni downsampling. Diagnósticos separados de energía.",
+        "examples": [
+          {
+            "request_ref": "00000000-0000-4000-8000-000000000003",
+            "building_id": "00000000-0000-4000-8000-000000000004",
+            "category": {
+              "id": "CAT-03",
+              "name": "Iluminación exterior",
+              "scope": "Energía eléctrica"
+            },
+            "period": {
+              "start": "2026-10-01T00:00:00-03:00",
+              "end": "2026-10-01T00:15:00-03:00",
+              "timezone": "America/Santiago"
+            },
+            "cutoff_at": "2026-10-02T00:00:00Z",
+            "state": "available",
+            "source_mode": "measured",
+            "configuration_segments": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 1,
+                "source_mode": "measured",
+                "base_categories": [],
+                "category_revision": 1,
+                "source_id": "00000000-0000-4000-8000-000000000002",
+                "basis_sources": []
+              }
+            ],
+            "rows": [
+              {
+                "record_id": "00000000-0000-4000-8000-000000000001",
+                "revision": 1,
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "energy_kwh": "0.000000001",
+                "first_incorporated_at": "2026-10-02T00:00:00Z",
+                "configuration_revision": 1,
+                "origin": {
+                  "kind": "measured",
+                  "source_id": "00000000-0000-4000-8000-000000000002",
+                  "original_value": "0.000001",
+                  "original_unit": "Wh"
+                },
+                "category_revision": 1
+              }
+            ],
+            "diagnostics": [],
+            "warnings": []
+          },
+          {
+            "request_ref": "00000000-0000-4000-8000-000000000003",
+            "building_id": "00000000-0000-4000-8000-000000000004",
+            "category": {
+              "id": "CAT-01",
+              "name": "Energía eléctrica total",
+              "scope": "Total calculado"
+            },
+            "period": {
+              "start": "2026-10-01T00:00:00-03:00",
+              "end": "2026-10-01T00:15:00-03:00",
+              "timezone": "America/Santiago"
+            },
+            "cutoff_at": "2026-10-02T00:00:00Z",
+            "state": "available",
+            "source_mode": "calculated",
+            "configuration_segments": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 1,
+                "source_mode": "calculated",
+                "base_categories": [
+                  "CAT-03",
+                  "CAT-05"
+                ],
+                "category_revision": 1,
+                "source_id": null,
+                "basis_sources": [
+                  {
+                    "category_id": "CAT-03",
+                    "source_id": "00000000-0000-4000-8000-000000000105"
+                  },
+                  {
+                    "category_id": "CAT-05",
+                    "source_id": "00000000-0000-4000-8000-000000000106"
+                  }
+                ]
+              }
+            ],
+            "rows": [
+              {
+                "record_id": "00000000-0000-4000-8000-000000000001",
+                "revision": 1,
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "energy_kwh": "20",
+                "first_incorporated_at": "2026-10-02T00:00:00Z",
+                "configuration_revision": 1,
+                "origin": {
+                  "kind": "calculated",
+                  "base_categories": [
+                    "CAT-03",
+                    "CAT-05"
+                  ],
+                  "contributions": [
+                    {
+                      "measurement_id": "00000000-0000-4000-8000-000000000005",
+                      "measurement_revision": 1,
+                      "category_id": "CAT-03",
+                      "source_id": "00000000-0000-4000-8000-000000000105",
+                      "start": "2026-10-01T00:00:00-03:00",
+                      "end": "2026-10-01T00:15:00-03:00",
+                      "energy_kwh": "12",
+                      "category_revision": 1
+                    },
+                    {
+                      "measurement_id": "00000000-0000-4000-8000-000000000006",
+                      "measurement_revision": 1,
+                      "category_id": "CAT-05",
+                      "source_id": "00000000-0000-4000-8000-000000000106",
+                      "start": "2026-10-01T00:00:00-03:00",
+                      "end": "2026-10-01T00:15:00-03:00",
+                      "energy_kwh": "8",
+                      "category_revision": 1
+                    }
+                  ]
+                },
+                "category_revision": 1
+              }
+            ],
+            "diagnostics": [],
+            "warnings": []
+          },
+          {
+            "request_ref": "00000000-0000-4000-8000-000000000003",
+            "building_id": "00000000-0000-4000-8000-000000000004",
+            "category": {
+              "id": "CAT-01",
+              "name": "Energía eléctrica total",
+              "scope": "Total calculado"
+            },
+            "period": {
+              "start": "2026-10-01T00:00:00-03:00",
+              "end": "2026-10-01T00:15:00-03:00",
+              "timezone": "America/Santiago"
+            },
+            "cutoff_at": "2026-10-02T00:00:00Z",
+            "state": "incomplete",
+            "source_mode": "calculated",
+            "configuration_segments": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 1,
+                "source_mode": "calculated",
+                "base_categories": [
+                  "CAT-03",
+                  "CAT-05"
+                ],
+                "category_revision": 1,
+                "source_id": null,
+                "basis_sources": [
+                  {
+                    "category_id": "CAT-03",
+                    "source_id": "00000000-0000-4000-8000-000000000105"
+                  },
+                  {
+                    "category_id": "CAT-05",
+                    "source_id": "00000000-0000-4000-8000-000000000106"
+                  }
+                ]
+              }
+            ],
+            "rows": [],
+            "diagnostics": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 1,
+                "reason_code": "missing_contributions",
+                "missing_categories": [
+                  "CAT-05"
+                ],
+                "next_admissible_at": null,
+                "category_revision": 1,
+                "configuration_segments": [
+                  {
+                    "start": "2026-10-01T00:00:00-03:00",
+                    "end": "2026-10-01T00:15:00-03:00",
+                    "configuration_revision": 1,
+                    "source_mode": "calculated",
+                    "base_categories": [
+                      "CAT-03",
+                      "CAT-05"
+                    ],
+                    "category_revision": 1,
+                    "source_id": null,
+                    "basis_sources": [
+                      {
+                        "category_id": "CAT-03",
+                        "source_id": "00000000-0000-4000-8000-000000000105"
+                      },
+                      {
+                        "category_id": "CAT-05",
+                        "source_id": "00000000-0000-4000-8000-000000000106"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warnings": []
+          },
+          {
+            "request_ref": "00000000-0000-4000-8000-000000000003",
+            "building_id": "00000000-0000-4000-8000-000000000004",
+            "category": {
+              "id": "CAT-01",
+              "name": "Energía eléctrica total",
+              "scope": "Total calculado"
+            },
+            "period": {
+              "start": "2026-10-01T00:00:00-03:00",
+              "end": "2026-10-01T00:15:00-03:00",
+              "timezone": "America/Santiago"
+            },
+            "cutoff_at": "2026-10-02T00:00:00Z",
+            "state": "incomplete",
+            "source_mode": "calculated",
+            "configuration_segments": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:05:00-03:00",
+                "configuration_revision": 1,
+                "source_mode": "calculated",
+                "base_categories": [
+                  "CAT-03",
+                  "CAT-05"
+                ],
+                "category_revision": 1,
+                "source_id": null,
+                "basis_sources": [
+                  {
+                    "category_id": "CAT-03",
+                    "source_id": "00000000-0000-4000-8000-000000000105"
+                  },
+                  {
+                    "category_id": "CAT-05",
+                    "source_id": "00000000-0000-4000-8000-000000000106"
+                  }
+                ]
+              },
+              {
+                "start": "2026-10-01T00:05:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 2,
+                "source_mode": "calculated",
+                "base_categories": [
+                  "CAT-03",
+                  "CAT-05"
+                ],
+                "category_revision": 2,
+                "source_id": null,
+                "basis_sources": [
+                  {
+                    "category_id": "CAT-03",
+                    "source_id": "00000000-0000-4000-8000-000000000900"
+                  },
+                  {
+                    "category_id": "CAT-05",
+                    "source_id": "00000000-0000-4000-8000-000000000106"
+                  }
+                ]
+              }
+            ],
+            "rows": [],
+            "diagnostics": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 1,
+                "reason_code": "calculation_configuration_changed",
+                "missing_categories": [],
+                "next_admissible_at": null,
+                "category_revision": null,
+                "configuration_segments": [
+                  {
+                    "start": "2026-10-01T00:00:00-03:00",
+                    "end": "2026-10-01T00:05:00-03:00",
+                    "configuration_revision": 1,
+                    "source_mode": "calculated",
+                    "base_categories": [
+                      "CAT-03",
+                      "CAT-05"
+                    ],
+                    "category_revision": 1,
+                    "source_id": null,
+                    "basis_sources": [
+                      {
+                        "category_id": "CAT-03",
+                        "source_id": "00000000-0000-4000-8000-000000000105"
+                      },
+                      {
+                        "category_id": "CAT-05",
+                        "source_id": "00000000-0000-4000-8000-000000000106"
+                      }
+                    ]
+                  },
+                  {
+                    "start": "2026-10-01T00:05:00-03:00",
+                    "end": "2026-10-01T00:15:00-03:00",
+                    "configuration_revision": 2,
+                    "source_mode": "calculated",
+                    "base_categories": [
+                      "CAT-03",
+                      "CAT-05"
+                    ],
+                    "category_revision": 2,
+                    "source_id": null,
+                    "basis_sources": [
+                      {
+                        "category_id": "CAT-03",
+                        "source_id": "00000000-0000-4000-8000-000000000900"
+                      },
+                      {
+                        "category_id": "CAT-05",
+                        "source_id": "00000000-0000-4000-8000-000000000106"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warnings": []
+          },
+          {
+            "request_ref": "00000000-0000-4000-8000-000000000003",
+            "building_id": "00000000-0000-4000-8000-000000000004",
+            "category": {
+              "id": "CAT-01",
+              "name": "Energía eléctrica total",
+              "scope": "Total calculado"
+            },
+            "period": {
+              "start": "2026-10-01T00:00:00-03:00",
+              "end": "2026-10-01T00:15:00-03:00",
+              "timezone": "America/Santiago"
+            },
+            "cutoff_at": "2026-10-02T00:00:00Z",
+            "state": "incomplete",
+            "source_mode": "calculated",
+            "configuration_segments": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 1,
+                "source_mode": "calculated",
+                "base_categories": [
+                  "CAT-03",
+                  "CAT-05"
+                ],
+                "category_revision": 1,
+                "source_id": null,
+                "basis_sources": [
+                  {
+                    "category_id": "CAT-03",
+                    "source_id": "00000000-0000-4000-8000-000000000105"
+                  },
+                  {
+                    "category_id": "CAT-05",
+                    "source_id": "00000000-0000-4000-8000-000000000106"
+                  }
+                ]
+              }
+            ],
+            "rows": [],
+            "diagnostics": [
+              {
+                "start": "2026-10-01T00:00:00-03:00",
+                "end": "2026-10-01T00:15:00-03:00",
+                "configuration_revision": 1,
+                "reason_code": "pending_incorporation",
+                "missing_categories": [],
+                "next_admissible_at": "2026-10-02T00:15:00Z",
+                "category_revision": 1,
+                "configuration_segments": [
+                  {
+                    "start": "2026-10-01T00:00:00-03:00",
+                    "end": "2026-10-01T00:15:00-03:00",
+                    "configuration_revision": 1,
+                    "source_mode": "calculated",
+                    "base_categories": [
+                      "CAT-03",
+                      "CAT-05"
+                    ],
+                    "category_revision": 1,
+                    "source_id": null,
+                    "basis_sources": [
+                      {
+                        "category_id": "CAT-03",
+                        "source_id": "00000000-0000-4000-8000-000000000105"
+                      },
+                      {
+                        "category_id": "CAT-05",
+                        "source_id": "00000000-0000-4000-8000-000000000106"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "warnings": []
+          }
+        ]
+      },
+      "FieldError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path",
+          "code",
+          "message"
+        ]
+      },
+      "Problem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operation_ref": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "field_errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "detail",
+          "operation_ref",
+          "field_errors"
+        ]
+      },
+      "MeasurementEnergyKwh": {
+        "type": "string",
+        "pattern": "^(?:0|[1-9][0-9]{0,29})(?:\\.[0-9]{1,15})?$",
+        "description": "Dominio individual: 0 <= E < 10^30 kWh, múltiplo exacto de 10^-15 kWh. Cadena fija; canonicalizar ceros insignificantes sin redondear.",
+        "examples": [
+          "0",
+          "0.000000000000001",
+          "999999999999999999999999999999.999999999999999"
+        ]
+      },
+      "CalculatedEnergyKwh": {
+        "type": "string",
+        "pattern": "^(?:0|[1-9][0-9]{0,29}|[1-5][0-9]{30})(?:\\.[0-9]{1,15})?$",
+        "not": {
+          "enum": [
+            "5999999999999999999999999999999.999999999999995",
+            "5999999999999999999999999999999.999999999999996",
+            "5999999999999999999999999999999.999999999999997",
+            "5999999999999999999999999999999.999999999999998",
+            "5999999999999999999999999999999.999999999999999"
+          ]
+        },
+        "description": "Dominio calculado inclusivo: 0 <= T <= 6*(10^30-10^-15) kWh, múltiplo de 10^-15. No aplicar máximo individual; el valor debe coincidir exactamente con sus contribuciones.",
+        "examples": [
+          "0",
+          "20",
+          "5999999999999999999999999999999.999999999999994"
+        ]
+      },
+      "OriginalEnergyValue": {
+        "type": "string",
+        "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+        "description": "Valor original en notación fija exacta; validar el dominio tras convertir según original_unit. La evidencia conserva la representación nativa completa."
+      },
+      "BasisSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category_id": {
+            "type": "string",
+            "enum": [
+              "CAT-02",
+              "CAT-03",
+              "CAT-04",
+              "CAT-05",
+              "CAT-06",
+              "CAT-07"
+            ]
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "category_id",
+          "source_id"
+        ]
+      },
+      "ConfiguredSourceEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category_id": {
+            "type": "string",
+            "enum": [
+              "CAT-01",
+              "CAT-02",
+              "CAT-03",
+              "CAT-04",
+              "CAT-05",
+              "CAT-06",
+              "CAT-07"
+            ]
+          },
+          "has_meter": {
+            "type": "boolean"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "readOnly": true
+          }
+        },
+        "required": [
+          "category_id",
+          "has_meter",
+          "source_id",
+          "source_label",
+          "category_revision"
+        ],
+        "description": "Salida de configuración: campos de fuente y revisión positiva por categoría calculada por servidor; no se acepta category_revision en PUT.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "has_meter": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "source_label": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "has_meter": {
+                  "const": false
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source_id": {
+                  "type": "null"
+                },
+                "source_label": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
