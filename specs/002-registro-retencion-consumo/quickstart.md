@@ -2,9 +2,10 @@
 
 [Plan](plan.md), [modelo](data-model.md), [HTTP](contracts/http.md),
 [integraciones](contracts/integrations.md), [UI](contracts/ui.md).
-Guía de la implementación prevista. El repositorio todavía carece de aplicación,
-manifiestos y fixtures ejecutables; los comandos siguientes se habilitarán al implementar.
-No se han ejecutado pruebas funcionales ni se acredita aceptación con estos documentos.
+Recepción, almacenamiento, calendario/agregados sincrónicos y recuperación CAT-01
+están implementados y probados localmente: [aceptación parcial](validation/acceptance.md).
+Fachada/UI001, consulta agrupada, retirada y aceptación integral siguen pendientes.
+Los escenarios posteriores describen los objetivos restantes, no resultados ya obtenidos.
 
 ## Prerrequisitos reales
 
@@ -22,46 +23,84 @@ confirmados de una instalación. Secretos en `.env` ignorado/gestor de VPS.
 de reenviar novedades rechazadas desde la fecha admisible; fixtures no acreditan SFTP.
 Correo y visores no son prerrequisitos de recepción/consulta.
 
-## Preparación y comandos previstos
+## Comandos ejecutables del incremento interno
 
-Desde la raíz, después de implementar los prerrequisitos:
+Desde la raíz, usar CPython 3.14/uv y Node >=20.9 con los locks existentes. Preparar una
+DB PostgreSQL 18 separada terminada en `_test`; los fixtures rechazan la DB de aplicación.
+Ejemplo exclusivamente sintético usado en esta ejecución:
 
 ```sh
-cp .env.example .env
 uv sync --locked --group dev
 npm --prefix frontend ci
-npm --prefix frontend run build
-docker compose build app
-docker compose up -d db
-docker compose run --rm app uv run --locked alembic -c backend/alembic.ini upgrade head
-docker compose up -d app
+docker run -d --name ecs-spec002-test -e POSTGRES_USER=ecs_test -e POSTGRES_PASSWORD=spec002-synthetic -e POSTGRES_DB=ecs_history_test -p 127.0.0.1:55450:5432 postgres:18.3-bookworm@sha256:80630f83606d8db77d30b3851b16a9f78be2d0d4dda6f7b82a1fdca5ebe3acba
+docker exec ecs-spec002-test pg_isready -U ecs_test -d ecs_history_test
+export TEST_DATABASE_URL='postgresql+psycopg://ecs_test:spec002-synthetic@127.0.0.1:55450/ecs_history_test'
+DATABASE_URL="$TEST_DATABASE_URL" uv run --locked alembic -c backend/alembic.ini upgrade head
 uv run --locked pytest backend/tests/unit/consumption backend/tests/integration/consumption backend/tests/contract/consumption
-npm --prefix frontend test -- --run
-npm --prefix frontend exec -- playwright test tests/e2e/consumption.spec.ts tests/e2e/consumption-history-states.spec.ts
+uv run --locked pytest backend/tests --cov=ecs_ec.consumption --cov-report=term-missing
+npm --prefix frontend test -- --run --maxWorkers=1 --no-file-parallelism
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+DATABASE_URL="$TEST_DATABASE_URL" uv run --locked alembic -c backend/alembic.ini check
+docker rm -fv ecs-spec002-test
 ```
 
-Completar `.env` conforme a plataforma antes de arrancar. Pruebas usan
-`TEST_DATABASE_URL` a una DB separada comprobada como desechable; nunca base de aplicación
-o producción. El harness controla reloj/tzdata internamente, sin endpoint público.
-Preparación de Playwright crea usuarios y configuración mediante servicios reales y
-levanta aplicación con su propia DB.
+Esperar a que `pg_isready` confirme salud antes de migrar. La migración002 real es
+`47457bdabdfa`, parent `cb63a76198be`; habilita `btree_gist` y necesita sus permisos.
+También se comprobó upgrade de una configuración001 existente, sin crear aceptaciones.
+El último comando elimina únicamente el contenedor/volumen de prueba de este ejemplo.
 
-Los fixtures llaman a `Reception.accept` en vez de INSERT que eluda validación.
-Enviar historia de una categoría en un lote o avanzar reloj >=900 segundos entre
-actualizaciones nuevas. La cadencia no exige esperar quince minutos entre cada lectura
-del lote. Incluir un historial sintético de >=12 meses para las siete categorías.
+`history_environment`, `thirteen_month_records` y `consumption_reception_environment`
+están en `backend/tests/integration/consumption/conftest.py`. Proveen servicios reales
+001/002/009, reloj interno y datos sintéticos. Los 91 registros de trece meses/siete
+categorías entran por `Reception.accept`, no mediante INSERT de mediciones.
+Los TRUNCATE de fixtures aíslan la DB desechable y no acreditan retirada funcional.
 
-Consulta manual, tras autenticar por el flujo real 006 y guardar cookie de prueba en
-archivo protegido local, con `APP_PUBLIC_BASE_URL` configurado por plataforma:
+## Recepción y recuperación internas
 
-```sh
-curl --fail-with-body --cookie /tmp/ecs-ec-history-session.cookies --get "$APP_PUBLIC_BASE_URL/api/v1/consumption/categories/CAT-03/aggregates" --data-urlencode 'start=2026-10-31T10:00:00-03:00' --data-urlencode 'end=2026-10-31T11:00:00-03:00' --data-urlencode 'timezone=America/Santiago' --data-urlencode 'granularity=hour'
-```
+`main.create_app(consumption_bindings={process_ref: {building_uuid}})` permite a la
+composición confiable003 ligar procesos al edificio; por defecto el mapa está vacío.
+Los atributos `app.state.consumption_reception`, `app.state.consumption_store` y
+`app.state.consumption_pending_totals` ofrecen los proveedores internos. No hay endpoint
+público de inyección ni permisos derivados del contenido recibido.
 
-Con fixture de tres cuartos de hora a 1 kWh, esperar un bloque de `"3"` kWh,
-`"2700000000"`/`"3600000000"` microsegundos, 75 %, incompleto y terminado
-si el reloj está después del fin. Completar el cuarto intervalo en actualización
-admisible debe producir 4 kWh, 100 % y nueva revisión en la siguiente consulta.
+El adaptador debe persistir `attempt_id` y la entrada ordenada antes de llamar al
+puerto. La primera llamada fija manifiesto tipado/digest antes de los resultados.
+Tras perder respuesta: `read_attempt` consulta sin efectos; repetir `accept` con el
+mismo ID y entrada completa solo lo no confirmado. Un completed conserva incluso
+su too_early original. Cambiar entrada con ese ID falla `attempt_payload_conflict`.
+Para reenviar novedades rechazadas se necesita **otro ID**, conservando publication_ref.
+
+Próxima incorporación nueva por categoría = última incorporación +900 segundos UTC;
+la duración medida no se deduce de esa cadencia. Mostrar la fecha admisible usando
+la zona del contexto001 y su instante UTC, sin confiar en el reloj de la fuente.
+El host debe mantener UTC sincronizado. Un retroceso detectado rechaza novedades
+hasta recuperar elegibilidad; duplicados/rechazos/lecturas no avanzan ese reloj.
+
+El lifespan común registra `consumption-history`: recuperación al arrancar y cada 5s,
+cancelable y dentro del mismo proceso. Cada aceptación confirma las solicitudes de
+evaluación junto con las parciales, incluso antes de existir candidato. El trabajo
+revalida bajo los mismos locks y agrupa los totales admisibles en una actualización.
+`app.state.consumption_recovery_error` expone un código interno ante fallo para reintento;
+la instrumentación007 continúa pendiente. GET no ejecuta el trabajo.
+
+Las incorporaciones guardan plazos iniciales/aniversarios009 y aportes permanentes.
+**Retirada interna y sus protecciones completas siguen pendientes de US3**; esta entrega
+no añade purga automática ni un comando de retirada. Si cambia tzdata y se detectan
+límites incompatibles, se exige reconciliación explícita, sin reinterpretar agregados.
+
+## Operación y recorrido web pendientes
+
+Construcción/arranque y respaldo/restauración comunes siguen los procedimientos de
+[plataforma](../009-fundaciones-plataforma/quickstart.md) y
+[operación](../../deploy/README.md). Completar secretos y zona/fuentes reales antes de
+instalar; America/Santiago es fixture. No se verificó VPS desde estas pruebas locales.
+
+La ruta `/consumption/`, su fachada/router001 y el GET agrupado todavía no existen.
+Los recorridos Playwright de agrupación, conservación y estados se habilitan después
+de completar ese gate y US2–US4. El build actual no acredita esas pantallas.
+003 debe demostrar publicaciones completas/identidad/reenvío;007 su emisor y004/005/008
+sus consumidores. Los fixtures internos no acreditan esas integraciones.
 
 ## Escenarios de validación
 
@@ -117,7 +156,7 @@ conservando lecturas pendientes en la fuente; una inyección interna no la demue
 El despliegue posterior VPS aplica procedimientos 009/006/007; no añadir sus módulos
 en tareas de esta spec ni afirmar verificación externa desde pruebas locales.
 
-Durante implementación crear `specs/002-registro-retencion-consumo/validation/acceptance.md`
-con commit/versiones, comandos, zona/tzdata, fixtures, fuente/adaptador usado, esperados/
-observados por FR-001..019 y SC-001..005, fallos/pendientes y evidencias humanas.
+Ampliar la [aceptación parcial](validation/acceptance.md) con cada incremento: commit/versiones,
+comandos, zona/tzdata, fixtures, fuente/adaptador, esperados/observados por FR-001..019 y
+SC-001..005, fallos/pendientes y evidencias humanas.
 No crear resultados ficticios ni marcar checklists por generar el diseño.

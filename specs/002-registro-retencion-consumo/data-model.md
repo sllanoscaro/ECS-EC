@@ -2,7 +2,8 @@
 
 [Spec](spec.md), [plan](plan.md), [decisiones](research.md),
 [modelo 001](../001-visualizar-consumo-categorias/data-model.md).
-Diseño previo a implementación: entidades propias 002 dentro de `consumption`.
+Modelo normativo: entidades propias002 implementadas en `consumption`, migración
+`47457bdabdfa`. [Estado y límites de validación](validation/acceptance.md).
 UUID generados por aplicación, revisiones positivas, instantes UTC `timestamptz` con
 microsegundos, zona IANA explícita, intervalos `[start,end)` y Decimal/NUMERIC exacto.
 HTTP conserva decimales y duraciones grandes como cadenas.
@@ -19,6 +20,7 @@ HTTP conserva decimales y duraciones grandes como cadenas.
 | TotalCalculationState | 002; candidato/diagnóstico/pendiente derivado mediante reglas puras 001. |
 | TotalEvaluationRequest | 002; necesidad durable de evaluación CAT-01 registrada con las parciales, incluso antes de existir candidato. |
 | ConsumptionAggregate, AggregateContribution | 002; registro conservado y aportes únicos. |
+| CalculationContributionReference | 002; relación auxiliar que protege mediante FK los registros de las referencias JSON de candidatos/totales. |
 | DetailQueryResult, SourceStatus y configuración | Fachada/dominio 001 sobre proveedores 002. |
 | AggregateQueryResult, AdmissibleWindow | Proyecciones 002; sin tabla de resultados de consulta. |
 | FunctionalEvent, FunctionalAudit, evidencia común | 009; 002 escribe mediante sus puertos, no redefine tablas. |

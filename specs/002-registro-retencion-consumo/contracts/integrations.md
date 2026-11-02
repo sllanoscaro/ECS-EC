@@ -2,7 +2,9 @@
 
 [Modelo](../data-model.md), [HTTP](http.md), [plan](../plan.md),
 [propiedad](../../../docs/implementation-roadmap.md).
-Todos los puertos son llamadas dentro del monolito. Son diseño, no proveedores ya instalados.
+Todos los puertos son llamadas dentro del monolito. Recepción, almacenamiento y
+trabajo CAT-01 están implementados; consultas agrupadas/consumidores e integración
+con fachada001 siguen pendientes. [Estado comprobado](../validation/acceptance.md).
 Los objetos comunes viven en `backend/src/ecs_ec/consumption/ports.py`; los puertos
 no importan implementaciones concretas ni notificaciones.
 
@@ -253,3 +255,14 @@ según tipo explícito, sin mezclar ambos como si fueran recepciones distintas.
 períodos íntegros/huecos, conteo observado o null y limitaciones. No deriva integridad de
 logs/heartbeat. Instrumentación 007 mide operaciones/errores/esperas/reintentos de forma
 saneada; caída de visores/SMTP no revierte cambios ni impide consultas.
+
+## Conciliación con código existente (2026-11-02)
+
+001 provee `catalog_storage.lock_configuration/read_revisions/configuration_segments`,
+`validation.MeasurementValidator`, `totals.TotalCalculator` y `ConfigurationService`.
+002 usa `core.unit_of_work.UnitOfWork` y el head `cb63a76198be`, sin recrear catálogo.
+El proveedor de máximos se inyecta como `ConfigurationService(clock, store)`; se consulta
+tras locks de contexto/categorías en la misma transacción READ COMMITTED.
+Las fachadas/HTTP/UI integradas 001 aún no existen; su ausencia y los gates de
+003/007/personas se registran en [prerrequisitos](../validation/prerequisites.md).
+El router único seguirá siendo `backend/src/ecs_ec/consumption/router.py`.

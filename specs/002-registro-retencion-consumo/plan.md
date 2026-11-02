@@ -5,8 +5,9 @@ rama Git actual: `develop`, sin creación de rama.
 **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: `specs/002-registro-retencion-consumo/spec.md` y las cinco tareas del borrador
 trasladado, conservadas en la trazabilidad de [tasks.md](tasks.md).
-**Estado**: fases 0 y 1 de diseño y tareas integrales generadas; revisión de consistencia,
-implementación y aceptación pendientes.
+**Estado**: diseño revisado y 25/71 tareas implementadas/verificadas localmente.
+Fundaciones y recepción interna disponibles; T024/T025 parciales, US2–US4 y aceptación
+integral pendientes. [Evidencia y gates](validation/acceptance.md).
 
 ## Contexto compartido del proyecto (ECS-EC)
 
@@ -15,7 +16,8 @@ Aplican [AGENTS.md](../../AGENTS.md), [arquitectura](../../docs/architecture.md)
 `.specify/memory/constitution.md`. La spec-009 posee plataforma/auditoría; 006,
 identidad; 001, catálogo/fuentes, validación y cálculo puro CAT-01; 002, recepción,
 almacenamiento, agregados y conservación; 003, adquisición PAS600/SFTP; 007,
-instrumentación común; 008, notificaciones. El código de aplicación todavía no existe.
+instrumentación común; 008, notificaciones. La plataforma, identidad, dominio/configuración001 y proveedores internos002 existen;
+la fachada/UI001 y las capacidades externas pendientes se detallan en la evidencia.
 
 ## Summary
 
@@ -208,8 +210,9 @@ La ruta del router se concilia con el plan 001, sin crear un archivo de API alte
 
 Los IDs anteriores solo identifican procedencia del borrador. [tasks.md](tasks.md) ya
 contiene las cuatro historias, fundaciones/cierre, dependencias y trazabilidad de las
-cinco tareas trasladadas. Todas siguen pendientes; revisar consistencia antes de
-implementar. No se marcan tareas ni checklists por generar estos documentos.
+cinco tareas trasladadas. Las marcas actuales corresponden a la ejecución descrita en
+[aceptación parcial](validation/acceptance.md); el resto sigue pendiente. No se marcan
+checklists por generar documentos o por implementar tareas.
 
 ## Complexity Tracking
 

@@ -10,6 +10,16 @@ controlado, pruebas PostgreSQL aisladas y limitaciones, seguir su
 locales y Settings 009, sin endpoints seed ni cuentas nuevas. Cambios posteriores al
 bootstrap requieren límites históricos 002; no habilitar un sustituto que suponga historia vacía.
 
+Historial 002 aporta ahora recepción/almacenamiento internos, agregados sincrónicos y
+recuperación CAT-01 en el lifespan común. Migración `47457bdabdfa` y procedimientos de
+próxima aceptación, reenvío/recuperación y reconciliación de calendario están en su
+[quickstart](../specs/002-registro-retencion-consumo/quickstart.md).
+La fachada/UI de 001, consulta agrupada y retirada interna siguen pendientes; consultar la
+[aceptación parcial](../specs/002-registro-retencion-consumo/validation/acceptance.md).
+Los procesos de recepción requieren bindings confiables por edificio, vacíos por defecto.
+Respaldo/restauración incluyen estas tablas junto con el resto de PostgreSQL; no restaurar
+solo el detalle omitiendo ledger, aportes, solicitudes, estados o auditoría.
+
 ## Configuración local y construcción
 
 Seguir el [README](../README.md) y el [quickstart](../specs/009-fundaciones-plataforma/quickstart.md).
