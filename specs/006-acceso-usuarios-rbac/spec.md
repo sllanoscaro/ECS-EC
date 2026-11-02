@@ -159,9 +159,9 @@ cambiar una configuración y una boleta válidas; revisar validaciones y registr
 3. **Given** una sesión administrativa, **When** registra o revisa una boleta, configura una
    vigencia BT4.3 o ejecuta un recálculo explícito de la spec-004,
    **Then** se permite la operación con sus reglas y trazabilidad originales.
-4. **Given** un valor que incumple una regla del sistema, por ejemplo una separación de
-   recepción inferior a 15 minutos o conservación inferior a 12 meses,
-   **When** el Administrador técnico intenta guardarlo,
+4. **Given** una configuración de fuentes válida,
+   **When** el Administrador técnico intenta guardar una misma fuente de medición
+   asignada a dos categorías,
    **Then** se rechaza y se conserva la última configuración válida.
 5. **Given** un cambio administrativo permitido o una solicitud administrativa denegada,
    **When** se revisa su historial, **Then** se identifican actor, fecha, acción, destino
@@ -271,10 +271,12 @@ solo permite las acciones restringidas de FR-015 hasta completar ese proceso.
 - **FR-018**: Las contraseñas NO DEBEN persistirse en forma recuperable ni exponerse en
   listados, consultas, reportes o historial, incluso al Administrador técnico. Tampoco
   DEBEN exponerse secretos de sesión o credenciales de integración.
-- **FR-019**: La administración del sistema DEBE abarcar las configuraciones y modificaciones
-  existentes de las specs anteriores, incluidos parámetros de recepción e historial,
-  referencias del suministro, correspondencias y perfiles BT4.3. DEBE mantener todas
-  sus validaciones; el perfil administrativo NO DEBE permitir saltarlas.
+- **FR-019**: El Administrador técnico DEBE poder consultar y modificar las configuraciones
+  editables definidas por las funcionalidades propietarias, incluidas correspondencias
+  de fuentes, referencias del suministro y perfiles BT4.3, conservando sus validaciones
+  y versiones. La separación mínima de recepción de 15 minutos y la conservación mínima
+  de 12 meses son restricciones obligatorias de la spec-002; esta funcionalidad no
+  incorpora su edición web.
 - **FR-020**: Registrar o revisar boletas y ejecutar recálculos explícitos con nueva revisión
   de la spec-004 DEBE reservarse al Administrador técnico. La consulta del Operador DEBE
   conservar visibles las cantidades y referencias de negocio necesarias para interpretarlos,
@@ -384,3 +386,10 @@ solo permite las acciones restringidas de FR-015 hasta completar ese proceso.
 - **Límites de la función**: No se incluyen ingreso federado, autenticación multifactor,
   recuperación automática por correo ni cambios a la política de conservación o las reglas
   de recepción, cálculo y reporte de las funcionalidades anteriores.
+
+## Contexto de planificación compartido
+
+Consultar [arquitectura](../../docs/architecture.md) y
+[hoja de ruta](../../docs/implementation-roadmap.md). Las [tareas integrales](tasks.md)
+conservan la trazabilidad de responsabilidades antes concentradas en 008 e incorporadas
+al plan de esta funcionalidad; no cambian sus requisitos ni acreditan implementación.
