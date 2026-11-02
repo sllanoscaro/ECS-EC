@@ -15,7 +15,7 @@ def install_openapi(app):
                         "PreauthCookie": {"type": "apiKey", "in": "cookie", "name": "ecs_ec_preauth"},
                         "CsrfToken": {"type": "apiKey", "in": "header", "name": "X-CSRF-Token"}})
         for path, methods in document["paths"].items():
-            if not path.startswith(("/api/v1/auth/", "/api/v1/identity/", "/api/v1/consumption/")):
+            if not path.startswith(("/api/v1/auth/", "/api/v1/identity/", "/api/v1/consumption/", "/api/v1/costs/")):
                 continue
             for method, operation in methods.items():
                 if path == "/api/v1/auth/csrf":

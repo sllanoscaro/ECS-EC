@@ -49,7 +49,7 @@ export function sessionActivityHeaders(activity: Activity = "background") {
 }
 
 /** Restrict return destinations to installed relative routes, without encoded origins or unvalidated query. */
-export function safeReturn(value: string | null, routes = ["/consumption/", "/administracion/consumo/", "/cuenta/", "/administracion/usuarios/", "/administracion/historial/"]) {
+export function safeReturn(value: string | null, routes = ["/costos/", "/administracion/costos/", "/consumption/", "/administracion/consumo/", "/cuenta/", "/administracion/usuarios/", "/administracion/historial/"]) {
   if (!value || !value.startsWith("/") || value.startsWith("//") || /[\\%\u0000-\u0020]/.test(value)) return "/cuenta/";
   try {
     const url = new URL(value, "https://local.invalid");

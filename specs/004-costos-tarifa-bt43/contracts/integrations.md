@@ -17,7 +17,7 @@ El núcleo común procede de [plataforma009](../../009-fundaciones-plataforma/pl
 
 ## Costs.read_snapshot — productor para spec-005
 
-`Costs.read_snapshot(building_id, start, end, cutoff_at, principal)` se implementa en `backend/src/ecs_ec/costs/snapshots.py`. Puede recibir la unidad de trabajo de lectura REPEATABLE READ del llamador para compartir captura con consumo.
+`Costs.read_snapshot(building_id, start, end, cutoff_at, principal, *, unit_of_work=None)` se implementa en `backend/src/ecs_ec/costs/snapshots.py`. Puede recibir la unidad de trabajo de lectura REPEATABLE READ del llamador para compartir captura con consumo.
 
 Precondiciones: principal autorizado actual, edificio único, fechas con offset, `start < end`, corte único y acceso normal de spec-006. No crea cálculos ni revisiones. No requiere alertas ni correo.
 
@@ -53,3 +53,18 @@ Sobre compatible con [integraciones 008](../../008-notificaciones-programables/c
 Persistir resultado fallido y evento en la misma transacción válida. Si falla el cálculo y su transacción aborta, registrar el resultado/evento juntos en otra; si falla su registro, no afirmar que el evento existe. Un fallo de configuración/dato insuficiente esperado conserva el estado limitado sin emitir un evento técnico por cada consulta. Repetición de una misma operación devuelve la misma identidad; un recálculo explícito distinto puede producir otra revisión/evento.
 
 La ausencia o caída del consumidor 008 no afecta cálculos, persistencia ni consulta. No existe importación de `notifications` desde `costs` o `audit`. El consumidor decide reglas/destinatarios y respeta permisos actuales sin modificar el resultado productor.
+
+## Implementación verificada localmente
+
+La fachada compuesta vive en `backend/src/ecs_ec/costs/services.py`. Los dos proveedores
+físicos001/002 reciben edificio, intervalo, corte y UoW real; devuelven bloques originales
+normalizados/revisiones/causas.004 calcula sus máximos únicamente desde bloques reales de
+quince minutos con cobertura demostrada; datos horarios no se reconstruyen.
+
+`CostsSnapshot` v1 es un DTO Pydantic inmutable, serializable con `model_dump(mode="json")`.
+La captura suministrada debe usar REPEATABLE READ o serializable; otra aislación devuelve
+`snapshot_isolation_required`. Su llamador resuelve un principal006 actual antes de leer.
+Motor `bt43-v1`; hash canónico incluye versión e InputEvidence. Una reproducción no consulta
+precios ni mediciones actuales. Ver [entrega](../validation/producer-handoff.md) y
+[validación concurrente](../validation/us4.md). La integración PDF005/consumidor008 sigue
+siendo trabajo de sus propietarios.

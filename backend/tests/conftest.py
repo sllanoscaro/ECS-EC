@@ -57,3 +57,6 @@ def clock():
 
 #002's opt-in real-port fixtures are also available to sibling contract tests.
 from backend.tests.integration.consumption.conftest import consumption_reception_environment, history_environment, history_scenarios  # noqa: F401
+#004's fixtures reuse the checked PostgreSQL factory and real001/002 ports.
+from backend.tests.costs_fixtures import costs_environment  # noqa: F401
+from backend.tests.costs_fixtures import costs_client  # noqa: F401

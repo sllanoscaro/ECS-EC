@@ -4,22 +4,22 @@
 [hoja de ruta](../../docs/implementation-roadmap.md). La infraestructura común pertenece
 a [plataforma009](../009-fundaciones-plataforma/plan.md); esta funcionalidad consume sus capacidades.
 
-Esta guía describe la implementación que deberá producir [tasks.md](tasks.md). Actualmente los artefactos son diseño; los comandos de aplicación/pruebas no se presentan como ya ejecutados.
+US1–US4 implementadas sobre001/002/006/009 reales; [validación local](validation/acceptance.md).
+T064/SC-006 permanece pendiente por falta de participantes humanos.
+Los perfiles de prueba no representan condiciones ni precios reales del edificio.
 
 ## Prerrequisitos
 
 Núcleo real con Python/FastAPI, PostgreSQL 18, identidad de spec-006, CAT-01 física y agregados de specs-001/002, auditoría/eventos comunes. Reutilizar capacidades compartidas sin requerir consumidor 008, SMTP o scheduler. Incorporar la migración semántica de costos al head real y configurar suministro/perfil sintético; no usar datos ni relay de producción.
 
-Después de implementar los comandos:
+Comandos de verificación, con TEST_DATABASE_URL explícita a una base PostgreSQL separada `_test`:
 
 ```sh
 uv sync --locked
-docker compose up -d db
-uv run alembic -c backend/alembic.ini upgrade head
-uv run pytest backend/tests/unit/costs backend/tests/integration/costs backend/tests/contract/costs
+DATABASE_URL="$COSTS_TEST_DATABASE_URL" ENVIRONMENT=test uv run --locked alembic -c backend/alembic.ini upgrade head
+TEST_DATABASE_URL="$COSTS_TEST_DATABASE_URL" uv run --locked pytest backend/tests/unit/costs backend/tests/integration/costs backend/tests/contract/costs
 npm --prefix frontend ci
 npm --prefix frontend test -- --run
-npm --prefix frontend exec playwright test tests/e2e/costs.spec.ts
 npm --prefix frontend run build
 ```
 
@@ -78,3 +78,86 @@ Preparar cálculo C1, boleta B1 y comparación K1. Corte A los selecciona. Corre
 Deshabilitar consumidor de notificaciones y correo: cálculo, resultados y eventos durables permanecen funcionales. Provocar un error de base: no afirmar aceptación/persistencia del evento. Confirmar permisos actuales y exclusión de credenciales técnicas/secretos en respuestas y señales.
 
 Ejecutar diez tareas reales de comprensión (SC-006); al menos nueve sin ayuda en <=2 minutos. Sin participantes, ese criterio queda pendiente. Registrar evidencia de los 23 FR y seis SC en `validation/acceptance.md` durante implementación, con resultados observados y pendientes explícitos.
+
+## Fixture004 y navegador local
+
+Sobre una base **vacía y migrada**, separada de la aplicación y terminada `_test`, preparar
+un archivo0600 con contraseña exclusivamente sintética. Ejecutar:
+
+```sh
+TEST_DATABASE_URL="$COSTS_TEST_DATABASE_URL" uv run --locked python scripts/seed_costs_reference.py --password-file "$COSTS_PASSWORD_FILE"
+npm --prefix frontend run build
+```
+
+La semilla usa cuentas006 con renovación normal, configuración001, recepción física002 y
+perfil004 documentado de energía-only sintética (100CLP/kWh). No es un pliego real ni
+acredita suficiencia de condiciones de una instalación física. Montar Uvicorn común con
+IDENTITY_ENABLED=true, claves006 de prueba externas y distintas, origen loopback explícito,
+IDENTITY_BUILDING_ID=00000000-0000-0000-0000-000000000063 y WEB_DIRECTORY=frontend/out.
+HTTP local requiere la opción explícita006 IDENTITY_DEVELOPMENT_HTTP=true.
+
+```sh
+IDENTITY_E2E_PASSWORD_FILE="$COSTS_PASSWORD_FILE" COSTS_E2E=1 E2E_BASE_URL="$COSTS_BROWSER_ORIGIN" npm --prefix frontend run test:e2e -- tests/e2e/costs.spec.ts --workers=1
+```
+
+Al repetir después de renovar ambas cuentas, añadir COSTS_E2E_RENEWED=1; no resembrar.
+Las consultas viven en `/costos/`, las operaciones explícitas en `/administracion/costos/`.
+Los resultados pueden abrirse mediante `?calculation=<UUID>` y se recuperan por GET tras
+recargar. Nunca se calculan importes autoritativos en el navegador.
+
+`uv run --locked python scripts/generate_costs_types.py` regenera tipos readonly desde
+los esquemas004. No cambia dependencias/lockfiles ni lee datos privados.
+
+## Publicación del pliego real
+
+Administrador lee suministro/ETag y confirma fuente físicaCAT-01, tablero, distribuidora,
+ubicación, condiciones y documentos. El formulario conserva diferencias conocidas del punto
+de medición sin aplicar un factor implícito. Alta usa If-None-Match:*; editar requiere
+If-Match. Un412 exige revisar estado actual antes de confirmar la intención nuevamente.
+
+En Perfil BT4.3, copiar un calendario guardado o crear segmentos estructurados. Registrar
+fuentes del pliego y de cada cargo, fechas con offset, unidad/precio/base tributaria,
+cargos realmente aplicables, calendario de punta, históricos y redondeo. Para sustituir
+vigencia abierta copiar el calendario completo y cerrarla antes del nuevo segmento;
+corrección retroactiva crea otra revisión completa. No cambiar versiones anteriores.
+El antecesor esperado es la última revisión guardada, incluidos borradores;409 exige
+revisión explícita. Borrador no sustituye publicación ni recalcula automáticamente.
+
+La política mensual debe tener versión/fuentes: evidencia explícita compatible con
+suministro/ciclo/mes, o regla documentada soportada de inicio/fin local. No se elige regla
+normativa por defecto. Reglas, fuentes o vigencias faltantes dejan cargos limitados;
+no se prorratean fijos/demanda ni se presupone impuesto/distribuidora universal.
+
+## Recorridos finales y alta inicial
+
+Esperar readiness200 en `/api/v1/health/ready` antes de abrir el navegador.
+Después de renovar ambas cuentas con costs.spec.ts, ejecutar en este orden sobre la misma
+base sintética (desde frontend, COSTS_E2E_RENEWED=1 y variables del ejemplo anterior):
+
+```sh
+npx playwright test costs.spec.ts --workers=1
+npx playwright test cost-profiles.spec.ts --workers=1
+npx playwright test cost-comparisons.spec.ts --workers=1
+npx playwright test cost-history.spec.ts --workers=1
+```
+
+Para probar alta inicial, crear **otra base vacía `_test`**, migrarla y ejecutar la semilla
+con `--without-costs`. Ejecutar el monolito con ese destino/origen de prueba. En frontend,
+con IDENTITY_E2E_PASSWORD_FILE y E2E_BASE_URL correspondientes, ejecutar:
+
+```sh
+COSTS_INITIAL_E2E=1 npx playwright test cost-supply-initial.spec.ts --workers=1
+```
+
+Esta variante renueva al administrador y registra suministro/perfil desde la web; no
+reutilizarla sobre cuentas ya renovadas. Ambas semillas rechazan destinos de aplicación.
+
+## Lectura interna para005
+
+Usar `app.state.costs.read_snapshot(building_id, start, end, cutoff_at, principal,
+unit_of_work=uow)` con principal006 actual y UoW009 REPEATABLE READ/serializable, compartida
+con consumo. Sin UoW crea una lectura REPEATABLE READ propia. Devuelve CostsSnapshot v1;
+`model_dump(mode="json")` serializa importes textuales. Motor reproducible `bt43-v1`.
+Solo ciclos cerrados con fin en[start,end), pares exactos y agregados por moneda/concepto/
+base; pendientes con diferencias null. No generar cálculos ni prorratear para PDF.
+Contrato y prueba concurrente en [integraciones](contracts/integrations.md) y [US4](validation/us4.md).

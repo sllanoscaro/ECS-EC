@@ -11,6 +11,8 @@ from ecs_ec.identity import models as identity_models  # noqa: F401 -- identity 
 from ecs_ec.consumption import catalog_storage  # noqa: F401 --001 installation metadata.
 from ecs_ec.consumption import models as history_models  # noqa: F401 --002 history metadata.
 
+from ecs_ec.costs import models as costs_models  # noqa: F401 --004 owns financial metadata.
+
 target_metadata = Base.metadata
 
 

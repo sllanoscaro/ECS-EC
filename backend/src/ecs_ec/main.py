@@ -77,6 +77,14 @@ def create_app(
         app.add_exception_handler(ConsumptionProblem, consumption_problem)
         app.include_router(consumption_router)
         identity_service.history_actions = identity_service.history_actions | {"consumption.configuration.changed"}
+        from ecs_ec.costs.services import Costs
+        from ecs_ec.costs.api import router as costs_router, problem_response as costs_problem
+        from ecs_ec.costs.repository import CostsProblem
+        app.state.costs = Costs(database, clock, identity_service, app.state.consumption)
+        app.add_exception_handler(CostsProblem, costs_problem)
+        app.include_router(costs_router)
+        identity_service.history_actions = identity_service.history_actions | {
+            "costs.supply.changed", "costs.profile.created", "costs.calculation.created", "costs.bill.created", "costs.comparison.created"}
         app.state.identity = identity_service
         app.add_middleware(IdentityMiddleware, identity=identity_service)
         app.add_exception_handler(IdentityProblem, problem_response)

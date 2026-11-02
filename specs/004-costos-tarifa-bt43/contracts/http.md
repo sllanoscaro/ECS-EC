@@ -49,3 +49,18 @@ En modo explícito, `billing_month_source_ref` es una referencia estructurada co
 - Listados usan cursor estable, `limit` 1..100 (25 por defecto), rango `[from,to)` y corte; orden determinista por fecha/id. No exponer identidad técnica ni datos de otro edificio.
 
 Todas las catorce operaciones se prueban contra implementaciones reales; el diseño Markdown no acredita por sí mismo una API ejecutada.
+
+## Detalles de la implementación local
+
+Los DTOs Pydantic004 y el OpenAPI de la aplicación son la forma ejecutable de los
+recursos. Instantes de comandos aceptan `start_at`/`end_at` documentados y `start`/`end`;
+la serialización de períodos anidados usa `start`/`end`. No enviar ambos alias a la vez.
+Los tipos frontend readonly se regeneran desde esos DTOs y conservan importes textuales.
+
+GET perfiles incluye `latest_version` y `selected_published_version` completos además de
+sus IDs; permite copiar la última guardada aunque quede fuera de la primera página de
+historia. Los cursores mantienen corte/filtros originales y están firmados con propósito006.
+Porcentaje de contraste: redondeo half-up a seis decimales, regla capturada
+`signed_delta_absolute_denominator_6dp_v1`; denominador cero mantiene porcentaje null.
+Comparación con límites efectivos declarados inciertos devuelve422 en lugar de cifras
+aparentemente alineadas. Estos motivos no producen `cost.failed` técnico.

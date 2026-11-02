@@ -182,3 +182,21 @@ otro attempt_id; recuperación usa el mismo. El lifespan recupera solicitudes/ca
 Respaldo/restauración incluyen ledger, payloads, agregados/aportes, configuración y auditoría.
 La retirada no es una purga programada: exige proceso autorizado, motivo, vencimiento y
 comprobación transaccional de dependientes. La validación local no acredita VPS.
+
+## Costos BT4.3 (spec-004)
+
+El mismo monolito incorpora `/costos/`, `/administracion/costos/` y `/api/v1/costs` cuando
+identidad006 está habilitada. Aplicar las migraciones comunes hasta `costs_004_bills`;
+no existe servicio adicional ni variable de precio predeterminada. Solo Administrador
+configura suministro/perfil y confirma cálculos, boletas o contrastes; Operador consulta.
+
+Antes de operar con importes reales, registrar CAT-01 física001, documentos/condiciones
+del suministro y calendario completo BT4.3 con fuentes, precios, tributación, regla mensual
+ y redondeo. Los fixtures exclusivamente sintéticos rechazan bases de aplicación y no
+son datos de producción. Ver [procedimiento004](../specs/004-costos-tarifa-bt43/quickstart.md).
+
+Respaldar toda la base: capturas, revisiones financieras, auditoría y eventos son evidencia
+con conservación mínima por aniversario. Consultar no recalcula ni extiende plazos.
+No ejecutar downgrade destructivo de costos; restaurar respaldo verificado ante reversión.
+`cost.failed` se registra atómicamente en009; su productor no espera a008/SMTP. La captura
+interna para005 está documentada en [contrato004](../specs/004-costos-tarifa-bt43/contracts/integrations.md).
