@@ -51,3 +51,22 @@ Los perfiles de correo y observabilidad se incorporan en sus propias funcionalid
 
 **Sources**: [Compose y salud](https://docs.docker.com/compose/how-tos/startup-order/),
 [imagen PG18](https://github.com/docker-library/docs/blob/master/postgres/README.md).
+
+## R4. Resolución y verificación en implementación (2026-11-02)
+
+Manifiestos/lockfiles fijan las versiones resueltas: CPython 3.14.4 convencional, uv 0.11.8,
+FastAPI 0.162.0, SQLAlchemy 2.0.55/Psycopg 3.3.6, tzdata 2026.6; Node 24.22.0,
+Next 16.4.3, React 19.3.1 y PostgreSQL 18.3. Los digests de imágenes se obtuvieron mediante
+descarga real y se fijaron en Dockerfile/Compose. `uv sync --locked` y `npm ci` fueron ejecutados.
+
+El segundo build Docker con Turbopack terminó con señal de segmentación. Se seleccionó
+`next build --webpack` (opción comprobada en `next build --help`) y se verificó el build
+local y de contenedor. Se mantiene Next y la exportación estática del diseño.
+
+El bundle instalado de Playwright 1.64.1 no pudo arrancar por un SyntaxError en
+`lib/transform/babelBundle.js`; se fijó 1.64.0 y se descargó Chromium para la suite real.
+No se modificaron archivos de dependencias manualmente.
+
+Las reglas horarias se cargan desde el wheel `tzdata` bloqueado, sin depender de la
+versión de la base IANA del anfitrión. PostgreSQL 18 real acredita transacciones y
+deduplicación concurrente. Resultados y límites en [aceptación](validation/acceptance.md).

@@ -1,6 +1,6 @@
 # Arquitectura compartida de ECS-EC
 
-Estado: diseño previo a implementación. Este documento centraliza decisiones ya presentes
+Estado: plataforma spec-009 implementada y validada localmente; VPS pendiente. Este documento centraliza decisiones ya presentes
 en la planificación de notificaciones; su traslado no acredita instalación, pruebas ni
 despliegue. La [hoja de ruta](implementation-roadmap.md) asigna propietarios y etapas.
 La constitución local `.specify/memory/constitution.md` conserva su precedencia.
@@ -23,9 +23,9 @@ y visores técnicos son dependencias de infraestructura.
 | Correo | Adaptador SMTP y Mailpit local, propiedad de spec-008. |
 | Observabilidad | Loguru JSON → Alloy → Loki/LogQL y Grafana; OpenTelemetry/OTLP → Jaeger, propiedad de spec-007. |
 
-Las versiones exactas restantes, transitivas y digests se fijarán y comprobarán durante
-implementación. Se conserva la selección previa, sin volver a afirmar su compatibilidad
-de ejecución. El [registro de investigación trasladado](../specs/009-fundaciones-plataforma/research.md)
+Las versiones exactas comunes, transitivas y digests se fijaron y comprobaron localmente
+en los manifiestos/lockfiles e imágenes de plataforma009. Los módulos posteriores validan
+sus dependencias al incorporarse. El [registro de investigación](../specs/009-fundaciones-plataforma/research.md)
 conserva sus fuentes y alternativas; cada módulo conserva las decisiones de su dominio.
 
 ## Estructura prevista del código
@@ -63,7 +63,9 @@ deploy/
 └── README.md                  # procedimientos comunes y enlaces a guías de módulos
 ```
 
-Estos directorios de aplicación todavía no existen. La exportación estática no usa SSR
+`core`, `audit`, la composición y el scaffold web ya existen; los módulos de negocio de
+la estructura prevista se incorporan por sus propietarios. Los contratos implementados
+están en [plataforma](platform.md). La exportación estática no usa SSR
 por solicitud, Server Actions ni un servidor Node en ejecución. Las rutas que seleccionan
 entidades usan query/estado cliente; los datos privados se obtienen de la API autenticada.
 

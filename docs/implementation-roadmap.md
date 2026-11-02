@@ -1,6 +1,6 @@
 # Hoja de ruta de implementación
 
-Estado: planificación, sin código de aplicación implementado. Esta hoja coordina las
+Estado: plataforma009 implementada y validada localmente; VPS y módulos de negocio pendientes. Esta hoja coordina las
 funcionalidades; las tareas ejecutables se mantienen en sus archivos nativos `tasks.md`.
 La [arquitectura](architecture.md) es la referencia compartida, no el plan de la spec-008.
 
@@ -8,7 +8,7 @@ La [arquitectura](architecture.md) es la referencia compartida, no el plan de la
 
 | Funcionalidad | Responsabilidad | Estado del plan y tareas |
 | --- | --- | --- |
-| [009 Plataforma](../specs/009-fundaciones-plataforma/spec.md) | Scaffold, herramientas, DB/UoW, reloj, retención común, auditoría/eventos, ciclo de vida y operación común. | [Plan](../specs/009-fundaciones-plataforma/plan.md) y [tareas](../specs/009-fundaciones-plataforma/tasks.md), reorganizados; pendientes de implementación. |
+| [009 Plataforma](../specs/009-fundaciones-plataforma/spec.md) | Scaffold, herramientas, DB/UoW, reloj, retención común, auditoría/eventos, ciclo de vida y operación común. | Implementación y validación local realizadas; [aceptación](../specs/009-fundaciones-plataforma/validation/acceptance.md). [Tareas](../specs/009-fundaciones-plataforma/tasks.md): T022 pendiente de VPS real por decisión del usuario. |
 | [006 Acceso](../specs/006-acceso-usuarios-rbac/spec.md) | Cuentas, sesiones, CSRF, permisos, UI de acceso/administración y participante de coordinación de identidad. | [Plan y diseño integral](../specs/006-acceso-usuarios-rbac/plan.md) y [tareas integrales](../specs/006-acceso-usuarios-rbac/tasks.md) generados y analizados; los tres hallazgos de consistencia fueron resueltos documentalmente, conservando la trazabilidad del traslado. Pendientes de implementación y aceptación funcional. |
 | [001 Consumo](../specs/001-visualizar-consumo-categorias/spec.md) | Catálogo/fuentes, validación de mediciones, detalle, CAT-01 y visualización. | [Plan y diseño](../specs/001-visualizar-consumo-categorias/plan.md) y [tareas integrales](../specs/001-visualizar-consumo-categorias/tasks.md) generados y revisados tras integrar las aclaraciones I1/U1/A1; pendientes de implementación y aceptación con capacidades reales, personas y VPS. Se conserva el traslado. |
 | [002 Historial](../specs/002-registro-retencion-consumo/spec.md) | Límite de recepción, persistencia, agregaciones, cobertura y conservación de consumo. | [Plan y diseño](../specs/002-registro-retencion-consumo/plan.md) y [tareas integrales](../specs/002-registro-retencion-consumo/tasks.md) generados y revisados tras integrar la precisión de FR-012; pendientes de implementación y aceptación con capacidades reales y personas. Se conserva el traslado. |
