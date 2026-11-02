@@ -248,3 +248,7 @@ Thumbs.db
 *.swp
 *.dump
 backend/src/ecs_ec/web/
+
+# Frontend source helpers are application code, not Python's ignored lib/ output.
+!frontend/src/lib/
+!frontend/src/lib/**
