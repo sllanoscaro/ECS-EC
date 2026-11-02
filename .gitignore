@@ -227,4 +227,8 @@ sketch
 # End of https://www.toptal.com/developers/gitignore/api/python,react,nextjs
 
 .agents/
-.specify/
+# La infraestructura generada de Spec Kit es local; versionar overrides de proyecto.
+.specify/*
+!.specify/templates/
+.specify/templates/*
+!.specify/templates/overrides/
