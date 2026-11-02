@@ -2,14 +2,97 @@
 
 [Plan](plan.md), [modelo](data-model.md), [HTTP](contracts/http.md),
 [integraciones](contracts/integrations.md), [arquitectura](../../docs/architecture.md).
-Guía de la implementación prevista: aún no existen aplicación, fixtures ni comandos de
-pruebas de consumo. No se presentan como ejecutados. La lista integral [tasks.md](tasks.md)
-ya está generada; sus tareas y los prerrequisitos reales siguen pendientes.
+Implementación parcial: catálogo/configuración, reglas puras y componentes aislados
+disponibles; recepción 002, consultas/rutas y aceptación de las cuatro historias pendientes.
+Resultados observados en [aceptación parcial](validation/acceptance.md). Los escenarios
+de extremo a extremo siguientes conservan su carácter previsto hasta contar con esos proveedores.
+
+## Comandos disponibles ahora
+
+Con Python 3.14, uv y Node>=20.9 de plataforma, desde la raíz:
+
+```sh
+uv sync --locked --group dev
+npm --prefix frontend ci
+uv run --locked pytest backend/tests/unit/consumption backend/tests/contract/consumption -q
+npm --prefix frontend test
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+uv run --locked python scripts/generate_consumption_types.py
+```
+
+`decimal.js`10.6.0, licencia MIT, quedó fijado en `frontend/package.json` y lockfile
+mediante `npm --prefix frontend install --save-exact decimal.js@10.6.0`. Solo se usa con
+un contexto local de precisión 50 para geometría SVG. Energía de negocio y fechas conservan
+cadenas exactas; no se altera el contexto global de otras bibliotecas.
+
+`scripts/generate_consumption_types.py` regenera
+`frontend/src/lib/api/consumption-types.ts` desde `contracts/openapi.json`. Produce tipos
+readonly de transporte; restricciones semánticas/condicionales siguen siendo verificaciones
+del servidor, no supuestas validaciones TypeScript. El cliente `consumption.ts` reutiliza
+sesión/CSRF/no-store 006 y excluye campos derivados del PUT. No hay rutas 001 montadas todavía.
+
+Para repetir la integración propia con una base **desechable y separada**, se usó este
+contenedor local. La contraseña mostrada es únicamente sintética de pruebas:
+
+```sh
+docker run -d --name ecs-consumption-spec 001-test \
+  -e POSTGRES_USER=ecs_test -e POSTGRES_PASSWORD=synthetic-spec 001-only \
+  -e POSTGRES_DB=ecs_consumption_test -p 127.0.0.1:55449:5432 \
+  postgres:18.3-bookworm@sha256:80630f83606d8db77d30b3851b16a9f78be2d0d4dda6f7b82a1fdca5ebe3acba
+docker exec ecs-consumption-spec 001-test pg_isready -U ecs_test -d ecs_consumption_test
+export TEST_DATABASE_URL='postgresql+psycopg://ecs_test:synthetic-spec 001-only@127.0.0.1:55449/ecs_consumption_test'
+uv run --locked pytest --cov=ecs_ec --cov-report=term-missing -q
+```
+
+Esperar `accepting connections` antes de pytest. El harness exige PostgreSQL, nombre
+terminado en `_test` y una base distinta de la aplicación antes de migrarla. Las pruebas
+de configuración usan DB/auditoría reales y un doble **explícito** de límites 002;
+cinco escenarios de recepción quedan omitidos hasta instalar su proveedor real.
+No usar los fixtures ni la limpieza de pruebas sobre datos de una instalación.
+
+Al terminar la reproducción se puede retirar exclusivamente este contenedor desechable:
+
+```sh
+docker rm -f ecs-consumption-spec 001-test
+```
+
+## Provisión controlada de contexto y primera configuración
+
+El comando interno disponible usa DATABASE_URL/Settings 009, sin rutas seed ni reloj
+público. Contexto JSON con `id`, `name`, `timezone`; configuración JSON con
+`expected_revision`, `effective_from`, `timezone` y las siete entradas SourceEntry del
+[contrato HTTP](contracts/http.md). UUID/zona/fuentes son explícitos por entorno; la
+identidad del edificio debe coincidir con la configurada en 006 antes de integrar la web.
+No copiar un ejemplo sintético a una instalación real.
+
+```sh
+uv run --locked alembic -c backend/alembic.ini upgrade head
+uv run --locked python scripts/bootstrap_consumption.py \
+  --context-file /ruta/privada/context.json \
+  --configuration-file /ruta/privada/consumption-configuration.json
+```
+
+El actor es `process:consumption_bootstrap`. Inicialmente expected_revision=0;
+`effective_from` puede ser histórica y nunca futura. `created_at` lo fija el reloj interno.
+Repetir con la revisión actual y sin cambios devuelve la misma revisión/eventos. Cambios
+posteriores necesitan MeasurementStore 002; este CLI sin proveedor los rechaza, sin una
+opción para eludir límites. La CLI confirma solo el número de revisión o un código seguro.
+El bootstrap aislado real produjo revisión 1 y un no-op revisión 1; no creó mediciones.
+
+Los modelos y helpers de configuración están en `consumption/catalog_storage.py`;
+`lock_configuration` debe compartirse con recepción 002, seguido de lectura de estado en
+READ COMMITTED. `configuration_segments` deriva fin de vigencia desde la siguiente revisión;
+las revisiones anteriores no se actualizan. La migración es `cb63a76198be`, sobre
+`identity_initial`; `alembic check` comprueba la sincronía del esquema.
 
 ## Prerrequisitos y preparación
 
-Implementar plataforma009 real: herramientas/build, PostgreSQL 18, UoW/reloj/auditoría y
-migraciones. Identidad006 real para aceptación web: Administrador y Operador activos,
+Esta sección y las consultas HTTP posteriores describen el flujo **pendiente de integración**;
+no presentar esos comandos como una aplicación de consumo ya disponible.
+
+Reutilizar plataforma 009 real: herramientas/build, PostgreSQL 18, UoW/reloj/auditoría y
+migraciones. Identidad 006 real para aceptación web: Administrador y Operador activos,
 con contraseña renovada; Programador no obtiene acceso funcional. Integrar recepción y
 almacenamiento reales de 002 con reglas 001. Los dobles de estos puertos solo acreditan
 pruebas aisladas, no aceptación funcional. PAS600/SFTP requiere el adaptador de 003.
@@ -53,7 +136,7 @@ curl --fail-with-body --cookie /tmp/ecs-ec-consumption-session.cookies --get "$A
 ```
 
 Son fechas/zona sintéticas. La preparación autenticada de cookies usa exclusivamente el
-flujo de 006, que aún requiere su plan; no asumir credenciales o endpoint de login nuevo.
+flujo existente de 006; no asumir credenciales ni un endpoint de login nuevo.
 
 ## Escenarios reproducibles y resultados esperados
 

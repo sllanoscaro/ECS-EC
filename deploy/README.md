@@ -3,6 +3,13 @@
 La plataforma es una imagen con un proceso Uvicorn y PostgreSQL 18 externo.
 Identidad, SMTP y observabilidad se incorporan desde sus funcionalidades propietarias.
 
+Consumo 001 entrega contexto/fuentes, configuración versionada y reglas puras; su consulta
+web aún espera recepción/almacenamiento 002. Para migración `cb63a76198be`, bootstrap
+controlado, pruebas PostgreSQL aisladas y limitaciones, seguir su
+[quickstart](../specs/001-visualizar-consumo-categorias/quickstart.md). El CLI usa archivos
+locales y Settings 009, sin endpoints seed ni cuentas nuevas. Cambios posteriores al
+bootstrap requieren límites históricos 002; no habilitar un sustituto que suponga historia vacía.
+
 ## Configuración local y construcción
 
 Seguir el [README](../README.md) y el [quickstart](../specs/009-fundaciones-plataforma/quickstart.md).
@@ -91,7 +98,7 @@ por falta de entorno real, según la decisión del usuario. La ejecución local 
 
 ## Identidad humana (spec-006)
 
-La [guía006](../specs/006-acceso-usuarios-rbac/quickstart.md) configura `IDENTITY_ENABLED`,
+La [guía 006](../specs/006-acceso-usuarios-rbac/quickstart.md) configura `IDENTITY_ENABLED`,
 claves HMAC externas y bootstrap. No hay contraseñas operativas predeterminadas ni alta
 pública. La imagen ejecuta `--no-proxy-headers`: identidad verifica el peer real y confía
 solo en `IDENTITY_TRUSTED_PROXIES`, con IP/CIDR explícitos y sin confianza universal.
@@ -107,7 +114,7 @@ docker compose exec app /app/.venv/bin/ecs-ec identity recover-admin --email adm
 Ambos comandos requierenTTY, leen dos veces sin eco y no admiten password como argumento.
 Bootstrap solo con cero cuentas. Recuperación solo sobre admin ya activo: no crea,
 promueve ni reactiva. Captura revisión antes de Argon2 y la revalida bajo locks; revoca
-sesiones, exige renovación y escribe actor `process:recovery`/código operativo en audit009.
+sesiones, exige renovación y escribe actor `process:recovery`/código operativo en audit 009.
 El motivo se valida (obligatorio, <=500 caracteres, sin controles); no se copia texto
 libre al payload aprobado ni a logs. Entregar la contraseña inicial por canal operativo
 protegido, fuera de esta aplicación, y el titular debe renovarla antes del acceso normal.
@@ -126,13 +133,13 @@ El hashing usa64MiB por trabajo, máximo inicial dos; mediciones locales en
 en VPS antes de aumentar concurrencia. La limpieza interna cada60s elimina lotes acotados
 de sesiones/presesiones inválidas tras24h y buckets inactivos, conservando cuentas/audit.
 La validez no depende del job; un fallo fija `identity_maintenance_failed` sin exponer SQL
-ni secretos. No se ha implementado un emisor técnico paralelo a007.
+ni secretos. No se ha implementado un emisor técnico paralelo a 007.
 
 Un503 puede representar confirmación incierta. Recargar estado/revisión o ingresar de
 nuevo antes de repetir; no afirmar rollback ni reenviar automáticamente una mutación.
 La evidencia de la misma operación no se duplica cuando el commit ya se confirmó en DB.
 
-Los respaldos009 contienen PHC y estado de acceso; protegerlos y conservar claves externas
+Los respaldos 009 contienen PHC y estado de acceso; protegerlos y conservar claves externas
 en almacén separado. Antes de servir un DB restaurado, con aplicación detenida, invalidar
 sesiones/presesiones restauradas para no revivir cookies que se cerraron después del backup:
 
@@ -143,7 +150,7 @@ UPDATE identity_preauth SET consumed_at=clock_timestamp() WHERE consumed_at IS N
 COMMIT;
 ```
 
-Comparar primero el snapshot según009; después aplicar la invalidación técnica. Revisar
+Comparar primero el snapshot según 009; después aplicar la invalidación técnica. Revisar
 la antigüedad de credenciales del snapshot y recuperar/restablecer cuentas según operación
 autorizada. Nunca borrar auditoría/cuentas ni limpiar esperas activas para resolver claves
 perdidas. Las comprobaciones reales de VPS y proveedores de negocio siguen pendientes.

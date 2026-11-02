@@ -1,6 +1,6 @@
 # Hoja de ruta de implementación
 
-Estado: plataforma009 e identidad006 propia implementadas localmente; integraciones, personas y VPS pendientes. Esta hoja coordina las
+Estado: plataforma 009 e identidad 006 propia implementadas localmente; integraciones, personas y VPS pendientes. Esta hoja coordina las
 funcionalidades; las tareas ejecutables se mantienen en sus archivos nativos `tasks.md`.
 La [arquitectura](architecture.md) es la referencia compartida, no el plan de la spec-008.
 
@@ -9,8 +9,8 @@ La [arquitectura](architecture.md) es la referencia compartida, no el plan de la
 | Funcionalidad | Responsabilidad | Estado del plan y tareas |
 | --- | --- | --- |
 | [009 Plataforma](../specs/009-fundaciones-plataforma/spec.md) | Scaffold, herramientas, DB/UoW, reloj, retención común, auditoría/eventos, ciclo de vida y operación común. | Implementación y validación local realizadas; [aceptación](../specs/009-fundaciones-plataforma/validation/acceptance.md). [Tareas](../specs/009-fundaciones-plataforma/tasks.md): T022 pendiente de VPS real por decisión del usuario. |
-| [006 Acceso](../specs/006-acceso-usuarios-rbac/spec.md) | Cuentas, sesiones, CSRF, permisos, UI de acceso/administración y participante de coordinación de identidad. | 69/87 tareas implementadas y verificadas localmente; [aceptación parcial](../specs/006-acceso-usuarios-rbac/validation/acceptance.md).18 tareas esperan proveedores001–005/007, personas/VPS y cierre integral; no se declara aceptación completa. |
-| [001 Consumo](../specs/001-visualizar-consumo-categorias/spec.md) | Catálogo/fuentes, validación de mediciones, detalle, CAT-01 y visualización. | [Plan y diseño](../specs/001-visualizar-consumo-categorias/plan.md) y [tareas integrales](../specs/001-visualizar-consumo-categorias/tasks.md) generados y revisados tras integrar las aclaraciones I1/U1/A1; pendientes de implementación y aceptación con capacidades reales, personas y VPS. Se conserva el traslado. |
+| [006 Acceso](../specs/006-acceso-usuarios-rbac/spec.md) | Cuentas, sesiones, CSRF, permisos, UI de acceso/administración y participante de coordinación de identidad. | 69/87 tareas implementadas y verificadas localmente; [aceptación parcial](../specs/006-acceso-usuarios-rbac/validation/acceptance.md).18 tareas esperan proveedores 001–005/007, personas/VPS y cierre integral; no se declara aceptación completa. |
+| [001 Consumo](../specs/001-visualizar-consumo-categorias/spec.md) | Catálogo/fuentes, validación de mediciones, detalle, CAT-01 y visualización. | 23/61 tareas completas: catálogo/configuración PostgreSQL, reglas puras y componentes web aislados. [Aceptación parcial](../specs/001-visualizar-consumo-categorias/validation/acceptance.md). Consulta/recepción integradas esperan almacenamiento 002; emisión 007, integración 003/008, personas y VPS pendientes. Se conserva la trazabilidad del traslado. |
 | [002 Historial](../specs/002-registro-retencion-consumo/spec.md) | Límite de recepción, persistencia, agregaciones, cobertura y conservación de consumo. | [Plan y diseño](../specs/002-registro-retencion-consumo/plan.md) y [tareas integrales](../specs/002-registro-retencion-consumo/tasks.md) generados y revisados tras integrar la precisión de FR-012; pendientes de implementación y aceptación con capacidades reales y personas. Se conserva el traslado. |
 | [003 Simulador PAS600/SFTP](../specs/003-simulador-pas600-sftp/spec.md) | Fuente e integración de archivos según su spec. | [Plan y diseño](../specs/003-simulador-pas600-sftp/plan.md) y [tareas integrales](../specs/003-simulador-pas600-sftp/tasks.md) generados; pendientes de revisión de consistencia e implementación. |
 | [004 Costos](../specs/004-costos-tarifa-bt43/spec.md) | Cálculos BT4.3, boletas, resultados persistidos, snapshot y `cost.failed`. | [Plan](../specs/004-costos-tarifa-bt43/plan.md) y [tareas](../specs/004-costos-tarifa-bt43/tasks.md), pendientes de implementación. |
@@ -88,7 +88,7 @@ SPECIFY_FEATURE_DIRECTORY=specs/009-fundaciones-plataforma SPECIFY_FEATURE_NO_PE
 Para 007, la comprobación encuentra `plan.md`, sus artefactos de diseño y las tareas
 integrales que conservan el traslado; `$speckit-analyze` completó la revisión de consistencia
 sin hallazgos. Implementación y aceptación funcional siguen pendientes.
-001 y002 mantienen planes/tareas revisados con implementación pendiente.006 ya tiene
+001 tiene base/reglas y componentes aislados verificados; 002 mantiene implementación pendiente.006 ya tiene
 implementación y validación local propias; sus integraciones y aceptación integral siguen pendientes. La selección persistida
 se consulta en `.specify/feature.json` y cambia al seleccionar explícitamente otra spec.
 El software local de Spec Kit debe estar instalado;

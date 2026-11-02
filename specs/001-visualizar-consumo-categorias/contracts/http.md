@@ -4,6 +4,10 @@
 [Modelo](../data-model.md) e [integraciones](integrations.md) fijan invariantes de dominio.
 Base `/api/v1`; mismo origen que el frontend estático del monolito.
 
+Estado de ejecución 2026-11-02: cliente/tipos disponibles contra este contrato; las cuatro
+rutas y sus esquemas HTTP todavía no están montados. La configuración interna y las reglas
+puras sí están verificadas. Véase [aceptación parcial](../validation/acceptance.md).
+
 ## Acceso y respuestas comunes
 
 006 valida cookie opaca `ecs_ec_session`, cuenta activa, renovación completada y permisos

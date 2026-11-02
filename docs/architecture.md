@@ -1,9 +1,13 @@
 # Arquitectura compartida de ECS-EC
 
-Estado: plataforma spec-009 y capacidades propias de identidad006 implementadas y validadas localmente; integraciones de negocio y VPS pendientes. Este documento centraliza decisiones ya presentes
+Estado: plataforma spec-009 y capacidades propias de identidad 006 implementadas y validadas localmente; integraciones de negocio y VPS pendientes. Este documento centraliza decisiones ya presentes
 en la planificación de notificaciones; su traslado no acredita instalación, pruebas ni
 despliegue. La [hoja de ruta](implementation-roadmap.md) asigna propietarios y etapas.
 La constitución local `.specify/memory/constitution.md` conserva su precedencia.
+
+Consumo 001 tiene catálogo/configuración y reglas puras verificadas, con componentes web
+aislados; su consulta e incorporación durable esperan almacenamiento 002.
+[Aceptación parcial](../specs/001-visualizar-consumo-categorias/validation/acceptance.md).
 
 ## Unidad de aplicación y herramientas
 
@@ -24,7 +28,7 @@ y visores técnicos son dependencias de infraestructura.
 | Observabilidad | Loguru JSON → Alloy → Loki/LogQL y Grafana; OpenTelemetry/OTLP → Jaeger, propiedad de spec-007. |
 
 Las versiones exactas comunes, transitivas y digests se fijaron y comprobaron localmente
-en los manifiestos/lockfiles e imágenes de plataforma009. Los módulos posteriores validan
+en los manifiestos/lockfiles e imágenes de plataforma 009. Los módulos posteriores validan
 sus dependencias al incorporarse. El [registro de investigación](../specs/009-fundaciones-plataforma/research.md)
 conserva sus fuentes y alternativas; cada módulo conserva las decisiones de su dominio.
 

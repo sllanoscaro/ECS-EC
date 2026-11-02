@@ -3,6 +3,11 @@
 [Spec](../spec.md), [HTTP](http.md), [modelo](../data-model.md).
 Páginas estáticas, datos privados por API autenticada; interfaz en español.
 
+Estado de ejecución 2026-11-02: gráfico, tabla, selector, formato y formulario de configuración
+implementados/probados **aisladamente**; páginas/contenedor, filtros y estados de consulta
+pendientes del proveedor 002. [Evidencia](../validation/acceptance.md). La ruta administrativa
+prevista debe coordinarse con las páginas reales `/administracion/...` de 006 antes del montaje.
+
 ## Consulta /consumption/
 
 1. Ofrecer siete categorías con nombres del catálogo, seleccionables aunque carezcan de

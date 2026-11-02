@@ -4,7 +4,9 @@
 
 **Rama Git real**: `develop`; este flujo no crea ni cambia ramas.
 **Input**: `specs/001-visualizar-consumo-categorias/spec.md` y el alcance trasladado, integrado en [tasks.md](tasks.md).
-**Estado**: fases 0 y 1 de planificación completas; aplicación, pruebas y aceptación pendientes.
+**Estado**: fases 0 y 1 de planificación completas; implementación parcial de 23/61 tareas
+verificada localmente el 2026-11-02. Recepción 002, consulta web y aceptación integral
+pendientes; [evidencia](validation/acceptance.md).
 **Aclaraciones aplicadas**: I1, U1 y A1 aprobadas expresamente el 2026-11-01; modelo,
 contratos, ejemplos y tareas sincronizados, sin acreditar implementación ni cerrar aceptación.
 
@@ -43,7 +45,7 @@ real. Ninguna consulta GET incorpora nuevos totales.
 base ya elegidas en arquitectura, sin reabrir su selección.
 
 **Primary Dependencies**: FastAPI `0.162.0`, Pydantic 2, SQLAlchemy 2/Psycopg 3 asíncrono,
-Alembic y Uvicorn de plataforma009. React 19/Next.js 16 con exportación estática; SVG
+Alembic y Uvicorn de plataforma 009. React 19/Next.js 16 con exportación estática; SVG
 nativo para intervalos, `decimal.js` solo para proyección geométrica y formato exacto.
 `Decimal` y `ZoneInfo` en servidor. Pins restantes y lockfiles se comprueban al implementar.
 

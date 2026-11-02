@@ -19,6 +19,17 @@ las rutas son futuras, no evidencia de implementación existente.
 | `Consumption.source_status` | 001 compone configuración + estado 002; categoría/corte/UoW | Presencia física/lógica, base y revisión; sin inferir medidor por ausencia de lecturas. |
 
 Los contratos/objetos de `consumption/ports.py` no importan implementaciones de 002.
+Estado de ejecución 2026-11-02: reglas/configuración 001 disponibles; proveedores 002 aún
+ausentes. `Reception` declara la firma de intento y `read_attempt` acordadas en el
+[contrato 002](../../002-registro-retencion-consumo/contracts/integrations.md), sin implementarlas.
+Para recepción/configuración usar `catalog_storage.lock_configuration` en READ COMMITTED;
+para resolver fuentes históricas usar `read_revisions` y `configuration_segments`.
+Los segmentos internos calculados incluyen `basis_category_revisions` en orden de base,
+para verificar revisiones de las contribuciones; ese campo se excluye de JSON HTTP. Al
+reconstruir segmentos desde esa proyección hay que rehidratar esas revisiones desde la
+configuración histórica antes de evaluar; el cálculo falla si faltan. No se altera el
+contrato público BasisSource. La integración funcional real se verifica en T018 de 001.
+
 002 depende de las reglas puras 001; la composición de plataforma inyecta su almacenamiento
 en consultas 001. No existe dependencia de aceptación completa ni llamadas recursivas
 entre ambos módulos. Coordinar `models.py`, `ports.py`, registro de rutas y migraciones

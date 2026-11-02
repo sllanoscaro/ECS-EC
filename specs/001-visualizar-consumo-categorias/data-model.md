@@ -94,6 +94,11 @@ posterior con cambios requiere su proveedor real. Un no-op conserva revisión/vi
 Las consultas que abarcan revisiones devuelven segmentos de configuración y procedencia
 por fila. No recalculan historia con la base actual. Permitir todo sin medidor es válido.
 
+Implementación interna 001: `ConfigurationSegment.basis_category_revisions` conserva las
+revisiones de las parciales en orden de base, necesarias para validar contribuciones.
+Se resuelve desde InstallationRevision, se excluye del JSON HTTP y no amplía BasisSource
+público. Evaluar un segmento web reconstruido exige rehidratar esa evidencia desde historia.
+
 ## ValidatedMeasurement y AcceptedMeasurement
 
 | Campo | Tipo / significado |
@@ -185,7 +190,7 @@ Recepción (002): por posición/identidad de entrada, `accepted|duplicate|reject
 `reason_code|null`, `measurement_id|null`, `category_id|null`, `next_admissible_at|null`,
 `correlation_ref`. Conflicto es rechazo; aceptación mixta conserva registros independientes
 válidos. Solo una incorporación nueva avanza la última actualización; duplicados/rechazos
-no la avanzan. Persistir resultados y eventos mediante plataforma009.
+no la avanzan. Persistir resultados y eventos mediante plataforma 009.
 Las causas `source_configuration_changed` y `energy_out_of_supported_range` son rechazos
 por registro; no se usan como causa de faltantes ficticios ni revierten otros registros válidos.
 
