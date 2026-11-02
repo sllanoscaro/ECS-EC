@@ -57,6 +57,13 @@ de prueba con resultados conocidos; comprobar el desglose y su representación g
    **When** se solicita el análisis BT4.3, **Then** se identifica que falta la medición
    general requerida, no se usa el total calculado como base de consumo del suministro
    y no se presenta un costo energético completo ni un consumo cero por esa ausencia.
+9. **Given** un ciclo que cruza meses con distinta condición de punta, **When** se calcula,
+   **Then** el mes de referencia de demanda procede de la regla documentada del perfil o
+   de evidencia explícita validada; se muestran mes, fuente y versión de política. Si no
+   puede resolverse, solo los cargos dependientes permanecen no calculables.
+10. **Given** un Administrador con suministro y perfil preparados, **When** confirma en la
+    interfaz web un cálculo o un recálculo con motivo, **Then** se abre la nueva revisión
+    persistida; reintentar la misma operación no la duplica y el Operador no puede ejecutarla.
 
 ---
 
@@ -93,6 +100,9 @@ y comparar sus datos con un cálculo conocido del mismo intervalo y suministro.
    revisión explícita, conservando la procedencia y la versión comparada anteriormente.
 7. **Given** un período sin boleta registrada, **When** se consulta, **Then** el cálculo
    permanece disponible y se indica que todavía no existe contraste con una boleta.
+8. **Given** revisiones compatibles de cálculo y boleta, **When** el Administrador las
+   selecciona y confirma el contraste en la web, **Then** se persiste y muestra una
+   comparación de ese par exacto, recuperable tras recargar la página.
 
 ---
 
@@ -120,11 +130,22 @@ vigencias conocidas y comprobar cálculos de períodos anteriores y posteriores 
 4. **Given** un ciclo que atraviesa un cambio de precios o condiciones, **When** se calcula,
    **Then** se aplica la regla de vigencia documentada para cada cargo y no se prorratean
    cargos fijos o de demanda mediante una división arbitraria.
-5. **Given** versiones con vigencias superpuestas o condiciones contradictorias,
-   **When** se validan, **Then** se exige resolver la ambigüedad antes de calcular ese período.
+5. **Given** segmentos superpuestos o condiciones contradictorias dentro de una revisión,
+   **When** se validan, **Then** se exige resolver la ambigüedad antes de publicarla; la
+   coincidencia de vigencias entre revisiones históricas no constituye ese conflicto.
 6. **Given** la sección configurada, **When** se consulta su opción tarifaria,
    **Then** se identifica BT4.3 y sus versiones de vigencia, sin presentar otras tarifas
    como alternativas de cálculo de esta funcionalidad.
+7. **Given** un perfil publicado con vigencia abierta, **When** se publica una revisión con
+   el calendario completo dividido ante un nuevo precio o corregido retroactivamente,
+   **Then** se conserva la revisión anterior y sus cálculos; solo los cálculos nuevos o
+   recálculos explícitos usan la nueva revisión publicada.
+8. **Given** suministro aún no registrado o una edición concurrente, **When** el Administrador
+   abre y guarda su editor web, **Then** puede crear el suministro una sola vez o editarlo
+   contra la revisión leída; un conflicto conserva las entradas y exige revisar el estado actual.
+9. **Given** dos publicaciones basadas en la misma última revisión, **When** se confirman
+   concurrentemente, **Then** solo una se guarda y la otra informa conflicto sin modificar
+   el calendario publicado; un borrador guardado no cambia la selección para calcular.
 
 ---
 
@@ -164,6 +185,11 @@ demanda insuficientes y con revisiones; comprobar estados, trazabilidad e histor
    ya cumplió su propio plazo y dejó de conservarse, **When** se reproduce ese cálculo,
    **Then** sus bases preservadas permiten obtener los mismos importes y versiones sin
    perder el historial de máximos que se utilizó.
+9. **Given** una boleta corregida o un costo recalculado sin nueva comparación, **When** se
+   consulta el historial o su captura para reportes, **Then** se seleccionan las últimas
+   revisiones visibles al corte y se indica contraste pendiente para ese par, con diferencias
+   ausentes y sin incluirlo en el contraste agregado; la comparación anterior sigue siendo
+   histórica y una captura anterior conserva su selección original.
 
 ### Edge Cases
 
@@ -223,6 +249,10 @@ según el perfil aplicable al suministro:
 - **FR-004**: Solo DEBE aplicarse un perfil inequívoco para cada cargo y vigencia. Un dato
   obligatorio ausente, una superposición o una regla contradictoria DEBE impedir presentar
   el cálculo como completo y señalar qué debe corregirse; NO DEBE suplirse con cero.
+  Cada revisión DEBE contener su calendario completo de segmentos sin superposiciones
+  internas; publicar una nueva revisión sustituye la selección para cálculos nuevos sin
+  modificar revisiones anteriores. La coincidencia de vigencias entre revisiones históricas
+  NO DEBE tratarse como una superposición interna. Un borrador no cambia la selección publicada.
 - **FR-005**: Cada componente DEBE mostrar cantidad o base, unidad, regla aplicada, precio
   o factor, importe y versión de referencia. El subtotal y el total DEBEN reconciliarse con
   el desglose y distinguir neto, impuestos e importes que ya los incluyan.
@@ -240,6 +270,10 @@ según el perfil aplicable al suministro:
   efectivamente leído en punta; en meses sin punta usa el promedio de los dos mayores
   máximos mensuales de punta del período de punta inmediatamente anterior, conforme a la
   referencia normativa registrada.
+  El mes de referencia de demanda DEBE resolverse mediante una regla documentada del perfil
+  o evidencia explícita validada y conservarse con su fuente y versión de política. NO DEBE
+  inferirse del mes de emisión, inicio o fin sin regla documental; si no se resuelve,
+  los cargos dependientes DEBEN identificarse como no calculables.
 - **FR-009**: El calendario de punta, los bloques de medición y las ventanas históricas
   DEBEN respetar la zona horaria, vigencia y reglas aplicables al suministro. DEBEN
   conservarse los meses y valores usados; la ausencia de históricos NO DEBE rellenarse
@@ -251,6 +285,8 @@ según el perfil aplicable al suministro:
 - **FR-011**: DEBEN registrarse inicio y fin del ciclo de consumo, zona horaria y criterio
   de lectura de sus límites. Un contraste DEBE usar el ciclo de la boleta y las reglas
   de facturación del perfil; NO DEBE reemplazarlo automáticamente por el mes de emisión.
+  El mes de demanda resuelto DEBE preservarse por revisión del cálculo; corregirlo NO DEBE
+  modificar la evidencia de un cálculo anterior ni los límites del ciclo.
 - **FR-012**: Una variación del perfil dentro del ciclo DEBE aplicar la regla de vigencia
   documentada de cada componente. NO DEBE asignar arbitrariamente cuotas diarias u horarias
   a cargos fijos o de demanda ni distribuir el costo entre las categorías parciales.
@@ -268,6 +304,11 @@ según el perfil aplicable al suministro:
   tributaria. DEBE mostrar los dos valores y la diferencia calculado menos facturado;
   el porcentaje es esa diferencia dividida por el valor absoluto del facturado y multiplicada
   por 100 cuando este no sea cero. Con facturado cero el porcentaje DEBE indicar que no aplica.
+  Al consultar las últimas revisiones a un corte, solo DEBE usarse una comparación que
+  referencie exactamente el cálculo y la revisión de boleta seleccionados. Si falta,
+  DEBE indicarse contraste pendiente, conservar los valores disponibles y presentar
+  diferencias ausentes; el ciclo NO DEBE integrar el contraste agregado ni recuperarse
+  una comparación antigua como actual. La consulta NO DEBE crear comparaciones.
 - **FR-017**: Los conceptos sin equivalente calculado DEBEN presentarse fuera del subtotal
   comparable, con explicación de su tratamiento. Deudas, intereses, cuotas, créditos y ajustes
   DEBEN conservar su signo y su relación con el ciclo; si tienen un equivalente calculado
@@ -279,6 +320,11 @@ según el perfil aplicable al suministro:
 - **FR-019**: Repeticiones de identificador de boleta DEBEN detectarse. Correcciones de boleta,
   cambios de perfil y recálculos DEBEN generar revisiones con procedencia y fecha, preservando
   la evidencia anterior; cada comparación DEBE identificar las versiones utilizadas.
+  El Administrador DEBE poder ejecutar cálculo/recálculo y crear el contraste de revisiones
+  explícitas desde la web; el recálculo exige motivo y los reintentos de una misma operación
+  NO DEBEN duplicar resultados. El suministro DEBE admitir alta inicial única y edición
+  contra la revisión vigente, recuperable al abrir el editor; publicaciones concurrentes
+  de perfil DEBEN detectar que cambió la última revisión antes de guardar.
 - **FR-020**: Las mismas entradas, referencias y reglas de redondeo DEBEN producir los mismos
   resultados. La presentación DEBE declarar el criterio de redondeo y mantener la consistencia
   entre cada concepto, subtotal, impuestos, total y diferencia mostrados.
