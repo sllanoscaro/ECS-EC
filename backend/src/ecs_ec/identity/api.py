@@ -19,7 +19,11 @@ router = APIRouter(prefix="/api/v1", responses={status: {"model": ProblemView} f
 
 
 def route_action(method, path):
-    """Classify only installed identity routes; policy is explicit rather than a verb-based grant."""
+    """Classify installed identity and consumption routes; policy is explicit rather than a verb-based grant."""
+    if path == "/api/v1/consumption/configuration":
+        return "consumption.configuration.read" if method == "GET" else "consumption.configuration.manage"
+    if path.startswith("/api/v1/consumption/"):
+        return "consumption.read"
     if path.startswith("/api/v1/identity/accounts"):
         return "identity.accounts.read" if method == "GET" else "identity.accounts.manage"
     if path == "/api/v1/identity/administration-history":

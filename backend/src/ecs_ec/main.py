@@ -32,7 +32,7 @@ def create_app(
     clock = clock or SystemClock()
     if settings.identity_enabled or identity_service:
         from ecs_ec.identity.services import Identity
-        identity_service = identity_service or Identity(database, settings.identity_options(), clock, settings.building_timezone)
+        identity_service = identity_service or Identity(database, settings.identity_options(), clock, settings.building_timezone, history_actions=("consumption.configuration.changed",))
         from contextlib import asynccontextmanager
 
         @asynccontextmanager
@@ -70,6 +70,12 @@ def create_app(
         from fastapi.exceptions import RequestValidationError
         from ecs_ec.identity.api import IdentityMiddleware, router, problem_response, validation_response
         from ecs_ec.identity.errors import IdentityProblem
+        from ecs_ec.consumption.queries import Consumption
+        from ecs_ec.consumption.router import router as consumption_router, ConsumptionProblem, problem_response as consumption_problem
+        app.state.consumption = Consumption(database, clock, identity_service.settings.building_id, app.state.consumption_store)
+        app.add_exception_handler(ConsumptionProblem, consumption_problem)
+        app.include_router(consumption_router)
+        identity_service.history_actions = identity_service.history_actions | {"consumption.configuration.changed"}
         app.state.identity = identity_service
         app.add_middleware(IdentityMiddleware, identity=identity_service)
         app.add_exception_handler(IdentityProblem, problem_response)
