@@ -170,3 +170,15 @@ Comparar primero el snapshot según 009; después aplicar la invalidación técn
 la antigüedad de credenciales del snapshot y recuperar/restablecer cuentas según operación
 autorizada. Nunca borrar auditoría/cuentas ni limpiar esperas activas para resolver claves
 perdidas. Las comprobaciones reales de VPS y proveedores de negocio siguen pendientes.
+
+## Historial de consumo002
+
+La consulta agrupada y la retirada interna usan los proveedores reales001/002/006 del
+mismo monolito. Véanse [operación y pruebas002](../specs/002-registro-retencion-consumo/quickstart.md)
+y [aceptación local](../specs/002-registro-retencion-consumo/validation/acceptance.md).
+Mantener reloj UTC sincronizado y zona IANA/tzdata fijadas; next_admissible_at es un
+límite de recepción de900 segundos, no una garantía de llegada. Reenvío explícito crea
+otro attempt_id; recuperación usa el mismo. El lifespan recupera solicitudes/candidatos.
+Respaldo/restauración incluyen ledger, payloads, agregados/aportes, configuración y auditoría.
+La retirada no es una purga programada: exige proceso autorizado, motivo, vencimiento y
+comprobación transaccional de dependientes. La validación local no acredita VPS.

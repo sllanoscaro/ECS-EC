@@ -266,3 +266,26 @@ tras locks de contexto/categorías en la misma transacción READ COMMITTED.
 Las fachadas/HTTP/UI integradas 001 aún no existen; su ausencia y los gates de
 003/007/personas se registran en [prerrequisitos](../validation/prerequisites.md).
 El router único seguirá siendo `backend/src/ecs_ec/consumption/router.py`.
+
+## Nombres concretos de los proveedores implementados
+
+`Consumption.query_aggregates(selection, principal, unit_of_work=None)` y los tres
+puertos de consumidores viven en `backend/src/ecs_ec/consumption/queries.py`. El reporte
+acepta `unit_of_work` keyword obligatorio; el llamador establece REPEATABLE READ y
+conserva el snapshot/referencias antes de liberar. La API valida offsets en su adaptador;
+los consumidores internos reciben instantes UTC y autorización actual del llamador.
+
+`FunctionalSummary(consumption).read(content_types,start,end,cutoff_at=...,permissions=...,
+unit_of_work=...)` implementa el proveedor propio002 de009. Soporta
+`consumption.accepted`/`reception.completed`; cuenta eventos de actualizaciones por categoría
+ligados al edificio, no posiciones ni publicaciones inferidas. La historia de resultados y
+sus eventos se conserva sin purga en esta versión. La cobertura comienza en el registro del
+edificio y termina en el corte; el resto es hueco conocido. Otro contenido es desconocido,
+con count null; fallo DB propaga error. No se escriben registros de cobertura durante GET.
+
+`Retention(database,clock,authorized_processes={process:{building_id}}).withdraw_detail`
+acepta keywords `building_id`, `record_ids`, `process`, `reason`, `preview=False` y devuelve
+por ID `status: withdrawn|rejected|already_withdrawn` y `reason_code`. Vista previa y
+retirada usan los mismos bloqueos/revalidación; únicamente ejecución escribe auditoría.
+El ledger, fuentes/configuración y aportes no se purgan; solicitudes pending y dependientes
+protegidos impiden retirar evidencia necesaria. El servicio no tiene endpoint público.

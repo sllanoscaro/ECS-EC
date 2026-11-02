@@ -1,3 +1,26 @@
+# Revisión documental vigente002
+
+Continuación2026-11-02: T069 completa para el código propio de esta funcionalidad.
+AST de archivos modificados/nuevos:22 Python/157 símbolos/cero docstrings ausentes.
+Revisión ampliada de módulo consumo, pruebas unitarias/integración/contrato, composición,
+harness y migración real: 61 archivos/411 símbolos/cero ausencias.
+
+Se revisaron contratos de captura/UoW/cutoff y autorización del llamador, fórmulas de
+quanta y porcentaje por enteros, estados exactos antes de redondeo, fuentes/bases
+históricas, recuperación de solicitudes, vencimientos/dependientes/retirada y auditoría
+atómica. Tipos002 manuales citan su contrato; tipos001 identifican su generador y se
+regeneraron por `detail_withdrawn`. Componentes, formateadores, hook y pruebas frontend
+conservan TSDoc y evidencias exactas compartidas. No hay cambios a dependencias/locks,
+scripts ni skills distribuidos de Spec Kit.
+
+[Guía reproducible](../quickstart.md), [API](../contracts/http.md),
+[puertos concretos](../contracts/integrations.md), [aceptación](acceptance.md).
+Revisión de enlaces Markdown relativos y `git diff --check` sin errores al cierre.
+La revisión anterior se conserva a continuación como evidencia histórica, sin convertir
+sus limitaciones pasadas en gates vigentes.
+
+---
+
 # Revisión documental del incremento 002
 
 Fecha: 2026-11-02. Alcance: archivos Python nuevos/modificados, migración, fixtures,

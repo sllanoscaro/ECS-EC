@@ -4,8 +4,8 @@
 [integraciones](contracts/integrations.md), [UI](contracts/ui.md).
 Recepción, almacenamiento, calendario/agregados sincrónicos y recuperación CAT-01
 están implementados y probados localmente: [aceptación parcial](validation/acceptance.md).
-Fachada/UI001, consulta agrupada, retirada y aceptación integral siguen pendientes.
-Los escenarios posteriores describen los objetivos restantes, no resultados ya obtenidos.
+La fachada/UI001, consulta agrupada y retirada están integradas y verificadas localmente.
+La aceptación integral espera003/007/personas; los resultados vigentes están en la evidencia.
 
 ## Prerrequisitos reales
 
@@ -85,22 +85,89 @@ revalida bajo los mismos locks y agrupa los totales admisibles en una actualizac
 la instrumentación007 continúa pendiente. GET no ejecuta el trabajo.
 
 Las incorporaciones guardan plazos iniciales/aniversarios009 y aportes permanentes.
-**Retirada interna y sus protecciones completas siguen pendientes de US3**; esta entrega
-no añade purga automática ni un comando de retirada. Si cambia tzdata y se detectan
+La retirada interna y sus protecciones están implementadas en `retention.py`;
+no hay purga automática ni endpoint público de retirada. Si cambia tzdata y se detectan
 límites incompatibles, se exige reconciliación explícita, sin reinterpretar agregados.
 
-## Operación y recorrido web pendientes
+## Operación y consulta web implementadas
 
-Construcción/arranque y respaldo/restauración comunes siguen los procedimientos de
+La ruta `/consumption/` existente001 permite Detalle/Hora/Día/Mes/Año conservando categoría,
+filtro y zona. GET `/api/v1/consumption/categories/{category_id}/aggregates` exige
+`start`, `end`, `timezone` y `granularity=hour|day|month|year`. Usar offsets del edificio,
+no del navegador; los bloques deben caber completos. API y ambas vistas distinguen
+null/—, cero, cobertura incompleta y situación temporal usando el mismo corte.
+`no-store` se aplica también a errores. Una nueva consulta tras commit ve la revisión nueva;
+GET no acepta, publica pendientes ni renueva plazos. No hay datos privados en el export.
+
+Construcción/arranque, secretos y respaldo/restauración siguen los procedimientos de
 [plataforma](../009-fundaciones-plataforma/quickstart.md) y
-[operación](../../deploy/README.md). Completar secretos y zona/fuentes reales antes de
-instalar; America/Santiago es fixture. No se verificó VPS desde estas pruebas locales.
+[operación](../../deploy/README.md). Configurar zona/fuentes reales antes de instalar.
+No se verificó VPS con estas pruebas. tzdata2026.6 está fijada; ante límites históricos
+incompatibles se exige reconciliación, nunca reinterpretación silenciosa.
 
-La ruta `/consumption/`, su fachada/router001 y el GET agrupado todavía no existen.
-Los recorridos Playwright de agrupación, conservación y estados se habilitan después
-de completar ese gate y US2–US4. El build actual no acredita esas pantallas.
-003 debe demostrar publicaciones completas/identidad/reenvío;007 su emisor y004/005/008
-sus consumidores. Los fixtures internos no acreditan esas integraciones.
+### Retirada interna
+
+La composición de mantenimiento crea `Retention(database, clock,
+authorized_processes={process_ref: {building_uuid}})` desde
+`backend/src/ecs_ec/consumption/retention.py`. Invocar por keywords:
+
+```python
+preview = await retention.withdraw_detail(building_id=building_uuid,
+    record_ids=record_ids, process=process_ref, reason="expired_detail", preview=True)
+result = await retention.withdraw_detail(building_id=building_uuid,
+    record_ids=record_ids, process=process_ref, reason="expired_detail")
+```
+
+La ejecución vuelve a comprobar bajo locks: preview no garantiza elegibilidad posterior.
+Resultados por registro: withdrawn/rejected/already_withdrawn y causa. Solo se elimina
+payload vencido permitido; se preservan ledger/aportes/configuración/máximos y agregado.
+Las solicitudes pending sin candidato y dependientes protegidos impiden retirar evidencia
+necesaria. El vencimiento no obliga a borrar. Auditoría y ejecución confirman juntas;
+un fallo DB revierte el lote y debe corregirse/reintentarse, sin declarar éxito.
+
+### Recorridos de navegador reproducibles
+
+Usar una DB nueva separada `_test`, migrada y vacía; nunca la de aplicación. Preparar un
+archivo de contraseña sintética0600. Con `TEST_DATABASE_URL` apuntando a ese destino y
+`DATABASE_URL` apuntando a otro (para la comprobación de aislamiento), ejecutar:
+
+```sh
+uv run python scripts/seed_consumption_reference.py --password-file /ruta/privada/password --mode physical
+```
+
+Después configurar el servidor con `DATABASE_URL` de esa DB de prueba, `ENVIRONMENT=test`,
+`WEB_DIRECTORY=frontend/out`, `IDENTITY_ENABLED=true`, `IDENTITY_DEVELOPMENT_HTTP=true`,
+`PUBLIC_URL=http://127.0.0.1:8014`, `IDENTITY_BUILDING_ID=00000000-0000-0000-0000-000000000063`
+y claves CSRF/bucket sintéticas distintas de256 bits. No imprimir ni versionar claves.
+
+```sh
+uv run uvicorn ecs_ec.main:create_app --factory --host 127.0.0.1 --port 8014
+```
+
+En otra terminal con esa misma configuración de fixture:
+
+```sh
+IDENTITY_E2E_PASSWORD_FILE=/ruta/privada/password CONSUMPTION_E2E_MODE=physical E2E_BASE_URL=http://127.0.0.1:8014 npm --prefix frontend run test:e2e -- tests/e2e/consumption.spec.ts --workers=1
+```
+
+Las cuentas se renuevan usando006. Para repetir tras reiniciar app/PostgreSQL, añadir
+`CONSUMPTION_E2E_RENEWED=1`. Para calculado usar otra DB vacía y `--mode calculated`/
+`CONSUMPTION_E2E_MODE=calculated` desde su primer recorrido. No mezclar bases de tests
+pytest con estos fixtures persistentes de navegador.
+
+Para estados/retirada, usar el fixture físico recién renovado en el que aún no se ejecutó
+este recorrido. Crear archivo0600 con `2026-12-01T12:00:00Z` y exportar
+`HISTORY_E2E_CLOCK_FILE` a su ruta absoluta tanto en servidor como en Playwright. Arrancar
+`backend.tests.run_history_browser:create_test_app` en lugar de la factory de producción.
+Ejecutar `tests/e2e/consumption-history-states.spec.ts` con las mismas variables y
+`CONSUMPTION_E2E_RENEWED=1`. El test alinea Date del navegador al reloj privado y llama
+`python -m backend.tests.control_history_browser` para publicar/retirar a través de los
+servicios reales; la app no expone un endpoint de fixture. Este recorrido requiere fixture
+nuevo al repetir tras una retirada exitosa. Al terminar retirar únicamente contenedor/
+volúmenes y archivos privados que se hayan creado para estas pruebas.
+
+003 todavía debe demostrar publicaciones completas/identidad/reenvío;007 su emisor y
+004/005/008 sus consumidores. Los fixtures no acreditan esas integraciones ni SC-005.
 
 ## Escenarios de validación
 

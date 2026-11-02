@@ -37,3 +37,11 @@ ausente. T025 confirma eventos atómicos; falta el proveedor de resumen/cobertur
 funcional y su composición. Por ello **el checkpoint integral de US1 sigue pendiente**,
 aunque la recepción y recuperación internas descritas están verificadas.
 No se acreditan consulta agrupada HTTP, UI, retirada, consumidores, emisor 007 ni SFTP.
+
+## Cierre del gate de lectura US1, 2026-11-02
+
+T024/T025 completas: proveedores reales002 inyectados en fachada001; límites permanentes
+verificados también después de retirada autorizada. `crossing_diagnostic_ids` diferencia
+candidatos excluidos y cuenta uno aunque cruce ambos extremos. El resumen funcional propio
+`FunctionalSummary.read` está compuesto y probado con permisos, conteo observado/cero,
+cobertura desde registro, huecos y contenido desconocido. No consulta logs ni SMTP.

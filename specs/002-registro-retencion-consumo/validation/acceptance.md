@@ -1,4 +1,63 @@
-# Aceptación parcial de spec-002
+# Aceptación local de spec-002, pendiente de integraciones y personas
+
+**Actualización:** 2026-11-02. **Base Git:** `b30afe6408f6178b89b0d5483229e284c741d023`. **Estado:**68/71 tareas completas;43 tareas adicionales
+respecto del incremento inicial. T001–T063/T066–T067/T069–T071 completas;
+T064/T065/T068 pendientes. No se modificaron checklists de revisión ni tareas001/004.
+Se preservaron los cambios previos de004. No hay commit ni despliegue VPS en esta sesión.
+
+## Resultado vigente
+
+Se reutilizó001 para catálogo/configuración/detalle, router, página y componentes;
+009 para UoW/reloj/aniversarios/auditoría y006 para sesiones/permisos/CSRF.
+002 añade consulta agrupada, proveedores de consumidores, resumen funcional, protección/
+retirada de detalle y presentación de estados/tardíos. No crea módulos ajenos.
+
+| Verificación final | Resultado |
+| --- | --- |
+| `uv run pytest backend/tests --cov=ecs_ec.consumption --cov-report=term-missing -q` |319 aprobadas,47.83s;96% de cobertura de consumo. Ninguna xfail pendiente. |
+| `npm --prefix frontend test -- --run --maxWorkers=1 --no-file-parallelism` |47 aprobadas,20 archivos,15.60s. |
+| TypeScript / build estático |Ambos aprobados; páginas de consumo exportadas, datos privados solo por API. |
+| Playwright físico, ambos perfiles |2/2; siete categorías/cuatro agrupaciones con datos, API/gráfico/tabla; después de reiniciar Uvicorn/PostgreSQL vuelve a pasar2/2 en9.6s. |
+| Playwright calculado, ambos perfiles |2/2 en11.1s; base12+8=20 y ausencias, cero/quantum, consulta y permisos. |
+| Playwright estados/retirada |1/1 en6.8s; dato tardío, cobertura, respuesta A demorada/error/reintento, fronteras exactas, sesión expirada y retirada por servicio real. |
+| Alembic check |Sin nuevas operaciones; no se necesitó migración ni cambio de dependencias/locks. |
+| Documentación / `git diff --check` |Docstrings de código Python propio revisados; TSDoc de componentes/cliente/harness. Comprobación de espacios/enlaces realizada. |
+
+PostgreSQL18.3 del digest Compose, contenedor desechable `ecs-spec002-continuation`,
+loopback55450. Bases separadas `ecs_history_test`, `ecs_history_browser_test`,
+`ecs_history_physical2_test` y `ecs_history_calculated_test`, nunca la de aplicación.
+CPython3.14.4, Node24.22.0, npm12.2.0, tzdata2026.6; locks conservados.
+Relojes FrozenClock y harness ISO0600 privados; no se cambió la hora del host.
+Al finalizar se retiraron contenedor/volumen y archivos temporales de prueba.
+
+## Trazabilidad y límites
+
+| Requisitos | Evidencia / estado |
+| --- | --- |
+| FR-001..006, SC-001 |[Recepción](reception.md): núcleo previo más T024/T025, proveedores/fachada/resumen y diagnóstico cruzado reales. |
+| FR-007..013, SC-002 |[Agregaciones](aggregates.md): cuatro niveles exactos y consulta/UI con identidad real. |
+| FR-014/FR-010..014/019, SC-003 |[Estados/tardíos](incomplete-history.md): actualización sincrónica, selección/captura común, cero/hueco/error y fronteras. |
+| FR-015..019, SC-004 |[Conservación](retention.md):13 meses/siete categorías, aniversarios, dependientes y retirada real preservando agregados/reenvíos. |
+| SC-005 |Pendiente de participantes reales: T068. No se acredita con Playwright. |
+| Integraciones nativas |T064 espera adaptador003 real y T065 emisor007. Proveedores para004/005/008 probados; aceptación conjunta pendiente de consumidores. |
+| Instalación |Zona/fuentes reales y VPS sin verificar; America/Santiago es fixture. |
+
+Las pruebas nuevas de resumen, consulta, HTTP, consumidores, selector y retirada se
+observaron fallar por capacidades ausentes antes de añadirlas. Otras regresiones se
+ampliaron después del montaje: no se afirma TDD integral de todos los escenarios.
+Primeros intentos E2E fallaron por invocación desde cwd incorrecto y localizador de
+etiqueta; se corrigió el harness. El reloj servidor congelado inicialmente no coincidía
+con Date del navegador y provocó revalidaciones repetidas: el harness alinea ambos,
+sin cambiar identidad para ocultarlo. Las ejecuciones finales arriba pasaron.
+
+Selección persistida activa: `specs/002-registro-retencion-consumo`.
+No existe `.specify/extensions.yml`: comprobados hooks previos y posteriores, sin hooks
+que ejecutar. Checklist requirements16/16 se mantuvo intacto. Esta evidencia sustituye
+los gates obsoletos del registro inicial conservado a continuación como historia.
+
+---
+
+# Registro histórico del incremento inicial
 
 **Fecha:** 2026-11-02. **Base Git:** `cb5134494bd9032ab50bd47f085b052518e04bbb`;
 árbol limpio al comenzar, cambios actuales sin commit. **Estado:** 25/71 tareas

@@ -6,8 +6,9 @@ despliegue. La [hoja de ruta](implementation-roadmap.md) asigna propietarios y e
 La constitución local `.specify/memory/constitution.md` conserva su precedencia.
 
 Consumo 001 tiene catálogo/configuración, reglas puras y consulta web de detalle integrados
-con la incorporación durable y almacenamiento 002. Su aceptación integral, diagnósticos
-cruzados y la integración de agrupaciones siguen pendientes.
+con la incorporación durable y almacenamiento 002. 002 también integra agrupaciones web, diagnósticos cruzados y retirada protegida con
+validación automatizada local. La aceptación integral con dependencias externas y personas
+sigue pendiente.
 [Estado de 002](../specs/002-registro-retencion-consumo/validation/acceptance.md).
 [Aceptación parcial](../specs/001-visualizar-consumo-categorias/validation/acceptance.md).
 

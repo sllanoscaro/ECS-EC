@@ -1626,7 +1626,8 @@
               "observed_gaps",
               "no_calculation_basis",
               "partial_calculation_scope",
-              "source_unavailable_in_segment"
+              "source_unavailable_in_segment",
+              "detail_withdrawn"
             ]
           },
           "count": {

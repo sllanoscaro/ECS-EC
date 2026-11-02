@@ -5,9 +5,9 @@ rama Git actual: `develop`, sin creación de rama.
 **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: `specs/002-registro-retencion-consumo/spec.md` y las cinco tareas del borrador
 trasladado, conservadas en la trazabilidad de [tasks.md](tasks.md).
-**Estado**: diseño revisado y 25/71 tareas implementadas/verificadas localmente.
-Fundaciones y recepción interna disponibles; T024/T025 parciales, US2–US4 y aceptación
-integral pendientes. [Evidencia y gates](validation/acceptance.md).
+**Estado**: diseño revisado y68/71 tareas implementadas/verificadas localmente.
+US1–US4 integradas con001/006 reales. T064/adquisición003, T065/emisor007 y
+T068/personas pendientes; aceptación integral todavía pendiente. [Evidencia y gates](validation/acceptance.md).
 
 ## Contexto compartido del proyecto (ECS-EC)
 
@@ -17,7 +17,7 @@ Aplican [AGENTS.md](../../AGENTS.md), [arquitectura](../../docs/architecture.md)
 identidad; 001, catálogo/fuentes, validación y cálculo puro CAT-01; 002, recepción,
 almacenamiento, agregados y conservación; 003, adquisición PAS600/SFTP; 007,
 instrumentación común; 008, notificaciones. La plataforma, identidad, dominio/configuración001 y proveedores internos002 existen;
-la fachada/UI001 y las capacidades externas pendientes se detallan en la evidencia.
+la fachada/UI001 ya se integró; los gates externos pendientes se detallan en la evidencia.
 
 ## Summary
 

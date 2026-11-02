@@ -48,3 +48,18 @@ la conexión. El worker recupera solicitudes/candidatos en el lifespan común.
 
 La fachada/UI001 siguen ausentes; existen contratos de salida agrupada/consumidores,
 no implementaciones de esas consultas. T024/T025 y el gate US2 permanecen pendientes.
+
+## Continuación 2026-11-02
+
+La fachada/router/página001 ya existen y se reutilizaron. T024/T025 y US2–US4 se
+integraron con `Consumption`, `MeasurementStore`, identidad006 y el registro009 reales.
+El proveedor `FunctionalSummary`002 se compone como `app.state.consumption_summary`;
+su `read` exige permisos actuales y UoW/corte del llamador. Cuenta actualizaciones de
+categoría mediante eventos transaccionales ligados a su edificio; antes del registro o
+después del corte informa huecos; contenido ajeno devuelve desconocida/null.
+
+Siguen faltando adaptador de publicaciones/SFTP003 en `backend/src/ecs_ec/acquisition/`
+([contrato003](../../003-simulador-pas600-sftp/contracts/sftp-reception.md)) y emisor007 en
+`backend/src/ecs_ec/observability/` ([plan007](../../007-observabilidad-externa/plan.md)).
+No se implementaron como prerrequisitos. T064/T065 pendientes; SC-005/T068 sin personas.
+Los contratos productores004/005/008 están probados; aceptación conjunta no ejecutada.
