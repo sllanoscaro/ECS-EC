@@ -402,3 +402,10 @@ La ampliación de permisos distingue el ámbito funcional del técnico:
   reglas de procesamiento de las specs-001 a 006. El plan debe verificar acceso externo,
   protección de contenidos, límites y correlación. No se incluyen notificaciones externas,
   reglas automáticas de actuación sobre el negocio ni elección tecnológica en esta especificación.
+
+## Contexto de planificación compartido
+
+Consultar [arquitectura](../../docs/architecture.md) y
+[hoja de ruta](../../docs/implementation-roadmap.md). El [archivo de tareas](tasks.md)
+conserva responsabilidades antes concentradas en 008 y debe integrarse al planificar
+esta funcionalidad; no cambia sus requisitos ni acredita diseño o implementación completos.
