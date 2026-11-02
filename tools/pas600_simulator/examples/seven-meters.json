@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "algorithm_version": "sha256-v1",
+  "profile_id": "pas600-doca0172en19-energy-v1",
+  "seed": "ecs-ec-example",
+  "publisher": {
+    "name": "PAS600 synthetic",
+    "publisher_serial": "SYNTHETIC-PAS600",
+    "publisher_remote_id": "synthetic-pas600",
+    "ip": "192.0.2.1",
+    "mac": "02:00:00:00:00:01"
+  },
+  "timezone": "Etc/UTC",
+  "start": "2026-01-01T00:00:00Z",
+  "end": "2026-01-02T00:00:00Z",
+  "publication_time": "2026-01-02T00:00:00Z",
+  "sampling_minutes": 15,
+  "samples_per_publication": 96,
+  "format": "csv",
+  "categories": [
+    {
+      "category_id": "CAT-01",
+      "has_meter": true,
+      "meter": {
+        "device_local_id": "1",
+        "reduced_id": "1_mb",
+        "device_name": "iEM3150 CAT01",
+        "device_type_id": "synthetic-iem3150",
+        "device_type_name": "iEM3150",
+        "csv_topic_id": "SYNTHETIC.1.energy",
+        "csv_measurement_name": "Active Energy",
+        "json_value_item_id": "synthetic/1/energy",
+        "unit": "kWh",
+        "semantics": "cumulative",
+        "timestamp_role": "reading_instant",
+        "sampling_minutes": 15,
+        "initial_counter": "100",
+        "quantum": "0.001",
+        "provenance": {
+          "kind": "synthetic",
+          "revision": "DOCA0172EN-19",
+          "evidence": null,
+          "sha256": null
+        }
+      },
+      "expected_range": {
+        "min": "0",
+        "max": "10",
+        "unit": "kWh",
+        "duration_minutes": 15
+      },
+      "rates": {
+        "missing": "0",
+        "format": "0",
+        "out_of_range": "0"
+      }
+    },
+    {
+      "category_id": "CAT-02",
+      "has_meter": true,
+      "meter": {
+        "device_local_id": "2",
+        "reduced_id": "2_mb",
+        "device_name": "iEM3150 CAT02",
+        "device_type_id": "synthetic-iem3150",
+        "device_type_name": "iEM3150",
+        "csv_topic_id": "SYNTHETIC.2.energy",
+        "csv_measurement_name": "Active Energy",
+        "json_value_item_id": "synthetic/2/energy",
+        "unit": "kWh",
+        "semantics": "cumulative",
+        "timestamp_role": "reading_instant",
+        "sampling_minutes": 15,
+        "initial_counter": "100",
+        "quantum": "0.001",
+        "provenance": {
+          "kind": "synthetic",
+          "revision": "DOCA0172EN-19",
+          "evidence": null,
+          "sha256": null
+        }
+      },
+      "expected_range": {
+        "min": "0",
+        "max": "10",
+        "unit": "kWh",
+        "duration_minutes": 15
+      },
+      "rates": {
+        "missing": "0",
+        "format": "0",
+        "out_of_range": "0"
+      }
+    },
+    {
+      "category_id": "CAT-03",
+      "has_meter": true,
+      "meter": {
+        "device_local_id": "3",
+        "reduced_id": "3_mb",
+        "device_name": "iEM3150 CAT03",
+        "device_type_id": "synthetic-iem3150",
+        "device_type_name": "iEM3150",
+        "csv_topic_id": "SYNTHETIC.3.energy",
+        "csv_measurement_name": "Active Energy",
+        "json_value_item_id": "synthetic/3/energy",
+        "unit": "kWh",
+        "semantics": "cumulative",
+        "timestamp_role": "reading_instant",
+        "sampling_minutes": 15,
+        "initial_counter": "100",
+        "quantum": "0.001",
+        "provenance": {
+          "kind": "synthetic",
+          "revision": "DOCA0172EN-19",
+          "evidence": null,
+          "sha256": null
+        }
+      },
+      "expected_range": {
+        "min": "0",
+        "max": "10",
+        "unit": "kWh",
+        "duration_minutes": 15
+      },
+      "rates": {
+        "missing": "0",
+        "format": "0",
+        "out_of_range": "0"
+      }
+    },
+    {
+      "category_id": "CAT-04",
+      "has_meter": true,
+      "meter": {
+        "device_local_id": "4",
+        "reduced_id": "4_mb",
+        "device_name": "iEM3150 CAT04",
+        "device_type_id": "synthetic-iem3150",
+        "device_type_name": "iEM3150",
+        "csv_topic_id": "SYNTHETIC.4.energy",
+        "csv_measurement_name": "Active Energy",
+        "json_value_item_id": "synthetic/4/energy",
+        "unit": "kWh",
+        "semantics": "cumulative",
+        "timestamp_role": "reading_instant",
+        "sampling_minutes": 15,
+        "initial_counter": "100",
+        "quantum": "0.001",
+        "provenance": {
+          "kind": "synthetic",
+          "revision": "DOCA0172EN-19",
+          "evidence": null,
+          "sha256": null
+        }
+      },
+      "expected_range": {
+        "min": "0",
+        "max": "10",
+        "unit": "kWh",
+        "duration_minutes": 15
+      },
+      "rates": {
+        "missing": "0",
+        "format": "0",
+        "out_of_range": "0"
+      }
+    },
+    {
+      "category_id": "CAT-05",
+      "has_meter": true,
+      "meter": {
+        "device_local_id": "5",
+        "reduced_id": "5_mb",
+        "device_name": "iEM3150 CAT05",
+        "device_type_id": "synthetic-iem3150",
+        "device_type_name": "iEM3150",
+        "csv_topic_id": "SYNTHETIC.5.energy",
+        "csv_measurement_name": "Active Energy",
+        "json_value_item_id": "synthetic/5/energy",
+        "unit": "kWh",
+        "semantics": "cumulative",
+        "timestamp_role": "reading_instant",
+        "sampling_minutes": 15,
+        "initial_counter": "100",
+        "quantum": "0.001",
+        "provenance": {
+          "kind": "synthetic",
+          "revision": "DOCA0172EN-19",
+          "evidence": null,
+          "sha256": null
+        }
+      },
+      "expected_range": {
+        "min": "0",
+        "max": "10",
+        "unit": "kWh",
+        "duration_minutes": 15
+      },
+      "rates": {
+        "missing": "0",
+        "format": "0",
+        "out_of_range": "0"
+      }
+    },
+    {
+      "category_id": "CAT-06",
+      "has_meter": true,
+      "meter": {
+        "device_local_id": "6",
+        "reduced_id": "6_mb",
+        "device_name": "iEM3150 CAT06",
+        "device_type_id": "synthetic-iem3150",
+        "device_type_name": "iEM3150",
+        "csv_topic_id": "SYNTHETIC.6.energy",
+        "csv_measurement_name": "Active Energy",
+        "json_value_item_id": "synthetic/6/energy",
+        "unit": "kWh",
+        "semantics": "cumulative",
+        "timestamp_role": "reading_instant",
+        "sampling_minutes": 15,
+        "initial_counter": "100",
+        "quantum": "0.001",
+        "provenance": {
+          "kind": "synthetic",
+          "revision": "DOCA0172EN-19",
+          "evidence": null,
+          "sha256": null
+        }
+      },
+      "expected_range": {
+        "min": "0",
+        "max": "10",
+        "unit": "kWh",
+        "duration_minutes": 15
+      },
+      "rates": {
+        "missing": "0",
+        "format": "0",
+        "out_of_range": "0"
+      }
+    },
+    {
+      "category_id": "CAT-07",
+      "has_meter": true,
+      "meter": {
+        "device_local_id": "7",
+        "reduced_id": "7_mb",
+        "device_name": "iEM3150 CAT07",
+        "device_type_id": "synthetic-iem3150",
+        "device_type_name": "iEM3150",
+        "csv_topic_id": "SYNTHETIC.7.energy",
+        "csv_measurement_name": "Active Energy",
+        "json_value_item_id": "synthetic/7/energy",
+        "unit": "kWh",
+        "semantics": "cumulative",
+        "timestamp_role": "reading_instant",
+        "sampling_minutes": 15,
+        "initial_counter": "100",
+        "quantum": "0.001",
+        "provenance": {
+          "kind": "synthetic",
+          "revision": "DOCA0172EN-19",
+          "evidence": null,
+          "sha256": null
+        }
+      },
+      "expected_range": {
+        "min": "0",
+        "max": "10",
+        "unit": "kWh",
+        "duration_minutes": 15
+      },
+      "rates": {
+        "missing": "0",
+        "format": "0",
+        "out_of_range": "0"
+      }
+    }
+  ],
+  "structural_corruptions": []
+}

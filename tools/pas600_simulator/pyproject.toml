@@ -1,0 +1,19 @@
+[project]
+name = "pas600-simulator"
+version = "0.1.0"
+description = "Independent deterministic PAS600 test source"
+requires-python = ">=3.14,<3.15"
+dependencies = ["pydantic>=2,<3", "asyncssh>=2,<3", "simplejson>=3,<4"]
+
+[project.scripts]
+pas600-sim = "pas600_simulator.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.29,<2"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["pytest>=9,<10"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

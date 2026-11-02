@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_energy_arithmetic_only",
+  "documentary_conformance_verified": false,
+  "unit": "kWh",
+  "readings": [
+    {"instant": "2026-01-01T00:00:00Z", "value": "100"},
+    {"instant": "2026-01-01T00:15:00Z", "value": "104"}
+  ],
+  "expected_interval": {
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-01-01T00:15:00Z",
+    "energy_kwh": "4"
+  },
+  "initial_reading_is_reference_only": true
+}
