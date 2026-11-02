@@ -21,6 +21,10 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql+psycopg://ecs_ci:synthetic-ci-only@localhost:5432/ecs_test
       NEXT_TELEMETRY_DISABLED: "1"
+      DB_PORT: "55448"
+      APP_PORT: "58006"
+      PUBLIC_URL: http://127.0.0.1:58006
+      E2E_BASE_URL: http://127.0.0.1:58006
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -37,12 +41,39 @@ jobs:
       - run: npm --prefix frontend test
       - run: npm --prefix frontend run build
       - run: npm --prefix frontend run typecheck
+      - name: Prepare isolated identity browser fixtures
+        run: |
+          python - <<'PY'
+          """Provision ephemeral CI-only secrets privately, with no password in logs or arguments."""
+          import os, secrets
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'ecs-ec-identity'
+          root.mkdir(mode=0o700)
+          password = root / 'initial'
+          password.write_text(secrets.token_urlsafe(24))
+          password.chmod(0o600)
+          values = {
+              'IDENTITY_ENABLED': 'true', 'IDENTITY_DEVELOPMENT_HTTP': 'true',
+              'IDENTITY_CSRF_KEY': secrets.token_urlsafe(32),
+              'IDENTITY_LOGIN_BUCKET_KEY': secrets.token_urlsafe(32),
+              'IDENTITY_E2E_PASSWORD_FILE': str(password), 'ENVIRONMENT': 'test',
+              'POSTGRES_DB': 'ecs_identity_ui_test',
+          }
+          with open(os.environ['GITHUB_ENV'], 'a') as stream:
+              for key, value in values.items():
+                  stream.write(f'{key}={value}\n')
+          PY
       - run: docker compose build app
         env:
           POSTGRES_PASSWORD: synthetic-ci-only
       - run: docker compose up -d --wait app
         env:
           POSTGRES_PASSWORD: synthetic-ci-only
+      - name: Seed the separate browser database
+        run: uv run --locked python scripts/seed_identity_reference.py --password-file "$IDENTITY_E2E_PASSWORD_FILE"
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://ecs_local:synthetic-ci-only@localhost:55448/ecs_identity_ui_test
+          DATABASE_URL: postgresql+psycopg://ecs_local:synthetic-ci-only@localhost:55448/ecs_ci_source
       - run: npx --prefix frontend playwright install --with-deps chromium
       - run: npm --prefix frontend run test:e2e
       - if: always()

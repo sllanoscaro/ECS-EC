@@ -22,6 +22,14 @@ class Settings(BaseSettings):
     public_url: str = "http://localhost:8000"
     building_timezone: str = "America/Santiago"
     web_directory: Path = Path(__file__).resolve().parents[1] / "web"
+    # Installed identity is explicitly enabled with external keys; base-platform tools
+    # and migrations can still run without loading identity-specific configuration.
+    identity_enabled: bool = False
+
+    def identity_options(self):
+        """Load the installed identity configuration with the shared origin/environment."""
+        from ecs_ec.identity.settings import IdentitySettings
+        return IdentitySettings(public_url=self.public_url, environment=self.environment)
 
     @field_validator("database_url")
     @classmethod

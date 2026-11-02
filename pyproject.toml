@@ -6,6 +6,8 @@ description = "Fundaciones del monolito de monitoreo eléctrico ECS-EC"
 requires-python = ">=3.14,<3.15"
 dependencies = [
     "alembic==1.20.1",
+    "argon2-cffi==25.1.0",
+    "email-validator==2.3.0",
     "fastapi==0.162.0",
     "jsonschema==4.26.0",
     "loguru==0.7.3",
@@ -22,6 +24,9 @@ dependencies = [
 [build-system]
 requires = ["hatchling==1.29.0"]
 build-backend = "hatchling.build"
+
+[project.scripts]
+ecs-ec = "ecs_ec.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["backend/src/ecs_ec"]

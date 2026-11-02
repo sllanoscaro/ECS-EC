@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from conftest import checked_test_url
+from backend.tests.conftest import checked_test_url
 from ecs_ec.core.clock import FrozenClock
 from ecs_ec.core.settings import Settings
 from ecs_ec.core.timezones import iana_zone

@@ -1,0 +1,7 @@
+/* Common accessible scaffold and immediate private-view hiding during page restoration. */
+:root { font-family: system-ui, sans-serif; color-scheme: light dark; }
+body { margin: 2rem auto; max-width: 72rem; padding: 0 1rem; line-height: 1.5; }
+input, select, button { font: inherit; margin: .25rem; padding: .4rem; }
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: .5rem; text-align: left; border-bottom: 1px solid; }
+:root[data-identity-pending] [data-private-content] { visibility: hidden; }

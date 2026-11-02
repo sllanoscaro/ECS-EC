@@ -7,6 +7,7 @@ from ecs_ec.core.database import Base, Database
 from ecs_ec.core.settings import Settings
 
 from ecs_ec.audit import models  # noqa: F401 -- register only installed metadata owners.
+from ecs_ec.identity import models as identity_models  # noqa: F401 -- identity owns its five tables.
 
 target_metadata = Base.metadata
 

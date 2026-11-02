@@ -15,6 +15,7 @@ def create_app(
     settings: Settings | None = None,
     modules: tuple[Module, ...] = (),
     clock: Clock | None = None,
+    identity_service=None,
 ) -> FastAPI:
     """Compose installed modules explicitly; injected settings/clock are internal test seams.
 
@@ -24,11 +25,45 @@ def create_app(
     settings = settings or Settings()
     if len({module.name for module in modules}) != len(modules):
         raise ValueError("Module names must be unique")
-    database = Database(settings.database_url.get_secret_value())
+    database = identity_service.database if identity_service else Database(settings.database_url.get_secret_value())
+    clock = clock or SystemClock()
+    if settings.identity_enabled or identity_service:
+        from ecs_ec.identity.services import Identity
+        identity_service = identity_service or Identity(database, settings.identity_options(), clock, settings.building_timezone)
+        from contextlib import asynccontextmanager
+
+        @asynccontextmanager
+        async def identity_lifespan(app):
+            """Prepare verification/rotation checks and supervise bounded technical cleanup in this process."""
+            import asyncio
+            from contextlib import suppress
+            from ecs_ec.identity.maintenance import maintenance_loop, validate_rotation
+            await validate_rotation(identity_service)
+            await identity_service.credentials.prepare()
+            job = asyncio.create_task(maintenance_loop(identity_service, app), name="identity-maintenance")
+            try:
+                yield
+            finally:
+                job.cancel()
+                with suppress(asyncio.CancelledError):
+                    await job
+
+        modules = modules + (Module("identity", lifespan=identity_lifespan),)
     app = FastAPI(title="ECS-EC", lifespan=application_lifespan(database, modules))
     app.state.settings = settings
     app.state.database = database
-    app.state.clock = clock or SystemClock()
+    app.state.clock = clock
+    if identity_service:
+        from fastapi.exceptions import RequestValidationError
+        from ecs_ec.identity.api import IdentityMiddleware, router, problem_response, validation_response
+        from ecs_ec.identity.errors import IdentityProblem
+        app.state.identity = identity_service
+        app.add_middleware(IdentityMiddleware, identity=identity_service)
+        app.add_exception_handler(IdentityProblem, problem_response)
+        app.add_exception_handler(RequestValidationError, validation_response)
+        app.include_router(router)
+        from ecs_ec.identity.openapi import install_openapi
+        install_openapi(app)
 
     @app.exception_handler(PlatformError)
     async def platform_error(request, error: PlatformError):

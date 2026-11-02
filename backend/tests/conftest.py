@@ -7,6 +7,8 @@ from datetime import UTC, datetime
 import pytest
 from sqlalchemy.engine import make_url
 
+pytest_plugins = ["backend.tests.identity_fixtures"]
+
 
 def checked_test_url() -> str:
     """Return explicit, distinct PostgreSQL test URL or fail before any DB mutation."""

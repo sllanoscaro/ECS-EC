@@ -19,4 +19,4 @@ RUN uv sync --locked --no-dev && useradd --uid 10001 --create-home ecs
 USER ecs
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=8s --start-period=10s --retries=3 CMD ["/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=7)"]
-CMD ["/app/.venv/bin/uvicorn", "ecs_ec.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["/app/.venv/bin/uvicorn", "ecs_ec.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--no-proxy-headers"]
