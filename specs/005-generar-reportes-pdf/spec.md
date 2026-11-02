@@ -66,8 +66,8 @@ largos y un año de datos; comprobar el número de páginas, la legibilidad y su
 
 1. **Given** datos para las siete categorías, **When** se genera el resumen, **Then** contiene
    una tabla con las siete categorías, energía en kWh, cobertura y estado; el total de
-   CAT-01 conserva el origen medido o calculado establecido por la spec-001,
-   con su base y alcance visibles cuando es calculado.
+   CAT-01 conserva el origen medido, calculado o mixto establecido por las specs-001/002,
+   con su base y alcance visibles en los segmentos calculados.
 2. **Given** un reporte diario, mensual o anual, **When** se lee su gráfico temporal,
    **Then** muestra la evolución de CAT-01 agrupada por horas, días o meses,
    respectivamente, con unidad, fechas y vacíos distinguibles.
@@ -85,6 +85,12 @@ largos y un año de datos; comprobar el número de páginas, la legibilidad y su
    origen calculado y ambas categorías de la base, las categorías sin medidor conservan
    ese estado y la sección BT4.3 identifica la falta de medición general sin utilizar
    esos 20 kWh como base de costos del suministro.
+7. **Given** un período mensual o anual con segmentos válidos de CAT-01 que aportan
+   10 kWh medidos y 20 kWh calculados, con base CAT-03/CAT-05 en el segundo segmento,
+   **When** el productor entrega un agregado válido de 30 kWh y se genera el PDF,
+   **Then** se conservan los 30 kWh, se identifica «Origen mixto» y se muestran los
+   períodos y bases de ambos segmentos; la sección financiera conserva el resultado
+   de la spec-004 sin utilizar el total mixto como medición física del suministro.
 
 ---
 
@@ -124,6 +130,12 @@ con cálculos completos, parciales y boletas disponibles solo para algunos de el
 7. **Given** créditos, impuestos o importes no comparables, **When** se exporta su resumen,
    **Then** se conserva el tratamiento de la spec-004, incluido el signo y la distinción
    entre costo calculado, subtotal comparable y total a pagar.
+8. **Given** una comparación persistida y una corrección posterior de boleta o cálculo
+   sin comparación de las nuevas revisiones, **When** se genera otro reporte,
+   **Then** se indica «Contraste pendiente para estas revisiones», las diferencias son
+   nulas y el ciclo queda fuera de los importes y del conteo del contraste agregado,
+   sin retroceder revisiones ni crear comparaciones al consultar. Una nueva comparación
+   del par exacto solo afecta emisiones posteriores; el PDF anterior conserva su captura.
 
 ---
 
@@ -193,7 +205,7 @@ El contenido obligatorio se sintetiza con esta prioridad dentro de la misma pág
 | Sección | Contenido mínimo |
 | --- | --- |
 | Identificación | ECS-EC, edificio, tipo de reporte, período, zona horaria, emisión y corte. |
-| Consumo | Siete categorías con energía en kWh, cobertura y estado; CAT-01 con origen medido o calculado identificado. |
+| Consumo | Siete categorías con energía en kWh, cobertura y estado; CAT-01 con origen medido, calculado o mixto identificado y procedencia por segmentos cuando corresponda. |
 | Evolución | Gráfico de CAT-01 con agrupación horaria, diaria o mensual según el resumen. |
 | Costos BT4.3 | Ciclos cerrados seleccionados, alcance temporal, importes disponibles y estado de completitud. |
 | Contraste con boletas | Importes comparables y diferencias sobre el mismo conjunto de pares o motivo de ausencia. |
@@ -215,9 +227,13 @@ El contenido obligatorio se sintetiza con esta prioridad dentro de la misma pág
   Si la composición no cumple el límite y legibilidad, NO DEBE entregarse como exitosa.
 - **FR-006**: La síntesis DEBE conservar las siete categorías de la spec-001 con nombres
   inequívocos, energía, unidad, cobertura y estado, incluso si algunas no tienen datos.
-  CAT-01 DEBE conservar su origen medido o calculado conforme a la spec-001; un total
+  CAT-01 DEBE conservar su origen medido, calculado o mixto conforme a las specs-001/002; un total
   calculado DEBE indicar su base y alcance. NO DEBE sumarse nuevamente con las categorías
   que contribuyeron a él. Las categorías sin medidor DEBEN identificarse como tales.
+  Cuando el período incluya cambios de modo, fuente o base de CAT-01, el reporte DEBE
+  conservar la procedencia por segmentos definida por las specs-001/002. DEBE identificar
+  el origen mixto cuando corresponda y mostrar los períodos y bases necesarios para
+  interpretar el total, sin presentar todo el período como medido o calculado.
 - **FR-007**: El gráfico DEBE representar la evolución de CAT-01 usando horas para el reporte
   diario, días para el mensual y meses para el anual. DEBE indicar unidades, referencia temporal,
   vacíos y cobertura parcial sin interpolar consumos ausentes, desambiguando las horas repetidas
@@ -244,6 +260,9 @@ El contenido obligatorio se sintetiza con esta prioridad dentro de la misma pág
 - **FR-013**: El contraste agregado DEBE usar los mismos ciclos, conceptos y bases en sus
   dos lados. DEBE indicar la cantidad de pares comparables y mostrar calculado, facturado
   y diferencia conforme a la spec-004, separadamente de totales con otro alcance.
+  Si falta la comparación persistida de las revisiones seleccionadas de cálculo y boleta,
+  DEBE indicar «Contraste pendiente para estas revisiones», conservar diferencias nulas
+  y excluir ese ciclo del contraste agregado, sin retroceder revisiones ni crear comparaciones.
 - **FR-014**: Sin ciclos cerrados, sin boletas o sin conceptos comparables DEBE mostrarse
   el motivo correspondiente. Esa ausencia NO DEBE impedir generar el resumen de energía
   ni producir diferencias ficticias o un costo completo sin información suficiente.
