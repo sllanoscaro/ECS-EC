@@ -1,0 +1,29 @@
+{
+  "$schema": "ESX/EDM/Protocol/Specific/CloudMessaging/DeviceToCloud/Data/CewsMessage",
+  "message": {
+    "remoteId": "urn:dev:cer:1111111111111111111111111111111111111111",
+    "contentType": "data",
+    "cewsVersion": "3.0.0",
+    "timestamp": "2026-01-01T00:30:00.000Z",
+    "content": {
+      "data": {
+        "timeseries": [
+          {
+            "valueItemId": "modbus:1_mb_EaImport",
+            "timestamp": "2026-01-01T00:00:00Z",
+            "records": [
+              {
+                "v": 100,
+                "t": 0
+              },
+              {
+                "v": 104,
+                "t": 900000
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

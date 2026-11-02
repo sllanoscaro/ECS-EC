@@ -1,0 +1,9 @@
+"Gateway Name","Gateway SN","Gateway IP Address","Gateway MAC Address","Device Name","Device Local ID","Device Type ID","Device Type Name","Logging Interval","Historical Intervals"
+"PAS600 Example","SIMULATED-PAS600-001","192.0.2.10","02:00:00:00:00:01","iEM3150 CAT03","modbus:1_mb_1","iEM3150","iEM3150","15","2"
+
+"","","","Topic ID1"
+"","","","modbus:1_mb_EaImport"
+
+"Error","UTC Offset (minutes)","Local Time Stamp","ActiveEnergyImport (kWh)"
+"0","0","2026-01-01 00:00:00","100"
+"0","0","2026-01-01 00:15:00","104"
