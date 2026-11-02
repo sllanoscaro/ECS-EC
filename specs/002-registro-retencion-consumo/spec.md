@@ -49,6 +49,9 @@ de recepción; verificar primeras actualizaciones, intentos anticipados y el lí
 7. **Given** un envío con una categoría todavía no habilitada para actualizar y otra cuyo
    intervalo ya se cumplió, **When** se evalúan sus datos, **Then** se rechazan los nuevos
    datos anticipados de la primera y se aceptan los válidos de la segunda independientemente.
+8. **Given** parciales nuevas confirmadas que requieren evaluar CAT-01, **When** la
+   aplicación cae antes de crear su candidato, **Then** al reiniciar recupera la evaluación
+   sin reenvío de la fuente, sin duplicar aportes y respetando el límite propio de CAT-01.
 
 ---
 
@@ -161,6 +164,10 @@ límites y datos tardíos; verificar las sumas y la cobertura de cada agrupació
    agregado con aviso; no se reparte su energía mediante una estimación.
 6. **Given** una actualización anticipada rechazada o registros inválidos, **When** se consulta
    el historial, **Then** no aparecen como mediciones aceptadas ni contribuyen a los agregados.
+7. **Given** un filtro que contiene un bloque futuro sin lecturas, **When** se consulta
+   antes de su inicio, **Then** ambas vistas muestran “Aún no iniciado”, consumo ausente
+   y cobertura cero, sin modificar el filtro. Exactamente en su inicio cambia a “En curso”
+   y exactamente en su fin a “Terminado”, usando el mismo corte de lectura.
 
 ### Edge Cases
 
@@ -227,7 +234,10 @@ límites y datos tardíos; verificar las sumas y la cobertura de cada agrupació
   consumo disponible en kWh, situación temporal y cobertura. La cobertura DEBE calcularse
   como duración cubierta por mediciones incluidas dividida por duración real del bloque,
   multiplicada por 100; un cero válido medido o calculado aporta cobertura.
-- **FR-012**: La situación temporal DEBE distinguir períodos en curso y terminados.
+- **FR-012**: La situación temporal DEBE distinguir períodos aún no iniciados, en curso y
+  terminados usando el corte de lectura y los límites reales del bloque: antes del inicio,
+  desde el inicio incluido hasta el fin excluido, y desde el fin incluido, respectivamente.
+  La cobertura DEBE calcularse independientemente de esa situación temporal.
   La cobertura DEBE distinguir completo (100 %), incompleto (mayor que 0 % y menor que 100 %)
   y sin datos (0 %). Sin datos NO DEBE presentarse como consumo cero ni rellenarse con
   estimaciones. Un período en curso NO DEBE presentarse como terminado.
@@ -237,6 +247,10 @@ límites y datos tardíos; verificar las sumas y la cobertura de cada agrupació
 - **FR-014**: La aceptación de datos tardíos válidos, cuando cumpla el intervalo mínimo,
   DEBE actualizar las agrupaciones afectadas sin duplicaciones. La siguiente consulta
   posterior a la aceptación DEBE reflejar las mediciones aceptadas y su nueva cobertura.
+  Cuando parciales nuevas requieran evaluar CAT-01, su aceptación DEBE registrar
+  duraderamente esa necesidad en la misma transacción; una caída antes de crear el
+  candidato NO DEBE perderla ni exigir reenvío de la fuente. Su recuperación DEBE
+  conservar el límite propio de incorporación de CAT-01.
 - **FR-015**: Las mediciones originales DEBEN conservarse y ser consultables durante al menos
   12 meses calendario desde su primera aceptación, aunque correspondan a períodos anteriores.
   Los totales calculados DEBEN conservarse con su base y referencias durante al menos
@@ -270,6 +284,9 @@ límites y datos tardíos; verificar las sumas y la cobertura de cada agrupació
   y límite mínimo de conservación, independientemente de la fecha del consumo.
 - **Total calculado conservado**: Resultado derivado de CAT-01 con fecha de primera
   incorporación, base y referencias a sus contribuciones y límite mínimo de conservación.
+- **Solicitud de evaluación CAT-01**: Necesidad durable de evaluar un intervalo afectado,
+  confirmada con parciales nuevas antes de existir candidato; distingue evaluación pendiente
+  o procesada y permite recuperarla sin reenvío de la fuente.
 - **Registro agregado**: Consumo de una categoría en un bloque horario, diario, mensual
   o anual, con límites, cobertura, situación temporal y última incorporación de datos.
 - **Plazo de conservación**: Intervalo mínimo de 12 meses calendario que protege la consulta
@@ -285,7 +302,7 @@ límites y datos tardíos; verificar las sumas y la cobertura de cada agrupació
 - **SC-002**: Para series completas de valores conocidos, el 100 % de los registros horarios,
   diarios, mensuales y anuales coincide con la suma esperada de cada categoría y con sus
   representaciones en gráfico y tabla, incluidos meses de distinta duración y años bisiestos.
-- **SC-003**: El 100 % de los escenarios de datos faltantes, ceros medidos, períodos en curso,
+- **SC-003**: El 100 % de los escenarios de datos faltantes, ceros medidos, períodos aún no iniciados o en curso,
   límites cruzados y datos tardíos muestra el consumo y la cobertura esperados, sin duplicados
   ni estimaciones presentadas como mediciones.
 - **SC-004**: Con un historial de al menos 12 meses para las siete categorías y avance controlado
@@ -329,3 +346,10 @@ límites y datos tardíos; verificar las sumas y la cobertura de cada agrupació
   temporales. Aplican las restricciones de arquitectura y documentación de la constitución v1.0.0.
 - **Límites de alcance**: No se incluyen nuevas categorías, alertas externas, predicciones,
   costos, control de equipos, autenticación nueva ni un mecanismo concreto de adquisición.
+
+## Contexto de planificación compartido
+
+Consultar [arquitectura](../../docs/architecture.md) y
+[hoja de ruta](../../docs/implementation-roadmap.md). Las [tareas integrales](tasks.md)
+conservan la trazabilidad de las responsabilidades trasladadas desde 008 y cubren las
+cuatro historias. Su generación no cambia requisitos ni acredita implementación o aceptación.
