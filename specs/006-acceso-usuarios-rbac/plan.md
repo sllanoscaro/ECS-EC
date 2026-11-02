@@ -8,14 +8,14 @@ y la [constitución 1.0.0](../../.specify/memory/constitution.md). Plataforma009
 infraestructura, core y auditoría; identidad006 posee cuentas, sesiones y autorización.
 Al planificar se leyó el borrador de seis tareas trasladadas. Este plan cubre las cuatro
 historias; [tasks.md](tasks.md) ya contiene la generación integral de `$speckit-tasks`
-con trazabilidad del traslado. Todo el trabajo permanece pendiente de implementación;
-falta revisar consistencia antes de implementar.
+con trazabilidad del traslado. La revisión previa consta en la hoja de ruta. Implementación y validación local propias
+constan en [aceptación parcial](validation/acceptance.md); los gates externos siguen pendientes.
 
 **Branch/contexto Spec Kit**: `006-acceso-usuarios-rbac` | **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: `specs/006-acceso-usuarios-rbac/spec.md`.
 **Rama Git actual**: `develop`; setup seleccionó la funcionalidad en `.specify/feature.json`,
 sin crear ni cambiar la rama Git.
-**Estado**: Diseño previo a implementación. No acredita cuentas, API, pruebas o despliegue existentes.
+**Estado**: Implementación propia validada localmente; integración/aceptación integral pendientes según los gates.
 
 ## Summary
 
@@ -197,7 +197,7 @@ consumo, costos, PDFs, SFTP, notificaciones, personas o VPS.
 | spec-006/T005 | `/ingreso/`, `/cuenta/`, cliente session y retorno seguro, sin datos privados exportados. |
 | spec-006/T006 | Administración de cuentas, historial y bloqueo del último admin; nuevas pruebas US2/US4. |
 
-Los seis ítems históricos permanecen pendientes y se integraron en la lista completa de
+Los seis ítems históricos se integraron con su trazabilidad en la lista completa de
 [tasks.md](tasks.md), que identifica su correspondencia con los IDs actuales y añade
 cobertura, operación y aceptación. Los IDs de esta tabla son los del borrador anterior,
 no dependencias por números actuales. No iniciar implementación sin revisar consistencia.
@@ -206,8 +206,8 @@ no dependencias por números actuales. No iniciar implementación sin revisar co
 
 1. Requerir capacidades reales de plataforma009: scaffold, DB/UoW, reloj, configuración,
    errores, auditoría/eventos y composición, según [su plan](../009-fundaciones-plataforma/plan.md)
-   y [contrato](../009-fundaciones-plataforma/contracts/integrations.md). Siguen pendientes;
-   no implementarlas en el setup de 006 ni asumir disponibilidad por existir documentos.
+   y [contrato](../009-fundaciones-plataforma/contracts/integrations.md). La base está disponible
+   y validada localmente; su VPS sigue pendiente. No recrearla en el setup de006.
 2. Implementar US1 y capacidades base de US3 sobre esa plataforma; US2 incorpora matriz
    y pruebas de denegación desde el primer endpoint protegido, sin esperar US4 para protegerlo.
 3. Integrar lectores de 001/002 y configuración001, costos004 y PDF005 a medida que existan.

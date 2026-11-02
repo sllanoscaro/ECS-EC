@@ -1,6 +1,6 @@
 # Arquitectura compartida de ECS-EC
 
-Estado: plataforma spec-009 implementada y validada localmente; VPS pendiente. Este documento centraliza decisiones ya presentes
+Estado: plataforma spec-009 y capacidades propias de identidad006 implementadas y validadas localmente; integraciones de negocio y VPS pendientes. Este documento centraliza decisiones ya presentes
 en la planificación de notificaciones; su traslado no acredita instalación, pruebas ni
 despliegue. La [hoja de ruta](implementation-roadmap.md) asigna propietarios y etapas.
 La constitución local `.specify/memory/constitution.md` conserva su precedencia.

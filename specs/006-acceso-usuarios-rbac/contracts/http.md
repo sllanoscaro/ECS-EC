@@ -2,8 +2,8 @@
 
 Base `/api/v1`, mismo origen que la UI estática. Diseño para [spec.md](../spec.md),
 [modelo](../data-model.md) y [puertos](integrations.md). Las formas siguientes se
-implementarán en `identity/schemas.py` y en OpenAPI generado por FastAPI; no existe aún
-servidor ejecutable. Campos adicionales se rechazan, incluidos actor/permisos enviados
+implementan en `identity/schemas.py` y en [OpenAPI generado](../validation/openapi.json);
+el servidor propio ya se validó localmente. Campos adicionales se rechazan, incluidos actor/permisos enviados
 en cuerpos que no los admiten.
 
 ## Transporte y seguridad comunes

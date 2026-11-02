@@ -1,9 +1,8 @@
 # Quickstart y validación: Identidad y permisos
 
-Guía para la implementación prevista en [plan.md](plan.md). Hoy no existen los módulos
-de aplicación ni las suites indicadas: los comandos de aplicación serán ejecutables al
-implementar las tareas integrales. Esta planificación no acredita autenticación real,
-pruebas aprobadas ni aceptación de personas/VPS.
+Guía de identidad implementada sobre [plataforma009](../../docs/platform.md).
+La evidencia ejecutada se registra en `validation/`. Las integraciones con los módulos
+de negocio, la aceptación con personas y la VPS requieren sus capacidades reales.
 
 ## Prerrequisitos y preparación
 
@@ -15,7 +14,29 @@ validada; valores reales nunca se versionan. El modo local HTTP requiere develop
 explícito y loopback. Producción rechaza esa excepción. No habilitar SMTP ni visores para
 probar identidad. Bloquear acceso funcional normal hasta terminar bootstrap.
 
-Comandos previstos desde la raíz; DB de pruebas independiente con PostgreSQL real:
+Desde la raíz, preparar `.env` desde `.env.example` sin sobrescribir configuración existente.
+Generar una sola vez los dos secretos externos (no copiarlos al frontend ni a Git):
+
+```sh
+test -f .env || cp .env.example .env
+uv sync --locked --group dev
+uv run --locked python - <<'PY'
+from pathlib import Path
+import re, secrets
+path = Path('.env')
+text = path.read_text()
+for name in ('IDENTITY_CSRF_KEY', 'IDENTITY_LOGIN_BUCKET_KEY'):
+    text = re.sub(rf'^{name}=$', name + '=' + secrets.token_urlsafe(32), text, flags=re.M)
+path.write_text(text)
+path.chmod(0o600)
+PY
+```
+
+El comando conserva claves ya configuradas. No generar otras en cada reinicio.
+`IDENTITY_ENABLED=true` y `IDENTITY_DEVELOPMENT_HTTP=true` son solo la configuración
+local de ejemplo; producción exige HTTPS y development deshabilitado.
+
+Comandos desde la raíz; DB de pruebas independiente con PostgreSQL real:
 
 ```sh
 uv sync --locked
@@ -23,6 +44,7 @@ npm --prefix frontend ci
 docker compose up -d db
 uv run alembic -c backend/alembic.ini upgrade head
 uv run ecs-ec identity bootstrap-admin --email admin@example.test
+docker compose build app
 docker compose up -d app
 ```
 
@@ -31,10 +53,17 @@ desarrollo/pruebas. Ingresar en `/ingreso/`, renovar en `/cuenta/` y volver a in
 Crear otra cuenta administrativa y un Operador, con credenciales locales propias y
 renovación. No hay contraseña compartida pública ni alta web sin administrador.
 
-`scripts/seed_identity_reference.py` será una herramienta de fixtures solo para pruebas:
-rechaza producción, lee credenciales de entrada protegida y crea cuentas activas/inactivas,
-sesiones y revisiones conocidas sin imprimir secretos. No altera DB real del edificio.
+`scripts/seed_identity_reference.py` es una herramienta de fixtures solo para pruebas:
+rechaza producción, lee credenciales de entrada protegida y crea cuentas activas/inactivas
+con revisión inicial y renovación requerida, sin imprimir secretos. No altera DB real del edificio.
 La migración `identity_initial.py` se encadena al head existente sin recrear tablas de 009.
+Para fixtures aisladas, crear una base vacía `_test` diferente de `DATABASE_URL`, migrarla
+y ejecutar `uv run --locked python scripts/seed_identity_reference.py --password-file /ruta/protegida`.
+El archivo debe tener permisos0600 y contener únicamente una contraseña inicial sintética.
+Se crean `admin-active`, `admin-inactive`, `operator-active` y `operator-inactive` en
+`example.test`, todos con renovación requerida. Nunca usar esta herramienta en producción.
+El bootstrap operativo en contenedor usa `docker compose exec app /app/.venv/bin/ecs-ec
+identity bootstrap-admin --email ...` con TTY y la misma configuración externa.
 
 ## Ejecución de suites previstas
 
@@ -42,7 +71,7 @@ La migración `identity_initial.py` se encadena al head existente sin recrear ta
 uv run pytest backend/tests/unit/identity backend/tests/integration/identity backend/tests/contract/identity
 npm --prefix frontend run test -- --run
 npm --prefix frontend run build
-npm --prefix frontend exec playwright test tests/e2e/identity.spec.ts
+npm --prefix frontend run test:e2e
 ```
 
 Configurar previamente DB de pruebas, origen y URL de Playwright según el entorno de
@@ -50,6 +79,45 @@ plataforma. Las pruebas usan reloj inyectable interno y barreras/conexiones conc
 no hay endpoint público para avanzar tiempo o cambiar permisos. Leer [HTTP](contracts/http.md),
 [modelo](data-model.md) y [coordinación](contracts/coordination.md) para cuerpos/invariantes,
 sin copiar implementación en esta guía.
+
+### Navegador con fixtures y TLS locales separados
+
+Playwright de identidad requiere `IDENTITY_E2E_PASSWORD_FILE`; sin esa configuración
+explícita se ejecuta únicamente el smoke de plataforma, sin acreditar identidad.
+Para reproducir todos los pasos locales (incluido vencimiento controlado), usar una base
+vacía diferente de `DATABASE_URL` cuyo nombre termine en `_test` y configurar
+`TEST_DATABASE_URL`. Migrarla mediante `DATABASE_URL="$TEST_DATABASE_URL" uv run --locked
+alembic -c backend/alembic.ini upgrade head`. Preparar entradas protegidas:
+
+```sh
+umask 077
+mkdir -p /tmp/ecs-ec-identity-browser
+uv run --locked python - <<'PY'
+from pathlib import Path
+import secrets
+root = Path('/tmp/ecs-ec-identity-browser')
+root.chmod(0o700)
+(root/'initial').write_text(secrets.token_urlsafe(24))
+(root/'clock').write_text('0')
+for name in ('initial', 'clock'):
+    (root/name).chmod(0o600)
+PY
+uv run --locked python scripts/seed_identity_reference.py --password-file /tmp/ecs-ec-identity-browser/initial
+openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj /CN=localhost -addext subjectAltName=DNS:localhost -keyout /tmp/ecs-ec-identity-browser/tls.key -out /tmp/ecs-ec-identity-browser/tls.crt
+ENVIRONMENT=test DATABASE_URL="$TEST_DATABASE_URL" PUBLIC_URL=https://localhost:8010 IDENTITY_ENABLED=true IDENTITY_DEVELOPMENT_HTTP=false IDENTITY_E2E_CLOCK_FILE=/tmp/ecs-ec-identity-browser/clock WEB_DIRECTORY=frontend/out uv run --locked uvicorn backend.tests.run_identity_browser:create_test_app --factory --host 127.0.0.1 --port 8010 --ssl-keyfile /tmp/ecs-ec-identity-browser/tls.key --ssl-certfile /tmp/ecs-ec-identity-browser/tls.crt --no-proxy-headers
+```
+
+En otra terminal, después de instalar Chromium con Playwright:
+
+```sh
+IDENTITY_E2E_PASSWORD_FILE=/tmp/ecs-ec-identity-browser/initial IDENTITY_E2E_CLOCK_FILE=/tmp/ecs-ec-identity-browser/clock E2E_BASE_URL=https://localhost:8010 npm --prefix frontend run test:e2e
+```
+
+Las claves HMAC siguen viniendo del `.env` externo preparado antes. La fábrica acepta
+solo entorno test/base `_test`, no se incluye en la imagen y no expone rutas de fixtures
+ni de reloj. El archivo de reloj privado se modifica desde el runner. Repetir desde una
+base vacía separada; el seed no sobrescribe cuentas existentes. El certificado local
+se acepta solo en esta configuración de pruebas y no acredita VPS ni certificado público.
 
 ## 1. Ingreso, espera, renovación y expiración — US1, SC-001/004
 

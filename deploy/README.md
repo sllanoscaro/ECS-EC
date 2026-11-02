@@ -88,3 +88,62 @@ permisos del volumen y restauración independiente. No registrar claves ni filas
 
 La [validación VPS](../specs/009-fundaciones-plataforma/validation/vps.md) permanece pendiente
 por falta de entorno real, según la decisión del usuario. La ejecución local no la acredita.
+
+## Identidad humana (spec-006)
+
+La [guía006](../specs/006-acceso-usuarios-rbac/quickstart.md) configura `IDENTITY_ENABLED`,
+claves HMAC externas y bootstrap. No hay contraseñas operativas predeterminadas ni alta
+pública. La imagen ejecuta `--no-proxy-headers`: identidad verifica el peer real y confía
+solo en `IDENTITY_TRUSTED_PROXIES`, con IP/CIDR explícitos y sin confianza universal.
+Mantener el backend detrás del proxy previsto y el listener local publicado en loopback.
+En HTTP local se exige development explícito/origen loopback y se rechaza un peer público,
+incluso con Host falsificado. `X-Forwarded-Proto` de otro peer no habilita HTTPS efectivo.
+
+```sh
+docker compose exec app /app/.venv/bin/ecs-ec identity bootstrap-admin --email admin@example.test
+docker compose exec app /app/.venv/bin/ecs-ec identity recover-admin --email admin@example.test --reason 'Recuperación operativa autorizada'
+```
+
+Ambos comandos requierenTTY, leen dos veces sin eco y no admiten password como argumento.
+Bootstrap solo con cero cuentas. Recuperación solo sobre admin ya activo: no crea,
+promueve ni reactiva. Captura revisión antes de Argon2 y la revalida bajo locks; revoca
+sesiones, exige renovación y escribe actor `process:recovery`/código operativo en audit009.
+El motivo se valida (obligatorio, <=500 caracteres, sin controles); no se copia texto
+libre al payload aprobado ni a logs. Entregar la contraseña inicial por canal operativo
+protegido, fuera de esta aplicación, y el titular debe renovarla antes del acceso normal.
+
+Mantener secretos/IDs estables entre reinicios. Para rotar CSRF, generar nueva clave/ID
+único fuera del repositorio; contextos con el ID retirado exigen nuevo ingreso. No reutilizar
+IDs ni retroceder configuración a claves retiradas. Para bucket, desplegar nueva clave/ID
+y configurar `IDENTITY_PREVIOUS_LOGIN_BUCKET_KEY`/`..._ID` con los anteriores durante **al
+menos30min**, sin procesos viejos escribiendo. El siguiente acceso migra la pareja bajo
+locks, incluidos bloqueos activos, sin añadir fallos ni extender la espera. El arranque
+falla cerrado si falta una clave de búsqueda para estado reciente/esperas aún activas.
+Retirar después la anterior; conservar secreto/IDs según política externa de respaldo.
+
+El hashing usa64MiB por trabajo, máximo inicial dos; mediciones locales en
+[dependencias](../specs/006-acceso-usuarios-rbac/validation/dependencies.md). Medir recursos
+en VPS antes de aumentar concurrencia. La limpieza interna cada60s elimina lotes acotados
+de sesiones/presesiones inválidas tras24h y buckets inactivos, conservando cuentas/audit.
+La validez no depende del job; un fallo fija `identity_maintenance_failed` sin exponer SQL
+ni secretos. No se ha implementado un emisor técnico paralelo a007.
+
+Un503 puede representar confirmación incierta. Recargar estado/revisión o ingresar de
+nuevo antes de repetir; no afirmar rollback ni reenviar automáticamente una mutación.
+La evidencia de la misma operación no se duplica cuando el commit ya se confirmó en DB.
+
+Los respaldos009 contienen PHC y estado de acceso; protegerlos y conservar claves externas
+en almacén separado. Antes de servir un DB restaurado, con aplicación detenida, invalidar
+sesiones/presesiones restauradas para no revivir cookies que se cerraron después del backup:
+
+```sql
+BEGIN;
+UPDATE identity_session SET revoked_at=clock_timestamp(), revocation_code='account_changed' WHERE revoked_at IS NULL;
+UPDATE identity_preauth SET consumed_at=clock_timestamp() WHERE consumed_at IS NULL;
+COMMIT;
+```
+
+Comparar primero el snapshot según009; después aplicar la invalidación técnica. Revisar
+la antigüedad de credenciales del snapshot y recuperar/restablecer cuentas según operación
+autorizada. Nunca borrar auditoría/cuentas ni limpiar esperas activas para resolver claves
+perdidas. Las comprobaciones reales de VPS y proveedores de negocio siguen pendientes.
