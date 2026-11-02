@@ -8,7 +8,8 @@ from ecs_ec.consumption.catalog_storage import read_revisions
 from ecs_ec.consumption.configuration import ConfigurationError, ConfigurationService
 from ecs_ec.consumption.models import ConfigurationInput
 from ecs_ec.consumption.queries import InvalidSelection
-from ecs_ec.consumption.schemas import Catalog, Configuration, DetailResult, configuration_view
+from ecs_ec.consumption.schemas import AggregateResponse, Catalog, Configuration, DetailResult, configuration_view
+from ecs_ec.consumption.ports import AggregateSelection, Granularity
 from ecs_ec.core.unit_of_work import UnitOfWork
 from ecs_ec.identity.errors import IdentityProblem
 from ecs_ec.identity.models import Account, Session
@@ -91,3 +92,32 @@ async def configure(request: Request, body: ConfigurationInput):
     except ConfigurationError as error:
         status = 503 if error.code in {'reconfiguration_bounds_unavailable', 'building_context_missing'} else 409
         raise ConsumptionProblem(error.code, status) from None
+
+
+@router.get('/categories/{category_id}/aggregates', response_model=AggregateResponse)
+async def aggregates(request: Request, category_id: str, start: str, end: str, timezone: str, granularity: Granularity):
+    """Validate exact offset selection and return the002 capture under the current006 read grant."""
+    from ecs_ec.consumption.catalog import CATEGORY_IDS
+    from ecs_ec.consumption.periods import resolve_period
+    if category_id not in CATEGORY_IDS:
+        raise ConsumptionProblem('category_not_found', 404)
+    service = request.app.state.consumption
+    try:
+        async with UnitOfWork(service.database.sessions) as uow:
+            from sqlalchemy import text
+            await uow.session.execute(text('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY'))
+            building, _ = await service._context(uow)
+            try:
+                period = resolve_period(start, end, timezone, building.timezone)
+                selection = AggregateSelection(building_id=service.building_id, category_id=category_id,
+                    start=period.start, end=period.end, timezone=timezone, granularity=granularity)
+            except (ValueError, TypeError, OverflowError):
+                raise InvalidSelection('invalid_aggregate_selection') from None
+            result = await service.query_aggregates(selection, request.state.principal, uow)
+            return AggregateResponse.model_validate(result.model_dump())
+    except InvalidSelection:
+        raise ConsumptionProblem('invalid_aggregate_selection', 422) from None
+    except ValueError as error:
+        if error.args == ('building_context_missing',):
+            raise ConsumptionProblem('building_not_found', 404) from None
+        raise ConsumptionProblem('consumption_unavailable', 503) from None

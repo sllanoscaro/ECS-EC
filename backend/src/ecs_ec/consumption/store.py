@@ -12,7 +12,7 @@ from ecs_ec.consumption.catalog_storage import lock_configuration, read_revision
 from ecs_ec.consumption.models import (AcceptedMeasurement, BuildingReceptionState, CategoryReceptionState,
     IncorporatedRecord, IncorporatedTotal, ReconfigurationBounds, TotalCalculationState)
 from ecs_ec.consumption.ports import CalculationDiagnostic, DetailRead, HistoryExtent, StoredDetail, UpdateState
-from ecs_ec.core.retention import anniversary
+from ecs_ec.consumption.retention import retention_deadline
 
 
 async def lock_history(uow, building_id, category_ids=CATEGORY_IDS):
@@ -57,7 +57,7 @@ def advance_state(state, global_state, records, now):
 
 async def incorporate_measurement(uow, measurement, update, now, timezone):
     """Persist first original, ledger and all direct aggregates in caller UoW; no independent commit."""
-    deadline = anniversary(now, timezone)
+    deadline = retention_deadline(now, timezone)
     row = IncorporatedRecord(id=uuid4(), revision=1, building_id=measurement.building_id,
         category_id=measurement.category_id, kind='measured', source_id=measurement.source_id, logical_source_key=None,
         start=measurement.start, end=measurement.end, energy_kwh=measurement.energy_kwh,
@@ -119,15 +119,16 @@ class MeasurementStore:
                 first_incorporated_at=row.first_incorporated_at, retain_until=row.retain_until,
                 provenance_snapshot=row.provenance_snapshot))
         diagnostics = (await unit_of_work.session.scalars(select(TotalCalculationState).where(
-            TotalCalculationState.building_id == building_id, TotalCalculationState.start >= period.start,
-            TotalCalculationState.end <= period.end, TotalCalculationState.updated_at <= cutoff_at,
+            TotalCalculationState.building_id == building_id, TotalCalculationState.start < period.end,
+            TotalCalculationState.end > period.start, TotalCalculationState.updated_at <= cutoff_at,
             TotalCalculationState.status != 'incorporated').order_by(TotalCalculationState.start))).all() if category_id == 'CAT-01' else []
         projected = tuple(CalculationDiagnostic(id=d.id, revision=d.revision, start=d.start, end=d.end, status=d.status,
             reason_code=d.reason_code, category_revision=None if d.reason_code == 'calculation_configuration_changed' else d.configuration_segments[0]['category_revision'],
             configuration_segments=tuple(d.configuration_segments), base_categories=tuple(d.base_categories),
             contributions=tuple(d.contribution_refs), missing_categories=tuple(d.missing_categories),
-            next_admissible_at=d.next_admissible_at) for d in diagnostics)
-        return DetailRead(rows=tuple(details), crossing_record_ids=tuple(crossings), withdrawn_record_ids=tuple(withdrawn), diagnostics=projected)
+            next_admissible_at=d.next_admissible_at) for d in diagnostics if d.start >= period.start and d.end <= period.end)
+        crossing_diagnostics = tuple(d.id for d in diagnostics if d.start < period.start or d.end > period.end)
+        return DetailRead(rows=tuple(details), crossing_record_ids=tuple(crossings), withdrawn_record_ids=tuple(withdrawn), diagnostics=projected, crossing_diagnostic_ids=crossing_diagnostics)
 
     async def read_extent(self, building_id, cutoff_at, unit_of_work):
         """Return global retained payload extent; permanent withdrawn history does not fabricate detail."""

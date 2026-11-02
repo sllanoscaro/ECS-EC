@@ -147,6 +147,7 @@ class DetailRead(DomainModel):
     crossing_record_ids: tuple[UUID, ...]
     withdrawn_record_ids: tuple[UUID, ...]
     diagnostics: tuple['CalculationDiagnostic', ...] = ()
+    crossing_diagnostic_ids: tuple[UUID, ...] = ()
 
 
 class HistoryExtent(DomainModel):

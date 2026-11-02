@@ -70,9 +70,10 @@ def create_app(
         from fastapi.exceptions import RequestValidationError
         from ecs_ec.identity.api import IdentityMiddleware, router, problem_response, validation_response
         from ecs_ec.identity.errors import IdentityProblem
-        from ecs_ec.consumption.queries import Consumption
+        from ecs_ec.consumption.queries import Consumption, FunctionalSummary
         from ecs_ec.consumption.router import router as consumption_router, ConsumptionProblem, problem_response as consumption_problem
         app.state.consumption = Consumption(database, clock, identity_service.settings.building_id, app.state.consumption_store)
+        app.state.consumption_summary = FunctionalSummary(app.state.consumption)
         app.add_exception_handler(ConsumptionProblem, consumption_problem)
         app.include_router(consumption_router)
         identity_service.history_actions = identity_service.history_actions | {"consumption.configuration.changed"}

@@ -2,6 +2,8 @@
 import { apiRequest, sessionActivityHeaders } from "./session";
 import type { Catalog, Configuration, ConfigurationInput, DetailResult, CategoryStatus, Period } from "./consumption-types";
 export type * from "./consumption-types";
+export type * from "./consumption-history-types";
+import type { AggregateQueryResult, Granularity } from "./consumption-history-types";
 export type CategoryId = CategoryStatus["id"];
 
 export const consumptionApi = {
@@ -13,6 +15,11 @@ export const consumptionApi = {
   detail(category: CategoryId, period: Period, signal?: AbortSignal): Promise<DetailResult> {
     const query = new URLSearchParams({ start: period.start, end: period.end, timezone: period.timezone });
     return apiRequest<DetailResult>(`/consumption/categories/${category}/detail?${query}`, { signal, headers: sessionActivityHeaders("interactive") });
+  },
+  /** Read exact calendar blocks under the same session/error/cancellation policy as001. */
+  aggregates(category: CategoryId, period: Period, granularity: Exclude<Granularity, 'detail'>, signal?: AbortSignal): Promise<AggregateQueryResult> {
+    const query = new URLSearchParams({ ...period, granularity });
+    return apiRequest<AggregateQueryResult>(`/consumption/categories/${category}/aggregates?${query}`, { signal, headers: sessionActivityHeaders("interactive") });
   },
   /** Read administrative configuration; the shared session adapter handles401/403 and no-store. */
   configuration(signal?: AbortSignal): Promise<Configuration> {

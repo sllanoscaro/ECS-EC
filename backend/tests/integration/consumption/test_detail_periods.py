@@ -7,8 +7,7 @@ from backend.tests.unit.consumption.test_validation import record
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.parametrize('category', ['CAT-05', pytest.param('CAT-01', marks=pytest.mark.xfail(strict=True,
-    reason='spec-002 MeasurementStore.read_detail does not expose crossing diagnostic IDs; spec-001 T041 pending'))])
+@pytest.mark.parametrize('category', ['CAT-05', 'CAT-01'])
 async def test_crossing_rows_and_diagnostics(consumption_reception_environment, database, clock, category):
     """An interval crossing both boundaries counts once; the same holds for an incomplete candidate."""
     env = consumption_reception_environment

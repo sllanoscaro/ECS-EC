@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from ecs_ec.consumption.calendar import containing_block, duration_us
 from ecs_ec.consumption.models import AggregateContribution, ConsumptionAggregate
-from ecs_ec.core.retention import anniversary
+from ecs_ec.consumption.retention import retention_deadline
 
 
 def energy_quanta(value):
@@ -48,7 +48,7 @@ async def contribute(uow, record, now):
             raise ValueError('tzdata_reconciliation_required')
         aggregate = existing[0] if existing else None
         if aggregate and await uow.session.get(AggregateContribution, (aggregate.id, record.id)): continue
-        deadline = anniversary(now, block.timezone)
+        deadline = retention_deadline(now, block.timezone)
         if aggregate is None:
             aggregate = ConsumptionAggregate(id=uuid4(), building_id=record.building_id, category_id=record.category_id,
                 granularity=granularity, start=block.start, end=block.end, timezone=block.timezone,
@@ -74,3 +74,27 @@ async def contribute(uow, record, now):
         uow.session.add(AggregateContribution(aggregate_id=aggregate.id, record_id=record.id,
             record_revision=record.revision, snapshot=snapshot, incorporated_at=now))
         await uow.session.flush()
+
+
+def project_block(block, aggregate, segments, cutoff_at, warnings=()):
+    """Copy persisted sums; classify exact durations before rounding only the display percentage.
+
+    Integer division rounds percent to six decimals without an ambient Decimal
+    context. Empty calendar blocks are projections and never create database rows.
+    """
+    from ecs_ec.consumption.ports import AggregateBlock
+    total = duration_us(block.start, block.end)
+    covered = int(aggregate.covered_duration_us) if aggregate else 0
+    scaled = (covered * 100000000 + total // 2) // total
+    percent = f'{scaled // 1000000}.{scaled % 1000000:06d}'.rstrip('0').rstrip('.')
+    modes = {s.source_mode for s in segments}
+    mode = next(iter(modes)) if len(modes) == 1 else 'mixed' if modes else 'unavailable'
+    energy = format(quanta_energy(int(aggregate.energy_quanta)), 'f').rstrip('0').rstrip('.') if aggregate else None
+    return AggregateBlock(start=block.start, end=block.end, timezone=block.timezone,
+        aggregate_id=aggregate.id if aggregate else None, revision=aggregate.revision if aggregate else None,
+        duration_us=str(total), covered_duration_us=str(covered), energy_kwh=energy,
+        coverage_percent=percent, coverage_state='no_data' if covered == 0 else 'complete' if covered == total else 'incomplete',
+        temporal_state='not_started' if cutoff_at < block.start else 'ongoing' if cutoff_at < block.end else 'finished',
+        contribution_count=aggregate.contribution_count if aggregate else 0, source_mode=mode, provenance_segments=segments,
+        created_at=aggregate.created_at if aggregate else None, last_new_data_at=aggregate.last_new_data_at if aggregate else None,
+        retain_until=aggregate.retain_until if aggregate else None, warnings=warnings)

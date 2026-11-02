@@ -9,29 +9,19 @@ from sqlalchemy import select
 from ecs_ec.consumption.aggregates import contribute, energy_quanta
 from ecs_ec.consumption.calendar import TZDATA_VERSION
 from ecs_ec.consumption.catalog_storage import configuration_segments
-from ecs_ec.consumption.models import (AcceptedMeasurement, CalculationContributionReference, CategoryUpdate, Contribution, IncorporatedRecord,
+from ecs_ec.consumption.models import (CalculationContributionReference, CategoryUpdate, Contribution, IncorporatedRecord,
     IncorporatedTotal, TotalCalculationState, TotalEvaluationRequest)
 from ecs_ec.consumption.reception import append_update_events
 from ecs_ec.consumption.store import advance_state, lock_history
 from ecs_ec.consumption.totals import TotalCalculator
 from ecs_ec.core.clock import utc
-from ecs_ec.core.retention import anniversary
+from ecs_ec.consumption.retention import protect_contributions, retention_deadline
 from ecs_ec.core.unit_of_work import UnitOfWork
-
-
-async def _protect_contributions(uow, contributions, deadline):
-    """Extend necessary original/ledger evidence to the dependent's initial minimum; never shorten it."""
-    for contribution in contributions:
-        row = await uow.session.get(IncorporatedRecord, contribution.measurement_id)
-        if row is None: raise ValueError('calculation_evidence_unavailable')
-        row.retain_until = max(row.retain_until, deadline)
-        payload = await uow.session.get(AcceptedMeasurement, row.id)
-        if payload: payload.retain_until = max(payload.retain_until, deadline)
 
 
 async def _incorporate(uow, candidate, state, update, now, timezone, correlation_ref):
     """Persist a complete calculated payload, exact aggregates and initial reference protection atomically."""
-    deadline = anniversary(now, timezone)
+    deadline = retention_deadline(now, timezone)
     snapshots = [c.model_dump(mode='json') for c in candidate.contributions]
     basis = [b.model_dump(mode='json') for b in candidate.configuration_segments[0].basis_sources]
     row = IncorporatedRecord(id=uuid4(), revision=1, building_id=candidate.building_id, category_id='CAT-01',
@@ -47,7 +37,7 @@ async def _incorporate(uow, candidate, state, update, now, timezone, correlation
     await uow.session.flush()
     uow.session.add(IncorporatedTotal(record_id=row.id, first_incorporated_at=now, retain_until=deadline,
         base_categories=list(candidate.base_categories), basis_sources=basis, contributions=snapshots))
-    await _protect_contributions(uow, candidate.contributions, deadline)
+    await protect_contributions(uow, candidate.contributions, deadline)
     await contribute(uow, row, now)
     return row
 
@@ -79,7 +69,7 @@ class PendingTotals:
         async with UnitOfWork(self.sessions) as uow:
             building, states, global_state, revisions = await lock_history(uow, building_id)
             now, state = utc(self.clock.now()), states['CAT-01']
-            deadline = anniversary(now, building.timezone)
+            deadline = retention_deadline(now, building.timezone)
             requests = (await uow.session.scalars(select(TotalEvaluationRequest).where(
                 TotalEvaluationRequest.building_id == building_id, TotalEvaluationRequest.status == 'pending')
                 .order_by(TotalEvaluationRequest.start, TotalEvaluationRequest.end).with_for_update())).all()
@@ -118,7 +108,7 @@ class PendingTotals:
                     for field, value in values.items(): setattr(diagnostic, field, value)
                     diagnostic.updated_at, diagnostic.revision = now, diagnostic.revision + 1
                     diagnostic.retain_until = max(diagnostic.retain_until, deadline)
-                await _protect_contributions(uow, candidate.contributions, diagnostic.retain_until)
+                await protect_contributions(uow, candidate.contributions, diagnostic.retain_until)
                 await uow.session.flush()
                 for part in candidate.contributions:
                     if not await uow.session.get(CalculationContributionReference, (diagnostic.id, part.measurement_id)):

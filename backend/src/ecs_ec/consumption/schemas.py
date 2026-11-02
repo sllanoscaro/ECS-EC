@@ -3,8 +3,9 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, model_serializer
 
+from ecs_ec.consumption.ports import AggregateQueryResult
 from ecs_ec.consumption.models import (CategoryId, CategorySource, ConfigurationInput, DomainModel,
     InstallationRevision, Revision, Timezone)
 
@@ -148,7 +149,7 @@ class WarningView(DomainModel):
     """Bounded warning vocabulary with observed counts and a safe static explanation."""
 
     code: Literal['crossing_intervals_excluded', 'observed_gaps', 'no_calculation_basis',
-        'partial_calculation_scope', 'source_unavailable_in_segment']
+        'partial_calculation_scope', 'source_unavailable_in_segment', 'detail_withdrawn']
     count: Annotated[int, Field(ge=0)]
     message: str
 
@@ -178,3 +179,24 @@ def configuration_view(revision: InstallationRevision):
 
 
 SegmentView.model_rebuild()
+
+
+class AggregateResponse(AggregateQueryResult):
+    """Grouped wire DTO keeps interval boundaries in the building zone, including nested provenance."""
+
+    @model_serializer(mode='wrap')
+    def with_local_boundaries(self, handler, info):
+        """Project all start/end fields while retaining UTC capture/retention metadata and exact text."""
+        from datetime import datetime
+        from ecs_ec.consumption.models import instant
+        from ecs_ec.consumption.periods import timestamp
+        def project(value):
+            """Visit typed response containers only; never alter energy, offsets or microseconds by arithmetic."""
+            if isinstance(value, dict):
+                return {key: timestamp(instant(item), self.period.timezone)
+                    if key in {'start', 'end'} and isinstance(item, (str, datetime))
+                    else project(item) for key, item in value.items()}
+            if isinstance(value, (list, tuple)):
+                return [project(item) for item in value]
+            return value
+        return project(handler(self))

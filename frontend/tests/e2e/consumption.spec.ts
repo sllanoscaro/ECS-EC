@@ -1,7 +1,7 @@
 /** Browser acceptance against the real monolith/002 reception fixtures, with no public seed endpoint. */
 import { consumptionFixture } from "./consumption.setup";
 import { expect, test } from "@playwright/test";
-import type { DetailResult } from "../../src/lib/api/consumption";
+import type { DetailResult, AggregateQueryResult } from "../../src/lib/api/consumption";
 
 test.use({ timezoneId: "Asia/Tokyo" });
 test.skip(!process.env.CONSUMPTION_E2E_MODE, "Requires isolated seeded001/002 fixtures; identity's fixtures alone are insufficient.");
@@ -66,6 +66,33 @@ for (const role of ["admin", "operator"]) {
     await page.getByRole("button", { name: "Consultar período" }).click();
     await expect(page.getByText("Se excluyeron intervalos que cruzan los límites.", { exact: false })).toBeVisible();
     await expect(page.locator("tbody tr")).toHaveCount(0);
+    //002 grouping keeps the explicit filter/category and compares every block to the real API.
+    await page.getByLabel("Inicio con offset", { exact: true }).fill("2026-01-01T00:00:00-03:00");
+    await page.getByLabel("Fin con offset", { exact: true }).fill("2026-01-02T00:00:00-03:00");
+    await page.getByRole("button", { name: "Consultar período" }).click();
+    for (const granularity of ["hour", "day", "month", "year"] as const) {
+      const end = granularity === "month" ? "2026-02-01T00:00:00-03:00" : granularity === "year" ? "2027-01-01T00:00:00-03:00" : "2026-01-02T00:00:00-03:00";
+      await page.getByLabel("Fin con offset", { exact: true }).fill(end);
+      await page.getByRole("button", { name: "Consultar período" }).click();
+      await page.getByRole("combobox", { name: "Agrupación", exact: true }).selectOption(granularity);
+      await expect(page.getByLabel("Inicio con offset", { exact: true })).toHaveValue("2026-01-01T00:00:00-03:00");
+      for (const category of ["CAT-01", "CAT-02", "CAT-03", "CAT-04", "CAT-05", "CAT-06", "CAT-07"] as const) {
+        const query = new URLSearchParams({start: "2026-01-01T00:00:00-03:00", end, timezone: "America/Santiago", granularity});
+        await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption(category);
+        const response = await context.request.get(`/api/v1/consumption/categories/${category}/aggregates?${query}`);
+        expect(response.status()).toBe(200);
+        const result = await response.json() as AggregateQueryResult;
+        await expect(page.locator("tbody tr")).toHaveCount(result.blocks.length);
+        await expect(page.locator('[role="graphics-symbol"]')).toHaveCount(result.blocks.length);
+        for (const [index, block] of result.blocks.entries()) {
+          const row = page.locator("tbody tr").nth(index);
+          await expect(row.locator("td").nth(0)).toContainText(block.start);
+          await expect(row.locator("td").nth(2)).toHaveText(block.energy_kwh === null ? "—" : `${block.energy_kwh} kWh`);
+          const symbol = page.locator('[role="graphics-symbol"]').nth(index);
+          await expect(symbol).toHaveAttribute("aria-label", new RegExp(block.energy_kwh === null ? "Sin datos" : `${block.energy_kwh} kWh`));
+        }
+      }
+    }
     await page.goto("/administracion/consumo/");
     if (role === "operator") {
       await expect(page.getByText("Acceso denegado.", { exact: true })).toBeVisible();
