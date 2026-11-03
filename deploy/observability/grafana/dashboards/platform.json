@@ -1,0 +1,90 @@
+{
+  "uid": "ecs-platform",
+  "title": "ECS-EC — observabilidad técnica",
+  "editable": false,
+  "schemaVersion": 41,
+  "version": 1,
+  "timezone": "utc",
+  "refresh": "15s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "tags": [
+    "007"
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Política y cobertura esperadas",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 5
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Entorno exclusivo del gateway. UTC; ventana inicial 15 min; política 007-v1, logs/trazas 168 h (test:24 h), muestreo de trazas1.0. Cobertura **desconocida** hasta conciliar secuencias, pérdidas y señales consultables. La ausencia no equivale a cero ni prueba que no hubo operación. Transporte OTLP confirmado no certifica persistencia. No hay cobertura de negocio acreditada todavía. [Consultar trazas](/jaeger/)."
+      }
+    },
+    {
+      "id": 2,
+      "type": "logs",
+      "title": "Eventos técnicos observados — UTC",
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "ecs-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"ecs-ec\"}",
+          "queryType": "range",
+          "maxLines": 1000
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Terminales observados por operación/resultado — cobertura desconocida",
+      "description": "Solo operation.completed; no es un conteo contable ni prueba de cobertura de negocio. Ventana/corte de Grafana UTC. Recepción y PDF tienen terminales propios, pendientes del catálogo US3.",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 5
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "ecs-loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin evidencia / desconocido"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (operation, outcome) (count_over_time({service_name=\"ecs-ec\"} | json event=\"event\" | event=\"operation.completed\" | __error__=\"\" [$__range]))",
+          "queryType": "instant",
+          "legendFormat": "{{operation}} / {{outcome}}"
+        }
+      ]
+    }
+  ]
+}

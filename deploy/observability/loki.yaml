@@ -1,0 +1,50 @@
+#007: single-node technical TSDB only; never mount functional data here.
+auth_enabled: false
+server:
+  http_listen_port: 3100
+  http_server_read_timeout: 30s
+  http_server_write_timeout: 30s
+  log_level: error
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+schema_config:
+  configs:
+    - from: 2026-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/index-cache
+compactor:
+  working_directory: /loki/compactor
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 10m
+  delete_request_store: filesystem
+limits_config:
+  retention_period: ${OBS_RETENTION:-168h}
+  query_timeout: 30s
+  max_entries_limit_per_query: 10000
+  max_query_parallelism: 4
+  max_query_length: 24h
+  max_line_size: 16KB
+  ingestion_rate_mb: 2
+  ingestion_burst_size_mb: 4
+  reject_old_samples: true
+  reject_old_samples_max_age: ${OBS_RETENTION:-168h}
+analytics:
+  reporting_enabled: false

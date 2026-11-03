@@ -1,4 +1,4 @@
-# Base platform only. SMTP/technical profiles are owned by specs 008/007.
+#009 platform plus optional007 technical profile; SMTP remains owned by008.
 name: ecs-ec
 services:
   db:
@@ -43,7 +43,6 @@ services:
   app:
     image: ecs-ec-platform:local
     build: .
-    environment: *application_environment
     ports:
       - "127.0.0.1:${APP_PORT:-8000}:8000"
     depends_on:
@@ -52,5 +51,129 @@ services:
       migrate:
         condition: service_completed_successfully
     stop_grace_period: 20s
+    user: "${OBS_UID:-10001}"
+    environment:
+      <<: *application_environment
+      OBS_ENABLED: "${OBS_ENABLED:-false}"
+      OBS_ENVIRONMENT: ${OBS_ENVIRONMENT:-local}
+      OBS_SERVICE_VERSION: ${OBS_SERVICE_VERSION:-0.1.0}
+      OBS_POLICY_REVISION: ${OBS_POLICY_REVISION:-007-v1}
+      OBS_RETENTION_HOURS: "${OBS_RETENTION_HOURS:-168}"
+      OBS_TRACE_RATIO: "${OBS_TRACE_RATIO:-1.0}"
+      OBS_SPOOL: /telemetry/spool
+      OBS_CA: /telemetry/app/ca.crt
+      OBS_APP_CERT: /telemetry/app/app.crt
+      OBS_APP_KEY: /telemetry/app/app.key
+      OBS_HEALTH_CERT: /telemetry/health/health.crt
+      OBS_HEALTH_KEY: /telemetry/health/health.key
+    volumes:
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/spool:/telemetry/spool
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/app:/telemetry/app:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/health:/telemetry/health:ro
+    networks: [default, technical_ingest]
+  technical-gateway:
+    profiles: [observability]
+    image: "nginx:1.31.8-alpine@sha256:785835ea65db4bba6f021acc0f3be91b0fef76a53fe41f8588c6698d2aed0606"
+    user: "${OBS_UID:-10001}"
+    entrypoint: [nginx, -g, "daemon off;"]
+    environment:
+      OBS_ENVIRONMENT: ${OBS_ENVIRONMENT:-local}
+    ports:
+      - "${OBS_BIND_ADDRESS:-127.0.0.1}:${OBS_PORT:-3443}:8443"
+    volumes:
+      - ./deploy/technical-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/technical-gateway/gateway.js:/etc/nginx/gateway.js:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/gateway:/tls:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/credentials:/credentials:ro
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: {driver: none}
+    networks:
+      technical_store:
+        ipv4_address: ${OBS_GATEWAY_IP:-172.30.7.2}
+      technical_ingest: {}
+      technical_edge: {}
+    depends_on: [alloy, loki, grafana, jaeger]
+  alloy:
+    profiles: [observability]
+    image: "grafana/alloy:v1.21.3@sha256:8ab871206bd2d8f89277f53abffee5f452a293980788d52f85fa183a87a505a4"
+    user: "${OBS_UID:-10001}"
+    command: [run, --storage.path=/positions, --server.http.listen-addr=0.0.0.0:12345, /etc/alloy/config.alloy]
+    volumes:
+      - ./deploy/observability/alloy.alloy:/etc/alloy/config.alloy:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/spool:/spool:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/alloy:/tls:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/alloy:/positions
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: {driver: none}
+    networks: [technical_ingest]
+  loki:
+    profiles: [observability]
+    image: "grafana/loki:3.7.9@sha256:0db216b630ae1f348a1584c67f3cead8b4c1fc839169a39501db664744158e28"
+    user: "${OBS_UID:-10001}"
+    command: [-config.file=/etc/loki/config.yaml, -config.expand-env=true]
+    environment:
+      OBS_RETENTION: ${OBS_RETENTION:-168h}
+    volumes:
+      - ./deploy/observability/loki.yaml:/etc/loki/config.yaml:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/loki:/loki
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: {driver: none}
+    networks: [technical_store]
+  jaeger:
+    profiles: [observability]
+    image: "cr.jaegertracing.io/jaegertracing/jaeger:2.22.0@sha256:836b967b5abcf1f7758066aa6b348619267a2f1459f72d472840570f9bd88a17"
+    user: "${OBS_UID:-10001}"
+    command: [--config=/etc/jaeger/config.yaml]
+    environment:
+      OBS_RETENTION: ${OBS_RETENTION:-168h}
+    volumes:
+      - ./deploy/observability/jaeger.yaml:/etc/jaeger/config.yaml:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/jaeger:/badger
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: {driver: none}
+    networks: [technical_store]
+  grafana:
+    profiles: [observability]
+    image: "grafana/grafana:13.3.0@sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205"
+    user: "${OBS_UID:-10001}"
+    environment:
+      GF_AUTH_PROXY_WHITELIST: ${OBS_GATEWAY_IP:-172.30.7.2}
+      GF_SERVER_ROOT_URL: ${OBS_PUBLIC_URL:-https://localhost:3443/grafana/}
+    volumes:
+      - ./deploy/observability/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/observability/grafana/dashboards:/etc/grafana/dashboards:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/grafana:/var/lib/grafana
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: {driver: none}
+    networks: [technical_store]
 volumes:
   postgres_data:
+
+#007: app/Alloy can only reach ingestion; stores and tools have no host ports.
+networks:
+  technical_edge: {}
+  technical_ingest:
+    internal: true
+    driver_opts:
+      com.docker.network.bridge.inhibit_ipv4: "true"
+  technical_store:
+    internal: true
+    driver_opts:
+      com.docker.network.bridge.inhibit_ipv4: "true"
+    ipam:
+      config:
+        - subnet: ${OBS_STORE_SUBNET:-172.30.7.0/24}
+          ip_range: ${OBS_STORE_DYNAMIC_RANGE:-172.30.7.128/25}

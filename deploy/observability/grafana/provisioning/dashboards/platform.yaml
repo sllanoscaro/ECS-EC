@@ -1,0 +1,11 @@
+#007: provisioned immutable technical dashboard; definitions remain in Git.
+apiVersion: 1
+providers:
+  - name: ecs-platform
+    orgId: 1
+    folder: ECS technical
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /etc/grafana/dashboards

@@ -1,0 +1,43 @@
+#007: Jaeger2.22 single process, persistent Badger; derived from upstream
+#cmd/jaeger/config-badger.yaml (Apache-2.0). No shared multi-process Badger.
+service:
+  extensions: [jaeger_storage, jaeger_query]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [jaeger_storage_exporter]
+  telemetry:
+    logs:
+      level: error
+extensions:
+  jaeger_query:
+    storage:
+      traces: technical
+    http:
+      endpoint: 0.0.0.0:16686
+    base_path: /jaeger
+  jaeger_storage:
+    backends:
+      technical:
+        badger:
+          directories:
+            keys: /badger/keys
+            values: /badger/values
+          ephemeral: false
+          ttl:
+            spans: ${env:OBS_RETENTION:-168h}
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        max_request_body_size: 8388608
+processors:
+  batch:
+    send_batch_size: 512
+    send_batch_max_size: 512
+    timeout: 1s
+exporters:
+  jaeger_storage_exporter:
+    trace_storage: technical

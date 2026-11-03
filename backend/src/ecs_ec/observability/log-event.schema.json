@@ -1,0 +1,609 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ECS-EC technical log event v1",
+  "description": "Closed safe envelope; trusted catalog adapters, UTC and <=16 KiB UTF-8 enforced before admission. Not a business event or functional API.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "boot_id",
+    "sequence",
+    "timestamp",
+    "environment",
+    "service_version",
+    "policy_revision",
+    "event",
+    "operation",
+    "stage",
+    "source_module",
+    "severity",
+    "outcome",
+    "code",
+    "context_status",
+    "operation_ref",
+    "attempt_ref",
+    "execution_ref",
+    "publication_ref",
+    "parent_operation_ref",
+    "trace_id",
+    "span_id",
+    "duration_ms",
+    "counts",
+    "health"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "boot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "maxLength": 40
+    },
+    "environment": {
+      "enum": [
+        "local",
+        "test",
+        "vps"
+      ]
+    },
+    "service_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "policy_revision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "event": {
+      "enum": [
+        "operation.started",
+        "stage.completed",
+        "operation.completed",
+        "execution.completed",
+        "reception.completed",
+        "report.admitted",
+        "report.completed",
+        "telemetry.heartbeat",
+        "policy.changed"
+      ]
+    },
+    "operation": {
+      "enum": [
+        "acquisition.receive",
+        "acquisition.process",
+        "reception.accept",
+        "consumption.aggregate",
+        "consumption.retention",
+        "consumption.query_detail",
+        "consumption.query_aggregates",
+        "cost.calculate",
+        "cost.compare",
+        "cost.query",
+        "report.generate",
+        "report.query",
+        "report.download",
+        "identity.authenticate",
+        "identity.authorize",
+        "identity.session",
+        "administration.change",
+        "administration.query",
+        "telemetry"
+      ]
+    },
+    "stage": {
+      "enum": [
+        "start",
+        "authenticate",
+        "transfer",
+        "seal",
+        "claim",
+        "parse",
+        "validate",
+        "receive",
+        "publish",
+        "authorize",
+        "deduplicate",
+        "commit",
+        "aggregate",
+        "calculate",
+        "read",
+        "project",
+        "capture",
+        "compare",
+        "wait",
+        "render",
+        "preflight",
+        "deliver",
+        "coordinate",
+        "observe",
+        "complete"
+      ]
+    },
+    "source_module": {
+      "enum": [
+        "acquisition",
+        "consumption",
+        "costs",
+        "reports",
+        "identity",
+        "platform",
+        "observability"
+      ]
+    },
+    "severity": {
+      "enum": [
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR"
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "success",
+        "expected_rejection",
+        "unexpected_error",
+        "in_progress",
+        "not_applicable"
+      ]
+    },
+    "code": {
+      "enum": [
+        "ok",
+        "invalid_input",
+        "duplicate",
+        "too_early",
+        "permission_denied",
+        "authentication_failed",
+        "file_unreadable",
+        "database_unavailable",
+        "calculation_failed",
+        "pdf_failed",
+        "processing_interrupted",
+        "transport_unavailable",
+        "queue_full",
+        "spool_full",
+        "schema_rejected",
+        "sampling",
+        "retention_expired",
+        "coverage_unknown",
+        "unclassified"
+      ]
+    },
+    "context_status": {
+      "enum": [
+        "available",
+        "unavailable",
+        "recovered"
+      ]
+    },
+    "operation_ref": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attempt_ref": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "execution_ref": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "publication_ref": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "parent_operation_ref": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "trace_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(?!0{32}$)[0-9a-f]{32}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "span_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(?!0{16}$)[0-9a-f]{16}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "duration_ms": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "counts": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "files_seen": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "files_parsed": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "files_unreadable": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "records_seen": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "records_accepted": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "records_invalid": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "records_duplicate": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "records_other_rejected": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "health": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "logs_dropped_total",
+            "spans_dropped_total",
+            "schema_rejected_total",
+            "log_queue_depth",
+            "span_queue_depth",
+            "log_collector_status",
+            "last_log_collector_success",
+            "trace_export_status",
+            "last_trace_export_success",
+            "trace_export_failures_total",
+            "trace_exported_spans_total"
+          ],
+          "properties": {
+            "logs_dropped_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "spans_dropped_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "schema_rejected_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "log_queue_depth": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "span_queue_depth": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2048
+            },
+            "collector_dropped_total": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "spool_dropped_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "log_collector_status": {
+              "enum": [
+                "available",
+                "degraded",
+                "unknown"
+              ]
+            },
+            "last_log_collector_success": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "trace_export_status": {
+              "enum": [
+                "available",
+                "degraded",
+                "unknown"
+              ]
+            },
+            "last_trace_export_success": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "trace_export_failures_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "trace_exported_spans_total": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "log_collector_status": {
+                    "const": "available"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "last_log_collector_success": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "trace_export_status": {
+                    "const": "available"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "last_trace_export_success": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "enum": [
+              "operation.completed",
+              "execution.completed",
+              "reception.completed",
+              "report.completed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "success",
+              "expected_rejection",
+              "unexpected_error"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "unexpected_error"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "ERROR"
+          },
+          "code": {
+            "not": {
+              "const": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "telemetry.heartbeat"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "health": {
+            "type": "object"
+          },
+          "operation": {
+            "const": "telemetry"
+          },
+          "outcome": {
+            "const": "not_applicable"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "context_status": {
+            "const": "unavailable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "operation_ref": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "operation_ref": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "trace_id": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "span_id": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "span_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

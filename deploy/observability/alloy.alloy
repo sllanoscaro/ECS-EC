@@ -1,0 +1,48 @@
+//007: read only sanitized immutable envelopes; persist positions via --storage.path.
+logging {
+  level = "error"
+  format = "json"
+}
+local.file_match "spool" {
+  path_targets = [{"__path__" = "/spool/events-*.jsonl"}]
+}
+loki.source.file "spool" {
+  targets    = local.file_match.spool.targets
+  forward_to = [loki.process.safe.receiver]
+}
+loki.process "safe" {
+  stage.json {
+    expressions = {timestamp = "timestamp", environment = "environment", operation = "operation", outcome = "outcome", severity = "severity"}
+  }
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339Nano"
+    action_on_failure = "skip"
+  }
+  stage.labels {
+    values = {environment = "", operation = "", outcome = "", severity = ""}
+  }
+  stage.static_labels {
+    values = {service_name = "ecs-ec"}
+  }
+  stage.label_keep {
+    values = ["service_name", "environment", "operation", "outcome", "severity"]
+  }
+  forward_to = [loki.write.private.receiver]
+}
+loki.write "private" {
+  endpoint {
+    url                 = "https://technical-gateway:8445/loki/api/v1/push"
+    name                = "private"
+    remote_timeout      = "5s"
+    max_backoff_retries  = 3
+    min_backoff_period   = "100ms"
+    max_backoff_period   = "1s"
+    follow_redirects    = false
+    tls_config {
+      ca_file   = "/tls/ca.crt"
+      cert_file = "/tls/alloy.crt"
+      key_file  = "/tls/alloy.key"
+    }
+  }
+}

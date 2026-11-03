@@ -1,0 +1,24 @@
+#007: local sources only; Viewer cannot add or modify them.
+apiVersion: 1
+prune: true
+datasources:
+  - name: ECS logs and metrics
+    uid: ecs-loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: true
+    editable: false
+    jsonData:
+      maxLines: 1000
+      timeout: 25
+      derivedFields:
+        - name: trace_id
+          matcherRegex: '"trace_id":"([0-9a-f]{32})"'
+          url: '/jaeger/trace/$${__value.raw}'
+  - name: ECS traces
+    uid: ecs-jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686/jaeger
+    editable: false
