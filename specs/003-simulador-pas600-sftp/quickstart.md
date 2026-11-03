@@ -2,8 +2,10 @@
 
 [Plan](plan.md), [modelo](data-model.md), [CLI](contracts/cli.md),
 [perfil](contracts/pas600-profile.md), [recepción](contracts/sftp-reception.md).
-Guía prevista para después de implementar; los comandos/módulos/fixtures de aplicación
-todavía no existen. Esta planificación no ejecuta pruebas ni acredita sus resultados.
+**Estado2026-11-03:** implementados validate/generate/test-connection/publish/resend/
+report/compare y el módulo backend acquisition con mantenimiento/exportación. La
+conformidad documental19, reproducción por otra persona, ampliación técnica007 y cierre
+integral permanecen pendientes. [Evidencia](validation/acceptance.md).
 
 ## Prerrequisitos
 
@@ -11,18 +13,17 @@ todavía no existen. Esta planificación no ejecuta pruebas ni acredita sus resu
   separada. Seguir la [guía de plataforma009](../009-fundaciones-plataforma/quickstart.md).
 - Generación local no requiere backend, VPS, equipos, SMTP ni observabilidad.
 - Integración: capacidades reales 009 + configuración/fuentes 001 + recepción/historial
-  002. Sesión 006 para contrastar UI/HTTP protegida. No completar otras specs desde 003.
-- Ejemplos sin secretos del [contrato CLI](contracts/cli.md), dos descriptores equivalentes
-  CSV/JSON y fixtures independientes revisados contra la revisión documental fija.
-- Receptor habilitado por `PAS600_SFTP_ENABLED=true`, binding de prueba al mismo edificio/
-  fuentes que 001, puerto `127.0.0.1:2222`, host key persistida y volúmenes de adquisición.
-  Variables/rutas concretas y procedimiento de carga del binding se documentan al implementar.
-  Contraseña/clave privada fuera de escenarios/informes. Verificar clave pública local
-  del servidor por canal administrado antes de crear `known_hosts` de prueba.
+  002, ya disponibles. Sesión006 para contrastar UI/HTTP protegida, también disponible.
+  Ver [prerrequisitos vigentes](validation/prerequisites.md); no completar otras specs desde003.
+- Ejemplos sin secretos del [contrato CLI](contracts/cli.md), descriptores equivalentes
+  CSV/JSON y fixtures sintéticos independientes; revisión documental19 aún diferida.
+- Para SFTP habilitar PAS600_SFTP_ENABLED tras instalar un binding de prueba al mismo
+  edificio/fuentes001. Host key/credenciales/bytes externos y known_hosts administrado;
+  provisión concreta abajo. La identidad técnica no utiliza sesión humana006.
 
 ## Generación sin red
 
-Desde la raíz del repositorio, una vez disponibles paquete, lock y ejemplos:
+Desde la raíz del repositorio, con paquete, lock y ejemplos ya disponibles:
 
 Pydantic2/AsyncSSH/simplejson deben estar en `project.dependencies`, y pytest/herramientas
 de pruebas en `dependency-groups.dev`. Comprobar primero el uso normal sin grupo dev:
@@ -47,8 +48,8 @@ uv run --project tools/pas600_simulator --locked pytest tools/pas600_simulator/t
 
 Usar directorios nuevos/vacíos. Esperado: solo los medidores presentes en archivos
 nativos; configuración/oráculo/anomalías/journal en `control/`, nunca publicados. Los dos
-formatos representan mismas mediciones/tiempos; fixtures documentales y lector de pruebas
-independiente validan conformidad, sin usar únicamente el parser ECS-EC como oráculo.
+formatos representan mismas mediciones/tiempos; el lector de pruebas
+independiente valida los contratos locales, sin sustituir la revisión documental19.
 Repetir en otro output con mismo escenario/semilla: datos y asignaciones idénticos;
 UUID/tiempos reales distintos identificados. Confirmar explícitamente el caso 100/104 kWh
 con un delta de 4 kWh y primera referencia sin consumo.
@@ -68,17 +69,89 @@ referencia extra y el informe enumera consecuencias de extremos inválidos por s
 
 ## Receptor local y publicación
 
-Preparar `.env` y binding local; las fuentes 001 se crean mediante su contrato de
-configuración, sin insertar categorías desde el simulador. Habilitar listener y montar
-host key/credenciales de prueba/volumen en la app de plataforma. En este diseño no hay
-contenedor `sftp` separado. Con base y configuración reales:
+Preparar `.env` y fuentes001 siguiendo su [provisión controlada](../001-visualizar-consumo-categorias/quickstart.md).
+El binding003 usa esos UUID existentes; no crea fuentes ni cuentas. Tomar un escenario
+con timezone/offsets y medidores compatibles con esa configuración. Preparar un directorio
+externo con bytes/ y secrets/, propietario del UID efectivo de app (10001 por defecto).
+PAS600_RESOURCE_ROOT apunta a él; secrets se monta readonly y sus privadas son0600.
+
+Provisión local administrada con claves externas (no ejecutar sobre material existente):
+
+```sh
+export PAS600_RESOURCE_ROOT=/ruta/privada/pas600-local
+uv run --locked python - <<'PYKEYS'
+import json, os
+from pathlib import Path
+import asyncssh
+root=Path(os.environ['PAS600_RESOURCE_ROOT'])
+(root/'bytes').mkdir(parents=True, mode=0o700, exist_ok=False)
+(root/'secrets').mkdir(mode=0o700)
+host=asyncssh.generate_private_key('ssh-ed25519')
+client=asyncssh.generate_private_key('ssh-ed25519')
+host.write_private_key(root/'secrets/host_key')
+client.write_private_key(root/'client_key')
+for path in (root/'secrets/host_key',root/'client_key'):path.chmod(0o600)
+auth=root/'secrets/auth.json'
+auth.write_text(json.dumps({'pas600': {'public_keys':[client.export_public_key().decode()]}}))
+auth.chmod(0o600)
+(root/'known_hosts').write_bytes(b'[127.0.0.1]:2222 '+host.export_public_key())
+PYKEYS
+```
+
+El known_hosts se deriva de la clave administrada, no de una conexión sin verificar.
+Mantener client_key solo en el cliente; ajustar propiedad de secrets/bytes al UID app
+antes de montar. Para contraseña, auth.json admite password_hash Argon2 generado con
+getpass/PasswordHasher; el cliente usa password_env. Nunca copiar texto claro al archivo.
+
+Crear /ruta/privada/binding.json validando contra BindingInput de acquisition/schemas.py.
+Ejemplo sintético de un canal (cambiar UUID/zona/medidores según001 y escenario):
+
+```json
+{
+  "id":"00000000-0000-0000-0000-000000000bbb", "revision":1,
+  "building_id":"00000000-0000-0000-0000-000000000063",
+  "username":"pas600", "directory":"/", "timezone":"America/Santiago",
+  "publisher_serial":"SYNTHETIC-PAS600", "publisher_remote_id":"synthetic-pas600",
+  "channels":[{
+    "source_id":"00000000-0000-0000-0000-000000000003", "category_id":"CAT-03",
+    "device_local_id":"3", "reduced_id":"3_mb", "device_name":"iEM3150 CAT03",
+    "csv_topic_id":"SYNTHETIC.3.energy", "json_value_item_id":"synthetic/3/energy",
+    "unit":"kWh", "sampling_minutes":15, "semantics":"cumulative",
+    "timestamp_role":"reading_instant", "provenance":"synthetic",
+    "evidence_ref":"synthetic:local-guide"
+  }]
+}
+```
+
+Añadir un canal por cada medidor realmente seleccionado, con fuente001 existente.
+No incluir CAT-01 si no tiene medidor. Revisiones nuevas incrementan revision y conservan
+historia; requieren no tener sesiones receiving. Reiniciar app tras cambiar bindings para
+recargar la lista de procesos002 autorizados. Los descriptores no se deducen de etiquetas.
+
+Configurar PAS600_MAINTENANCE_PROCESSES=process:pas600-maintenance. Con app deshabilitada
+para SFTP instalar primero el binding por CLI host con DATABASE_URL del despliegue:
+
+```sh
+export PAS600_MAINTENANCE_PROCESSES=process:pas600-maintenance
+export PAS600_MAINTENANCE_PROCESS=process:pas600-maintenance
+uv run --locked alembic -c backend/alembic.ini upgrade head
+uv run --locked python -m ecs_ec.acquisition.cli install-binding --file /ruta/privada/binding.json
+```
+
+Luego PAS600_SFTP_ENABLED=true y reconstruir/arrancar app. En Compose también se puede
+copiar el binding sin secretos con docker compose cp y ejecutar el mismo módulo mediante
+/app/.venv/bin/python con -e PAS600_MAINTENANCE_PROCESS=process:pas600-maintenance.
+No hay endpoint público de mantenimiento ni autorización derivada de Programador.
+Copiar transport.local.json fuera del repositorio y ajustar known_hosts_file,
+auth.private_key_file, alias estable, puerto y directorio; quitar auth.password_env al usar clave.
+Con base y configuración reales:
 
 ```sh
 docker compose up -d db
-docker compose run --rm app uv run --locked alembic -c backend/alembic.ini upgrade head
+docker compose run --rm migrate
 docker compose up -d app
-uv run --project tools/pas600_simulator --locked pas600-sim test-connection --transport tools/pas600_simulator/examples/transport.local.json
-uv run --project tools/pas600_simulator --locked pas600-sim publish --run /tmp/ecs-ec-pas600-csv --transport tools/pas600_simulator/examples/transport.local.json
+uv run --project tools/pas600_simulator --locked pas600-sim test-connection --transport /ruta/privada/transport.json
+uv run --project tools/pas600_simulator --locked pas600-sim publish --run /tmp/ecs-ec-pas600-csv --transport /ruta/privada/transport.json
 uv run --locked pytest backend/tests/unit/acquisition backend/tests/contract/acquisition backend/tests/integration/acquisition
 ```
 
@@ -89,8 +162,7 @@ indica aceptados/duplicados/rechazados por categoría y nunca se infiere de SFTP
 
 La suite de integración usa PostgreSQL y transporte locales reales, no SQLite. Las pruebas
 de aceptación de cadencia con red usan **900 segundos reales** después del fin de cada
-intento; deben ser seleccionables como pruebas largas por el marcador `real_time` a
-implementar, sin reducir el intervalo por variables de pruebas. Las pruebas unitarias
+intento; son seleccionables por el marcador `real_time`, sin reducir el intervalo por variables de pruebas. Las pruebas unitarias
 usan reloj inyectado para 899/900 s y no acreditan por ello SC-004 en red.
 
 ## Casos de aceptación y resultados esperados
@@ -121,7 +193,7 @@ transcurrido el mínimo desde la aceptación real del registro.
 
 ## Exportar y comparar resultados
 
-Comando técnico previsto, ejecutado por proceso de mantenimiento autorizado del entorno.
+Comando técnico implementado, ejecutado con PAS600_MAINTENANCE_PROCESS autorizado.
 La selección es obligatoria: el ejemplo usa CAT-03, una hora y zona Etc/UTC; ajustar
 fechas/zona/categorías al escenario y binding reales. Esa selección no revela anomalías.
 
@@ -131,7 +203,9 @@ uv run --project tools/pas600_simulator --locked pas600-sim compare --run /tmp/e
 uv run --project tools/pas600_simulator --locked pas600-sim report --run /tmp/ecs-ec-pas600-csv --output /tmp/ecs-ec-pas600-control.json
 ```
 
-Sustituir `PUBLICATION_REF` por la referencia obtenida del resultado durable del receptor;
+Sustituir `PUBLICATION_REF` por acquisition_publication.publication_ref, consultado por
+el proceso de mantenimiento autorizado en la DB del despliegue (no desde el clienteSFTP);
+no se expone un listado público. Ajustar PAS600_STORAGE al volumen real al usar CLI host;
 no por un UUID que el cliente haya declarado como identidad confiable. No otorga acceso
 funcional por el rol Programador. Contrastar también períodos/energía/cobertura por los
 contratos de consumo incluidos en `consumption_snapshot`: verificar snapshot_id,
@@ -152,11 +226,19 @@ además comprobar sus IDs/topología y frontera de sesión; las pruebas sintéti
 acreditan y no se reetiquetan como integración física.
 
 
-## Estado ejecutable local (2026-11-02)
+## Suites seleccionadas y límites
 
-Disponibles validate/generate y los ejemplos normales/anómalos; ver
-[README del paquete](../../tools/pas600_simulator/README.md),
-[validación US1 parcial](validation/us1.md) y [US3 parcial](validation/us3.md).
-Los comandos de publicación/exportación/contraste de esta guía siguen siendo diseño
-pendiente de implementación; no se han ejecutado. T003 fue diferida por el usuario;
-los contratos locales permiten desarrollo, sin acreditar revisión documental19.
+```sh
+uv run --locked pytest backend/tests/integration/acquisition/test_real_time_publication.py -m real_time -q -s
+PAS600_RESTORE_CONTAINER=NOMBRE_CONTENEDOR_POSTGRES uv run --locked pytest backend/tests/integration/acquisition/test_restore.py -m restore -q
+```
+
+Configurar TEST_DATABASE_URL separada terminada _test; restore usa otra DB vacía única
+_restore y elimina solo ese destino. Las dos pruebas real_time tardan al menos30 minutos.
+Las suites rápidas excluyen real_time/restore por defecto. [Resultados US2](validation/us2.md),
+[US3](validation/us3.md), [US4](validation/us4.md) y [restauración](validation/restore.md).
+
+No hace falta PDF005, SMTP008, VPS ni hardware para esos ensayos locales. No marcan
+las verificaciones pendientes de otras specs. T003/T008/T009/T021 siguen abiertas por
+referencia19 diferida; T070 por persona independiente; T072 por alcance técnico007;
+T076 por aceptación integral. Los checklists de calidad no se modifican.

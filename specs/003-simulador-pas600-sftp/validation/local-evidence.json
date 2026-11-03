@@ -1,0 +1,655 @@
+{
+  "anomalous_runs": [
+    {
+      "complete_hash": "5d592a27cf008755868810928259104f30b13c4f2ef393d374040632d8896a52",
+      "counts": {
+        "CAT-01": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-02": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-03": {
+          "assignments": {
+            "format": 10,
+            "missing": 10,
+            "out_of_range": 10
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-04": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-05": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-06": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-07": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        }
+      },
+      "format": "csv",
+      "format_mode": "type",
+      "logical_hash": "d9bc65f099f05a7ba0068bababc2ec4bb564effd0435fd41c6d3c5250f1dd835",
+      "publications": [
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "1_mb_iEM3150 CAT01_20260101210000000_1.csv",
+              "sha256": "811b0c15f19e9bb371aaa148aef2dee16dfbf5258f1f9912ca371ad36302c709",
+              "size": 4726
+            },
+            {
+              "name": "2_mb_iEM3150 CAT02_20260101210000000_1.csv",
+              "sha256": "83c6e70539925b9afef066d8289d6337c3d0e1a53b01cc182ced320ac5e6947c",
+              "size": 4726
+            },
+            {
+              "name": "3_mb_iEM3150 CAT03_20260101210000000_1.csv",
+              "sha256": "c62fae9e64f48812784e126e887f76876533492ddb2e413e5241e8d2c0d286fb",
+              "size": 4340
+            },
+            {
+              "name": "4_mb_iEM3150 CAT04_20260101210000000_1.csv",
+              "sha256": "85d6f89f9e3c884f31814107a86e4a217034da449767f15804d76e6f4096c09a",
+              "size": 4726
+            },
+            {
+              "name": "5_mb_iEM3150 CAT05_20260101210000000_1.csv",
+              "sha256": "0c83287762da8e240a92c3b33ea786fdab69bd40a4317177ae68312e947884cf",
+              "size": 4726
+            },
+            {
+              "name": "6_mb_iEM3150 CAT06_20260101210000000_1.csv",
+              "sha256": "e57810a2e608ff08252e9290596716a70b1c84271832bc97a1df0a1c251e6cdf",
+              "size": 4726
+            },
+            {
+              "name": "7_mb_iEM3150 CAT07_20260101210000000_1.csv",
+              "sha256": "d12b9cd2f4dd0c73416ca5c314f29faa8c0292c49a04e65dc2bda63980786d63",
+              "size": 4726
+            }
+          ],
+          "key": "eefd06102a4e065e2154d056a2941319e8883260cf48a799c5ef5297b29e7c79",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-01T21:00:00-03:00"
+        },
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "1_mb_iEM3150 CAT01_20260102210000000_1.csv",
+              "sha256": "3f28bd46e941add5f58dc948172733a997b86859dbeb27d1971c0c2f028dcc20",
+              "size": 637
+            },
+            {
+              "name": "2_mb_iEM3150 CAT02_20260102210000000_1.csv",
+              "sha256": "54845ebd0c218023077a5a4dadac0b495a780ea4f2c95d2ae86c0b2b8c8239be",
+              "size": 637
+            },
+            {
+              "name": "3_mb_iEM3150 CAT03_20260102210000000_1.csv",
+              "sha256": "1ade0c28263093894dd29b44d1c9cec6d66a4de26335df5a22d4478299bc371f",
+              "size": 643
+            },
+            {
+              "name": "4_mb_iEM3150 CAT04_20260102210000000_1.csv",
+              "sha256": "79d76c1eb2336cb910aceea647c8ccdbf986d03cf11062f171b7bf96233d919d",
+              "size": 637
+            },
+            {
+              "name": "5_mb_iEM3150 CAT05_20260102210000000_1.csv",
+              "sha256": "feefd68ee96c859d572807386ee668a1cfdb15fffb93572c6820b4728416a83b",
+              "size": 637
+            },
+            {
+              "name": "6_mb_iEM3150 CAT06_20260102210000000_1.csv",
+              "sha256": "12f7fd1cefca030f09bcc08a367ce0c4a8f2c1384faca84bce1bccf6bf99e984",
+              "size": 637
+            },
+            {
+              "name": "7_mb_iEM3150 CAT07_20260102210000000_1.csv",
+              "sha256": "de1b255cd5e358e29fa7f2f815254e57d225a697bc320a540d959321eb44bd1f",
+              "size": 637
+            }
+          ],
+          "key": "c117e7692d3188f16e4389d5c124407562d4cc8ae5960964456f92dfb6704e50",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-02T21:00:00-03:00"
+        }
+      ],
+      "seed": "ecs-ec-example",
+      "timezone": "America/Santiago"
+    },
+    {
+      "complete_hash": "968cd83e79a2a95325f670d104fc8084a389cd79bf36da853b3e40ac99ba6650",
+      "counts": {
+        "CAT-01": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-02": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-03": {
+          "assignments": {
+            "format": 10,
+            "missing": 10,
+            "out_of_range": 10
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-04": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-05": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-06": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-07": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        }
+      },
+      "format": "csv",
+      "format_mode": "date",
+      "logical_hash": "210ab0939f3b70ba6db1c90cf19d4173ecbe93934cda822f98a26fe72c866608",
+      "publications": [
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "1_mb_iEM3150 CAT01_20260101210000000_1.csv",
+              "sha256": "811b0c15f19e9bb371aaa148aef2dee16dfbf5258f1f9912ca371ad36302c709",
+              "size": 4726
+            },
+            {
+              "name": "2_mb_iEM3150 CAT02_20260101210000000_1.csv",
+              "sha256": "83c6e70539925b9afef066d8289d6337c3d0e1a53b01cc182ced320ac5e6947c",
+              "size": 4726
+            },
+            {
+              "name": "3_mb_iEM3150 CAT03_20260101210000000_1.csv",
+              "sha256": "8744d229a24766c858a667865d0fa79e59f212efb2c63fe44e4cac5d85e130e3",
+              "size": 4223
+            },
+            {
+              "name": "4_mb_iEM3150 CAT04_20260101210000000_1.csv",
+              "sha256": "85d6f89f9e3c884f31814107a86e4a217034da449767f15804d76e6f4096c09a",
+              "size": 4726
+            },
+            {
+              "name": "5_mb_iEM3150 CAT05_20260101210000000_1.csv",
+              "sha256": "0c83287762da8e240a92c3b33ea786fdab69bd40a4317177ae68312e947884cf",
+              "size": 4726
+            },
+            {
+              "name": "6_mb_iEM3150 CAT06_20260101210000000_1.csv",
+              "sha256": "e57810a2e608ff08252e9290596716a70b1c84271832bc97a1df0a1c251e6cdf",
+              "size": 4726
+            },
+            {
+              "name": "7_mb_iEM3150 CAT07_20260101210000000_1.csv",
+              "sha256": "d12b9cd2f4dd0c73416ca5c314f29faa8c0292c49a04e65dc2bda63980786d63",
+              "size": 4726
+            }
+          ],
+          "key": "3afea56f8de58bbedb0ec52ab9426b9b2eb0a887aa6c0da3256a15ff9c98c629",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-01T21:00:00-03:00"
+        },
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "1_mb_iEM3150 CAT01_20260102210000000_1.csv",
+              "sha256": "3f28bd46e941add5f58dc948172733a997b86859dbeb27d1971c0c2f028dcc20",
+              "size": 637
+            },
+            {
+              "name": "2_mb_iEM3150 CAT02_20260102210000000_1.csv",
+              "sha256": "54845ebd0c218023077a5a4dadac0b495a780ea4f2c95d2ae86c0b2b8c8239be",
+              "size": 637
+            },
+            {
+              "name": "3_mb_iEM3150 CAT03_20260102210000000_1.csv",
+              "sha256": "4d3f856182f29fe58521d389f0da49debc286ad94b97f1ee30db37829795148c",
+              "size": 630
+            },
+            {
+              "name": "4_mb_iEM3150 CAT04_20260102210000000_1.csv",
+              "sha256": "79d76c1eb2336cb910aceea647c8ccdbf986d03cf11062f171b7bf96233d919d",
+              "size": 637
+            },
+            {
+              "name": "5_mb_iEM3150 CAT05_20260102210000000_1.csv",
+              "sha256": "feefd68ee96c859d572807386ee668a1cfdb15fffb93572c6820b4728416a83b",
+              "size": 637
+            },
+            {
+              "name": "6_mb_iEM3150 CAT06_20260102210000000_1.csv",
+              "sha256": "12f7fd1cefca030f09bcc08a367ce0c4a8f2c1384faca84bce1bccf6bf99e984",
+              "size": 637
+            },
+            {
+              "name": "7_mb_iEM3150 CAT07_20260102210000000_1.csv",
+              "sha256": "de1b255cd5e358e29fa7f2f815254e57d225a697bc320a540d959321eb44bd1f",
+              "size": 637
+            }
+          ],
+          "key": "dda37298c546640a5df6768d1e9d41805e35510506b0abc28ffd01248efef16a",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-02T21:00:00-03:00"
+        }
+      ],
+      "seed": "ecs-ec-example",
+      "timezone": "America/Santiago"
+    },
+    {
+      "complete_hash": "1f34c6c3327d020836f3657a45c912ae462404ef987981f4030421f81579773a",
+      "counts": {
+        "CAT-01": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-02": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-03": {
+          "assignments": {
+            "format": 10,
+            "missing": 10,
+            "out_of_range": 10
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-04": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-05": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-06": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-07": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        }
+      },
+      "format": "json",
+      "format_mode": "type",
+      "logical_hash": "d9bc65f099f05a7ba0068bababc2ec4bb564effd0435fd41c6d3c5250f1dd835",
+      "publications": [
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "20260101210000000_1.json",
+              "sha256": "2398641796f64ac6c2de72869dc453b4311a75fefa11206c29af7a3caf4d4d78",
+              "size": 18896
+            }
+          ],
+          "key": "eefd06102a4e065e2154d056a2941319e8883260cf48a799c5ef5297b29e7c79",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-01T21:00:00-03:00"
+        },
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "20260102210000000_1.json",
+              "sha256": "7130588e5f58e4007dd2e16516bf99e8306e82487ac3161a99d6a8893dddc37b",
+              "size": 1605
+            }
+          ],
+          "key": "c117e7692d3188f16e4389d5c124407562d4cc8ae5960964456f92dfb6704e50",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-02T21:00:00-03:00"
+        }
+      ],
+      "seed": "ecs-ec-example",
+      "timezone": "America/Santiago"
+    },
+    {
+      "complete_hash": "b458973cec3d207c83f7bebaecb046e7488aec60330ca5e67746dd529615db25",
+      "counts": {
+        "CAT-01": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-02": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-03": {
+          "assignments": {
+            "format": 10,
+            "missing": 10,
+            "out_of_range": 10
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-04": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-05": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-06": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        },
+        "CAT-07": {
+          "assignments": {
+            "format": 0,
+            "missing": 0,
+            "out_of_range": 0
+          },
+          "expected": 100,
+          "state": "measured"
+        }
+      },
+      "format": "json",
+      "format_mode": "date",
+      "logical_hash": "210ab0939f3b70ba6db1c90cf19d4173ecbe93934cda822f98a26fe72c866608",
+      "publications": [
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "20260101210000000_1.json",
+              "sha256": "ad23ffab1217041c843f108411985e27ddd587ea637e4b7f0102e9e86e80b6d7",
+              "size": 18878
+            }
+          ],
+          "key": "3afea56f8de58bbedb0ec52ab9426b9b2eb0a887aa6c0da3256a15ff9c98c629",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-01T21:00:00-03:00"
+        },
+        {
+          "categories": [
+            "CAT-01",
+            "CAT-02",
+            "CAT-03",
+            "CAT-04",
+            "CAT-05",
+            "CAT-06",
+            "CAT-07"
+          ],
+          "files": [
+            {
+              "name": "20260102210000000_1.json",
+              "sha256": "b1c5a64ddd45e1c585ec9591425e4e9ab44c31ad7bba145787681c769acbbfdd",
+              "size": 1604
+            }
+          ],
+          "key": "dda37298c546640a5df6768d1e9d41805e35510506b0abc28ffd01248efef16a",
+          "profile_id": "pas600-doca0172en19-energy-v1",
+          "publication_time": "2026-01-02T21:00:00-03:00"
+        }
+      ],
+      "seed": "ecs-ec-example",
+      "timezone": "America/Santiago"
+    }
+  ],
+  "date": "2026-11-03",
+  "real_time": [
+    {
+      "attempts": [
+        {
+          "duration_seconds": 0.09130216500034294,
+          "ended_at": "2026-11-03T12:16:42.917503+00:00",
+          "id": "008a27c2-3b1c-40e4-8233-6134682d8c91",
+          "ordinal": 1,
+          "publication_status": "transferred",
+          "session_end": "clean",
+          "started_at": "2026-11-03T12:16:42.825793+00:00"
+        },
+        {
+          "duration_seconds": 0.1016436550007711,
+          "ended_at": "2026-11-03T12:31:43.025622+00:00",
+          "id": "2b82b0a5-0097-4691-bc8c-eb2191f0ca40",
+          "ordinal": 1,
+          "publication_status": "transferred",
+          "session_end": "clean",
+          "started_at": "2026-11-03T12:31:42.922439+00:00"
+        }
+      ],
+      "evaluation_count": 2,
+      "gap_seconds": 900.004936,
+      "mode": "cycles",
+      "source_sha256": "10fc12cbf97d7fec4ecbc60c6f887b73856bd1b42bdf8c909c94c0e1cd82dbec"
+    },
+    {
+      "attempts": [
+        {
+          "duration_seconds": 0.3366222040003777,
+          "ended_at": "2026-11-03T12:26:22.723676+00:00",
+          "id": "387f5761-e7ea-4186-992a-102618339745",
+          "ordinal": 1,
+          "publication_status": "uncertain",
+          "session_end": "unknown",
+          "started_at": "2026-11-03T12:26:22.386707+00:00"
+        },
+        {
+          "duration_seconds": 0.11581351399945561,
+          "ended_at": "2026-11-03T12:41:22.856883+00:00",
+          "id": "bf64661e-6bc9-4c95-9e06-96f4c4745c38",
+          "ordinal": 2,
+          "publication_status": "transferred",
+          "session_end": "clean",
+          "started_at": "2026-11-03T12:41:22.739066+00:00"
+        }
+      ],
+      "evaluation_count": 1,
+      "gap_seconds": 900.01539,
+      "mode": "retry",
+      "source_sha256": "1254f18b9473a4319c9dd192320aff32294e6051a39932f41bd173a3d9dc39e5"
+    }
+  ],
+  "reference_status": "documentary_review_deferred",
+  "restore": {
+    "aborted_and_pending_preserved": true,
+    "missing_bytes_detected": true,
+    "prior_export_preserved": true,
+    "restored": true,
+    "retention_preserved": true
+  }
+}

@@ -4,7 +4,7 @@
 rama Git actual `develop`, sin creación de rama.
 **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: `specs/003-simulador-pas600-sftp/spec.md`.
-**Estado**: fases 0 y 1 de diseño y [tareas](tasks.md) generadas; revisión de consistencia, implementación y aceptación pendientes.
+**Estado actualizado2026-11-03**: 69/76 [tareas](tasks.md) completas. Recorrido SFTP local, recepción001/002, recuperación, contraste y restauración implementados; siete tareas conservan gates documentales, humanos, técnicos007 o aceptación integral. [Continuidad y límites](validation/implementation-status.md).
 Al iniciar la planificación no existía `tasks.md` ni borrador de traslado para esta funcionalidad.
 
 ## Contexto compartido del proyecto (ECS-EC)
@@ -15,7 +15,7 @@ Aplican [AGENTS.md](../../AGENTS.md), [arquitectura](../../docs/architecture.md)
 009 posee plataforma/auditoría; 006, cuentas/sesiones/autorización; 001/002,
 configuración, validación, recepción normalizada, historial y consultas de consumo;
 003, fuente de pruebas y adquisición PAS600/SFTP; 007, emisor técnico común;
-008, notificaciones. No existe todavía código de aplicación.
+008, notificaciones. Plataforma/consumo/identidad están implementados localmente; el backend acquisition003 está integrado en el lifespan común. Ver [aceptación local](validation/acceptance.md).
 
 ## Summary
 
@@ -41,8 +41,7 @@ la pila común. El simulador no necesita Node ni frontend/backend para generar l
 **Primary Dependencies**: simulador: Pydantic 2, AsyncSSH, simplejson, stdlib csv/Decimal/
 SHA-256/zoneinfo/argparse; receptor: AsyncSSH, SQLAlchemy 2/Psycopg 3/Alembic y puertos
 009/001/002 del monolito FastAPI 0.162.0. AsyncSSH ofrece cliente y servidor asíncronos;
-simplejson evita float al serializar números nativos. Versiones exactas/locks y soporte
-instalable se verifican al implementar; este plan no certifica dependencias ejecutadas.
+simplejson evita float al serializar números nativos. El paquete independiente ya tiene versiones/lock y evidencia de instalación local; el receptor usa AsyncSSH2.24.1 en el lock común y su imagen fue construida correctamente. Ver [US1 parcial](validation/us1.md).
 El paquete independiente declara Pydantic2/AsyncSSH/simplejson en `project.dependencies`;
 pytest y herramientas de pruebas pertenecen a `dependency-groups.dev`. La validación
 US1 incluye instalación y generación con `--no-dev`, después de existir CLI/ejemplos.
@@ -91,7 +90,7 @@ Puerta previa a investigación y reevaluación posterior a fase 1:
 | --- | --- | --- |
 | I. Monitoreo/fuentes explícitas | PASS: iEM3150/RS485/PAS600 y muestreo identificados por la spec. | PASS de diseño: descriptores/orígenes explícitos, siete categorías opcionales, [perfil](contracts/pas600-profile.md). |
 | II. Monolito modular | PASS: herramienta externa de pruebas permitida por alcance; recepción dentro de app. | PASS: adquisición en lifespan 009; no depende del simulador ni de un worker externo. |
-| III. Documentación integral | PASS: documentación de archivos, funciones, clases, pruebas y contratos en su cambio de código. | PASS de diseño: [CLI](contracts/cli.md), [recepción](contracts/sftp-reception.md), [guía](quickstart.md), fuentes/algoritmos; revisión de código pendiente. |
+| III. Documentación integral | PASS: documentación de archivos, funciones, clases, pruebas y contratos en su cambio de código. | PASS de diseño: [CLI](contracts/cli.md), [recepción](contracts/sftp-reception.md), [guía](quickstart.md), fuentes/algoritmos; revisión de código registrada en [documentación](validation/documentation.md). |
 | IV. Integridad/trazabilidad | PASS: origen, unidad, zona y anomalías explícitos. | PASS: [modelo](data-model.md), evidencia nativa, contadores/huecos, tasas exactas, idempotencia y retención protegida. |
 | V. Visualización verificable | PASS: esta spec no añade vistas de consumo; conserva contratos 001/002. | PASS: contraste prueba origen, cero/ausencia/cobertura y CAT-01 de 001/002, sin totales ficticios del generador. |
 | Pila, pruebas y garantías | PASS: adopta arquitectura y criterios SC-001..006, sin garantías nuevas. | PASS de diseño: conformidad independiente y aceptación de red real previstas; ninguna ejecución declarada desde documentación. |
@@ -188,11 +187,17 @@ requiere su descriptor/topología con procedencia.
 | --- | --- |
 | Plataforma009: [plan](../009-fundaciones-plataforma/plan.md), [contrato](../009-fundaciones-plataforma/contracts/integrations.md) | Scaffold app, DB/UoW/reloj/aniversario/auditoría/lifespan y Compose. Reales antes de migración/receptor integrado; 003 no los implementa como setup propio. |
 | Consumo001: [modelo](../001-visualizar-consumo-categorias/data-model.md), [contrato](../001-visualizar-consumo-categorias/contracts/integrations.md) | Catálogo/fuentes/revisiones y validación pura; configurar correspondencias reales. No crear catálogo, bandas de limpieza ni CAT-01 en 003. |
-| Historial002: [modelo](../002-registro-retencion-consumo/data-model.md), [recepción](../002-registro-retencion-consumo/contracts/integrations.md) | Puertos Reception.accept/read_attempt con identidad/entrada fija y recuperación exclusiva por intento; límite, dedup y lectura de cobertura con UoW/corte del exportador. Contratos definidos; verificar proveedor real antes de adaptar/aceptar E2E. |
+| Historial002: [modelo](../002-registro-retencion-consumo/data-model.md), [recepción](../002-registro-retencion-consumo/contracts/integrations.md) | Puertos Reception.accept/read_attempt con identidad/entrada fija y recuperación exclusiva por intento; límite, dedup y lectura de cobertura con UoW/corte del exportador. Contratos y proveedores reales disponibles; verificar su integración al adaptar/aceptar E2E003. |
 | Acceso006: [spec](../006-acceso-usuarios-rbac/spec.md) | Necesaria para validar vistas/consultas de consumo protegidas; no para generar o transportar desde proceso técnico SFTP. |
 | Observabilidad007: [spec](../007-observabilidad-externa/spec.md) | Emisor común al instrumentar adquisición; no exige visores disponibles para procesar. |
 
-Secuencia: descriptores/fixtures independientes y contratos → generador/serializadores
+La [disponibilidad vigente](validation/prerequisites.md) sustituye los bloqueos históricos
+por consultas/cobertura ausentes.003:T003 permanece diferida; los contratos locales
+permiten continuar desarrollo sin acreditar conformidad documental. El próximo bloque
+es003:T023–T048, seguido de recepción de anomalías, US4 y transversal. Correlación durable
+completa007, reproducción por otra persona y aceptación integral conservan sus gates.
+
+Secuencia de diseño: descriptores/fixtures independientes y contratos → generador/serializadores
 sin red US1 → receptor con staging/sellado, transporte/cadencia y adaptación integrada
 US2 → anomalías exactas y defectos por archivo/registro US3 → informe/contraste/parada y
 reproducción US4 → validación transversal, documentación y evidencia de criterios.
@@ -215,8 +220,9 @@ hacen secuencialmente y no transfieren su propiedad.
 | US4; FR-016..018,020,022; SC-003/005 | Oráculo separado, journal reproducible, correlación de manifiesto/posiciones/pares y resultado 002/cobertura, parada/reanudación y repetición por otra persona sin secretos. |
 | Transversal; FR-009/021 y SC-001/004/005 | Idempotencia tras reintento/crash, conflictos/cambios de fuente y timestamp/offset, cero/ausencia, un único lote por categoría, evidencia protegida. |
 
-No se han ejecutado escenarios ni marcado checklists de revisión. La generación de
-artefactos no acredita compatibilidad física, limpieza correcta ni aceptación funcional.
+Hay escenarios de generación local ejecutados y registrados en [US1](validation/us1.md)
+y [US3](validation/us3.md); los escenarios integrados siguen pendientes. No se modifican
+checklists por esta actualización ni se acredita compatibilidad física o aceptación integral.
 
 ## Complexity Tracking
 

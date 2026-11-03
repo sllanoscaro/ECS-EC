@@ -221,3 +221,51 @@ Ver [evidencia y límites](../specs/005-generar-reportes-pdf/validation/dependen
 El emisor no condiciona readiness, permisos, DB ni commits. El perfil técnico está
 separado de SMTP008 y de identidad006. Cobertura de negocio, cuotas, retención real,
 aceptación humana y VPS continúan pendientes según evidencia007.
+
+## Adquisición PAS600/SFTP (003)
+
+La imagen incorpora AsyncSSH2.24.1 y la migración `f68f086ee8a7`, posterior a costos004.
+El listener es opcional en el mismo Uvicorn; no hay servicio SFTP/worker separado.
+Seguir la [provisión concreta003](../specs/003-simulador-pas600-sftp/quickstart.md) para
+fuentes001 existentes, binding inmutable, host key administrada, auth.json privado y
+known_hosts verificado. No usar una cuenta006 como identidad técnica SFTP.
+
+PAS600_SFTP_ENABLED=false por defecto. Para habilitar, PAS600_RESOURCE_ROOT contiene
+bytes/ y secrets/{host_key,auth.json}; dar propiedad al UID efectivo de app, privadas0600
+y directorios0700. Compose monta bytes en /acquisition y secretos readonly; el puerto
+host PAS600_PORT=2222 se publica en PAS600_BIND_ADDRESS=127.0.0.1 por defecto.
+PAS600_STORAGE/HOST_KEY_FILE/AUTH_FILE permiten usar el CLI host con las rutas reales.
+Montar material existente: una clave regenerada exige revalidación administrada del pin.
+
+install-binding/export-results requieren un proceso incluido explícitamente en
+PAS600_MAINTENANCE_PROCESSES y PAS600_MAINTENANCE_PROCESS en el entorno del comando.
+Ejecutar cambios de binding sin sesiones receiving y reiniciar app para recargar los
+procesos autorizados002. No hay endpoints públicos de seed/exportación. El mantenimiento
+usa el edificio del binding y registra auditoría saneada; SFTP no crea fuentes ni usuarios.
+
+Solo CLOSE explícito de todos los archivos seguido de CHANNEL_EOF limpio sella un lote.
+La exclusión de listener es PostgreSQL; un segundo listener activo falla al iniciar.
+Al reiniciar, sesiones receiving se abortan sin promover bytes y se recuperan evaluaciones
+selladas conservando attempt_id/entrada002. Archivo ilegible, entrega uncertain y rechazo
+002 son estados distintos. No editar manifests/bytes ni usar logs como evidencia durable.
+
+El cliente comparte PAS600_SIM_STATE_DIRECTORY por alias/publicador entre procesos,
+espera900s monotónicos desde fin y900s completos tras reinicio. Conservar ese directorio
+y el control de cada run. Resend crea presupuesto nuevo, sin resetear cadencia/historial.
+
+Para respaldar003 detener app y esperar cierre de canales/tareas; ejecutar backup009 y
+copiar el volumen bytes completo con sus rutas relativas (incluidos abortados/pendientes)
+antes de reanudar. Restaurar DB completa y ese volumen en un destino aislado; comparar
+manifiestos/hashes, lecturas/pares/resultados002, estados y plazos. No purgar originales.
+export-results detecta bytes faltantes/alterados y conserva una exportación anterior si
+la captura falla. La [restauración local](../specs/003-simulador-pas600-sftp/validation/restore.md)
+usa los scripts009 sin reescribirlos. Guardar secretos externos por separado y proteger
+los respaldos completos que también contienen identidad/auditoría.
+
+El emisor007 recibe operaciones ordinarias acquisition.receive/acquisition.process y
+etapas authenticate/transfer/seal/claim/parse/validate/receive/publish; sus fallos no revierten commits. No certifica entrega al visor
+ni continuación durable007, que sigue pendiente. El journal externo conserva esperas/
+reintentos sin depender del backend. Evidencia y limitaciones en
+[aceptación003](../specs/003-simulador-pas600-sftp/validation/acceptance.md).
+No se ejecutó VPS ni se certifica firmware físico: antes de habilitarlo comprobar IDs,
+topología y la convención de sesión con captura real.

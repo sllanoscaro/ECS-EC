@@ -1,6 +1,6 @@
 # US1 — evidencia local parcial
 
-2026-11-02. Paquete independiente con lock propio; Python3.14.4.
+**Registro histórico2026-11-02** (el incremento vigente está en [aceptación](acceptance.md)). Paquete independiente con lock propio; Python3.14.4.
 El usuario autorizó diferir T003. No se acredita conformidad documental con
 DOCA0172EN-19 ni hardware. T008/T009 conservan pendiente esa revisión aunque
 sus pruebas locales de estructura ya existen.
@@ -54,4 +54,4 @@ retención ya transcurrida ni publicación acelerada. La referencia inicial se c
 una sola vez y no se vuelve a emitir en cada ciclo.
 
 T021 sigue parcial: falta referencia19 y CAT-01 calculada integrada de001/002.
-No se ejecutaron SFTP ni recepción real, y no se declara SC-001/SC-006 integralmente.
+En ese corte no se ejecutaron SFTP ni recepción real. El incremento2026-11-03 sí los comprueba, incluida CAT-01 calculada/medida; ver [US2](us2.md). La conformidad documental sigue pendiente.

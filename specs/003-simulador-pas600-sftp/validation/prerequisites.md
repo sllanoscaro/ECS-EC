@@ -1,35 +1,22 @@
-# Prerrequisitos de implementación 003
+# Prerrequisitos003 verificados
 
-Revisión de disponibilidad actualizada el2026-11-03 mediante inspección de código.
-La existencia del proveedor no acredita integración ni aceptación003.
+2026-11-03. Revisión de código y pruebas reales del incremento; [evidencia](acceptance.md).
+La situación anterior (acquisition ausente) queda superada por esta integración.
 
-| Propietario | Disponibilidad y límite |
+| Propietario | Disponibilidad y verificación003 |
 | --- | --- |
-| 009 | `backend/src/ecs_ec/core/{unit_of_work,clock,retention,lifecycle}.py`, auditoría, composición y migraciones disponibles. Integración003 aún pendiente. |
-| 001 | Catálogo/configuración/validación y fachada `Consumption` en `consumption/queries.py`; router y UI en `frontend/src/app/consumption/page.tsx` disponibles. |
-| 002 | `Reception.accept/read_attempt` en `reception.py`, `MeasurementStore` en `store.py` y `Consumption.query_aggregates/read_report_snapshot` en `queries.py` implementados. Hay consultas/cobertura con UoW/corte; falta comprobar su integración con receptor/exportador003 reales. |
-| 006 | Identidad y permisos implementados; vistas de consumo disponibles para comprobación. La identidad SFTP sigue siendo técnica y diferente de la sesión web. |
-| 007 | Existen `observability/{logging,tracing,lifecycle}.py`, emisor básico y perfil técnico. Instrumentación003 pendiente; semántica especial y continuación durable siguen en007:T037/T038, con [contrato007](../../007-observabilidad-externa/contracts/integrations.md). |
+| 009 | Database/UoW, reloj/aniversario, auditoría, lifecycle, Alembic/Compose y backup/restore reutilizados. App conserva una unidad de despliegue. |
+| 001 | Catálogo/fuentes existentes y reglas de validación consumidos por bindings/adaptación. Correspondencia explícita de medidores; sin fuentes ni categorías creadas desde archivos. |
+| 002 | Reception.accept/read_attempt reales: ID/entrada congelados, pérdida de respuesta, recuperación concurrente, duplicate/too_early y reenvío nuevo. Total calculado11 de4+7 y medido20 por SFTP real. |
+| 001/002 consulta | read_report_snapshot con UoW/corte del exportador. Captura concurrente demuestra aislamiento REPEATABLE READ; detalle y agregados reales,2700s/75%. No usa detail en transacción separada. |
+| 006 | Lecturas protegidas/permisos conservados en regresión. Identidad SFTP técnica separada, sin cookies o autorización humana. Las verificaciones integrales pendientes006 pertenecen a006. |
+| 007 | Emisor real consumido para operation.completed de acquisition.receive/acquisition.process y etapas ordinarias; fallo de adapter no altera commit. Semántica ampliada/continuación durable completas siguen en007:T037/T038; T072 permanece parcial. |
 
-El backend `backend/src/ecs_ec/acquisition/` sigue ausente. La referencia independiente
-003:T003 permanece diferida por decisión del usuario; conformidad documental y aceptación
-que dependan de ella siguen pendientes. No se cambian tareas ni sus prerrequisitos.
-Ningún módulo ajeno se implementa desde 003. Generación local es independiente de estas
-integraciones. Recepción SFTP, concurrencia PostgreSQL, cobertura integrada y UI requieren
-sus verificaciones reales; no se declaran realizadas aquí.
+No son prerrequisitos del recorrido sintético local PDF005, correo008, VPS ni hardware.
+T003 sigue diferida explícitamente por el usuario: permite desarrollo con contratos locales,
+sin acreditar conformidad DOCA0172EN-19 en T008/T009/T021. T070 espera otra persona;
+T076 conserva los criterios no ejecutados. La verificación física exige IDs/topología y
+captura CLOSE/EOF del firmware antes de habilitarlo; no se deriva de ejemplos sintéticos.
 
-## Registro histórico: verificación003:T022 (2026-11-02)
-
-La ausencia de proveedores descrita abajo corresponde al corte original y está superada
-por la tabla vigente. Sus pruebas no se reejecutaron en esta actualización.
-
-`Reception.accept`/`read_attempt` tienen implementación en
-`backend/src/ecs_ec/consumption/reception.py`; `MeasurementStore.read_detail` recibe
-UoW/corte en `store.py`. `HistoryQueries.query_aggregates` solo aparece como Protocol
-en `backend/src/ecs_ec/consumption/ports.py`, sin implementación en `backend/src`.
-`aggregates.py` es escritor de agregados, no proveedor de consultas/snapshot.
-La fachada/consulta001 también sigue pendiente según arquitectura/hoja de ruta.
-No se considera disponible el proveedor integral de cobertura requerido por el
-exportador/aceptación003. Esta revisión no sustituye pruebas E2E ni certifica contratos
-mediante dobles. Instrumentación007 sigue sin proveedor. T022 es revisión realizada;
-las tareas de integración/aceptación dependientes permanecen pendientes.
+Las cifras antiguas y proveedores ausentes de los registros2026-11-02 describen ese corte,
+no bloqueos vigentes.003 no modifica marcas de verificación de001/002/006/007.
