@@ -68,3 +68,16 @@ aplicar `uv run --locked alembic -c backend/alembic.ini upgrade head` y arrancar
 La [guía de operación](deploy/README.md) y el [quickstart](specs/009-fundaciones-plataforma/quickstart.md)
 describen restauración, configuración y límites de validación. La evidencia ejecutada
 se registra en [validation](specs/009-fundaciones-plataforma/validation/).
+
+## Preparación de reportes PDF (005)
+
+ReportLab/pypdf y fuente Unicode están incluidos en el paquete Python. La ruta
+`/reportes/` prepara el acceso con sesión; generación y descarga siguen pendientes.
+El adaptador de captura usa consumo001/002 y `Costs.read_snapshot` real de004
+en una UoW REPEATABLE READ. No requiere SMTP. El emisor007 falta para aceptar
+la instrumentación. No se exponen binarios privados como archivos estáticos.
+
+Instalar con `uv sync --locked`; ejecutar
+`uv run --locked pytest backend/tests/unit/reports -q`. La integración requiere
+PostgreSQL de pruebas independiente (`TEST_DATABASE_URL`, sufijo `_test`).
+Ver [evidencia y límites](specs/005-generar-reportes-pdf/validation/dependencies.md).

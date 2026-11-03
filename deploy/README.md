@@ -200,3 +200,16 @@ con conservación mínima por aniversario. Consultar no recalcula ni extiende pl
 No ejecutar downgrade destructivo de costos; restaurar respaldo verificado ante reversión.
 `cost.failed` se registra atómicamente en009; su productor no espera a008/SMTP. La captura
 interna para005 está documentada en [contrato004](../specs/004-costos-tarifa-bt43/contracts/integrations.md).
+
+## Preparación de reportes PDF (005)
+
+ReportLab/pypdf y fuente Unicode están incluidos en el paquete Python. La ruta
+`/reportes/` prepara el acceso con sesión; generación y descarga siguen pendientes.
+El adaptador de captura usa consumo001/002 y `Costs.read_snapshot` real de004
+en una UoW REPEATABLE READ. No requiere SMTP. El emisor007 falta para aceptar
+la instrumentación. No se exponen binarios privados como archivos estáticos.
+
+Instalar con `uv sync --locked`; ejecutar
+`uv run --locked pytest backend/tests/unit/reports -q`. La integración requiere
+PostgreSQL de pruebas independiente (`TEST_DATABASE_URL`, sufijo `_test`).
+Ver [evidencia y límites](../specs/005-generar-reportes-pdf/validation/dependencies.md).
