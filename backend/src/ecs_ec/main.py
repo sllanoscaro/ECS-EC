@@ -32,6 +32,8 @@ def create_app(
     clock = clock or SystemClock()
     from ecs_ec.observability.lifecycle import observability_module
     modules = modules + (observability_module(clock),)
+    from ecs_ec.acquisition.lifecycle import acquisition_module
+    modules = modules + (acquisition_module(clock),)
     if settings.identity_enabled or identity_service:
         from ecs_ec.identity.services import Identity
         identity_service = identity_service or Identity(database, settings.identity_options(), clock, settings.building_timezone, history_actions=("consumption.configuration.changed",))

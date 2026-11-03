@@ -39,7 +39,7 @@ def generate_run(scenario, output: Path):
     """
     from pas600_simulator.anomalies import alter_sample, AnomalyAssignment
     from pas600_simulator.calendar import interval_count
-    measured = [c for c in scenario.categories if c.has_meter]
+    measured = sorted((c for c in scenario.categories if c.has_meter),key=lambda c:c.category_id)
     categories = {c.category_id: c for c in measured}
     total = interval_count(scenario.start, scenario.end, scenario.timezone, scenario.sampling_minutes)
     assignments = validate_generation(scenario)
@@ -167,3 +167,22 @@ def validate_generation(scenario):
     if scenario.structural_corruptions:
         validate_structural_selectors(scenario, assignments)
     return assignments
+
+
+def control_report(root):
+    """Combine immutable local generation facts with sane transfer facts, never inferring backend acceptance."""
+    root=Path(root)
+    manifest=json.loads((root/'control/manifest.json').read_text())
+    scenario=json.loads((root/'control/scenario.safe.json').read_text())
+    from pas600_simulator.scenario import SimulationScenario
+    safe=SimulationScenario.model_validate(scenario).model_dump(mode='json')
+    pending=root/'control/transfers.pending.json'
+    attempts=json.loads(pending.read_text())['attempts'] if pending.exists() else [json.loads(line) for line in (root/'control/transfers.jsonl').read_text().splitlines()] if (root/'control/transfers.jsonl').exists() else []
+    # Project the closed vocabulary even if a local transfer journal was hand edited.
+    fields={'id','publication','generation','ordinal','started_at','ended_at','duration_seconds','destination_alias','port','session_end','publication_status','failure_code','next_wait_seconds'}
+    transfers=[{key:value for key,value in attempt.items() if key in fields} | {'files':[
+        {key:value for key,value in file.items() if key in {'name','file_status'}} for file in attempt.get('files',[])]} for attempt in attempts]
+    return dict(schema_version=1,scenario=safe,generation=manifest,transfers=transfers,
+        expected=[json.loads(line) for line in (root/'control/expected.jsonl').read_text().splitlines()],
+        anomalies=[json.loads(line) for line in (root/'control/anomalies.jsonl').read_text().splitlines()],
+        reception_status='not_evaluated')

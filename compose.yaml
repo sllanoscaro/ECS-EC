@@ -1,4 +1,4 @@
-#009 platform plus optional007 technical profile; SMTP remains owned by008.
+#009 platform, optional003 acquisition and007 technical profile; SMTP remains owned by008.
 name: ecs-ec
 services:
   db:
@@ -45,6 +45,7 @@ services:
     build: .
     ports:
       - "127.0.0.1:${APP_PORT:-8000}:8000"
+      - "${PAS600_BIND_ADDRESS:-127.0.0.1}:${PAS600_PORT:-2222}:2222"
     depends_on:
       db:
         condition: service_healthy
@@ -54,6 +55,12 @@ services:
     user: "${OBS_UID:-10001}"
     environment:
       <<: *application_environment
+      PAS600_SFTP_ENABLED: "${PAS600_SFTP_ENABLED:-false}"
+      PAS600_SFTP_PORT: "2222"
+      PAS600_STORAGE: /acquisition
+      PAS600_HOST_KEY_FILE: /run/secrets/pas600/host_key
+      PAS600_AUTH_FILE: /run/secrets/pas600/auth.json
+      PAS600_MAINTENANCE_PROCESSES: ${PAS600_MAINTENANCE_PROCESSES:-}
       OBS_ENABLED: "${OBS_ENABLED:-false}"
       OBS_ENVIRONMENT: ${OBS_ENVIRONMENT:-local}
       OBS_SERVICE_VERSION: ${OBS_SERVICE_VERSION:-0.1.0}
@@ -67,6 +74,8 @@ services:
       OBS_HEALTH_CERT: /telemetry/health/health.crt
       OBS_HEALTH_KEY: /telemetry/health/health.key
     volumes:
+      - ${PAS600_RESOURCE_ROOT:-/tmp/ecs-pas600-disabled}/bytes:/acquisition
+      - ${PAS600_RESOURCE_ROOT:-/tmp/ecs-pas600-disabled}/secrets:/run/secrets/pas600:ro
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/spool:/telemetry/spool
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/app:/telemetry/app:ro
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/health:/telemetry/health:ro

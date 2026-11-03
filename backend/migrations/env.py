@@ -13,6 +13,8 @@ from ecs_ec.consumption import models as history_models  # noqa: F401 --002 hist
 
 from ecs_ec.costs import models as costs_models  # noqa: F401 --004 owns financial metadata.
 
+from ecs_ec.acquisition import models as acquisition_models  # noqa: F401 --003 native evidence.
+
 target_metadata = Base.metadata
 
 

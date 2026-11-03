@@ -1,0 +1,14 @@
+{
+  "destination_alias": "local-pas600",
+  "host": "127.0.0.1",
+  "port": 2222,
+  "directory": "/",
+  "username": "pas600",
+  "known_hosts_file": "/run/user/1000/pas600/known_hosts",
+  "auth": {"password_env": "PAS600_TEST_PASSWORD"},
+  "publication_gap_seconds": 900,
+  "max_attempts": 3,
+  "connect_timeout_seconds": 30,
+  "operation_timeout_seconds": 60,
+  "attempt_timeout_seconds": 300
+}
