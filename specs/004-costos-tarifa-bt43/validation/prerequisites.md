@@ -1,5 +1,21 @@
 # Prerrequisitos de implementación 004
 
+## Disponibilidad vigente — 2026-11-03
+
+Los prerrequisitos de consumo ya están resueltos: `Consumption.read_general_snapshot`
+y `read_demand_history` en `backend/src/ecs_ec/consumption/queries.py`, junto a identidad006,
+plataforma009 y auditoría común. Costos004 ya cuenta con implementación API/UI e integración
+local sobre estos proveedores; no permanece detenido en004:T001.
+
+Estado registrado:66/67 tareas completas, con004:T064/SC-006 pendiente de personas y tarifas
+reales aún por configurar. Véase [aceptación vigente](acceptance.md). Esta actualización
+es inspección documental/de código, sin nuevas pruebas funcionales ni cambios de marcas.
+
+## Registro histórico — 2026-11-02
+
+La información siguiente corresponde a sus cortes originales; para disponibilidad actual
+prevalece la actualización anterior. No se reejecutaron sus pruebas en esta revisión.
+
 ## Continuación sobre base23c26d0 (2026-11-02)
 
 El bloqueo registrado más abajo es histórico y está resuelto: `Consumption.read_general_snapshot`

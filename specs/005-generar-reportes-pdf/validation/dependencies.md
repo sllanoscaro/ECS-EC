@@ -1,6 +1,12 @@
 # Dependencias reales e incremento de preparación — 2026-11-02
 
-## Inventario T001
+## Disponibilidad actualizada — 2026-11-03
+
+Inspección estática, sin reejecutar las pruebas históricas siguientes. Los proveedores
+001/002/004/006/009 están disponibles; generación durable, API y descarga005 siguen pendientes.
+El emisor básico007 existe, pero falta el soporte de sus eventos especiales de PDF.
+
+## Inventario005:T001 vigente
 
 | Capacidad | Implementación real | Uso005 |
 | --- | --- | --- |
@@ -9,13 +15,13 @@
 | Consumo | `backend/src/ecs_ec/consumption/queries.py` (001/002) | `read_report_snapshot` devuelve siete categorías con detail/aggregates/procedencia; granularidad hour/day/month/year |
 | Costos | `backend/src/ecs_ec/costs/services.py`, `snapshots.py`, `schemas.py` (004) | `Costs.read_snapshot` con `unit_of_work`; devuelve `CostsSnapshot`, ciclos y comparación del par exacto |
 | Eventos | `backend/src/ecs_ec/audit/events.py` (009) | `EventWriter.append(uow,event)`, no firma invertida; futuro registro de esquema005 |
-| Emisor común | `backend/src/ecs_ec/observability/logging.py`, `tracing.py` (007) ausentes | Bloquea T062/T063 y aceptación US1; no sustituido con doble ni implementado en005 |
+| Emisor común | `backend/src/ecs_ec/observability/{logging,tracing,lifecycle}.py` (007) existentes y registrados desde `main.py` | Disponible para operaciones ordinarias; `Telemetry.complete` admite solo `operation.completed`. Soporte de `report.admitted`/`report.completed` y continuación durable pendiente de007:T037/T038;005:T062/T063 siguen pendientes. |
 
 Los [contratos007](../../007-observabilidad-externa/contracts/) y sus
 [tareas](../../007-observabilidad-externa/tasks.md) conservan la propiedad de la capacidad
 pendiente. No se alteran marcadores de otras specs ni se exige SMTP/008.
 
-## Implementado y verificado
+## Preparación y pruebas históricas — 2026-11-02
 
 - Puertos005 documentados en `backend/src/ecs_ec/reports/ports.py`.
 - Dependencias ReportLab5.1.0/pypdf6.21.4 instaladas con `uv add` bajo CPython3.14.
@@ -58,6 +64,7 @@ pública para futuros binarios. No se ha construido la imagen en esta validació
 T006 en adelante siguen sin completarse (salvo el adaptador parcial descrito): modelos,
 migración, selección/calendario, captura durable, idempotencia, executor, composición,
 preflight funcional, APIs, interfaz y aceptación. No hay productor `pdf.failed` aún.
-La falta del emisor007 bloquea su integración y aceptación, **no** esos trabajos propios
-independientes de005. Las pruebas actuales no acreditan generación funcional de PDF,
+La ampliación del emisor007 para eventos PDF y continuación durable sigue siendo
+prerrequisito de005:T062/T063 y aceptación US1, **no** de los trabajos propios
+independientes de005. La existencia del emisor básico no acredita esa capacidad. Las pruebas actuales no acreditan generación funcional de PDF,
 concurrencia integral, revisión visual, personas ni VPS.

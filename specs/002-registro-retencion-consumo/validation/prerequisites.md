@@ -1,5 +1,27 @@
 # Prerrequisitos observados de 002
 
+## Disponibilidad vigente — 2026-11-03
+
+Inspección de código y contraste con la [aceptación local](acceptance.md), sin nueva
+validación funcional ni cambios de tareas.
+
+| Capacidad / propietario | Disponibilidad actual y límite |
+| --- | --- |
+| Plataforma009 / identidad006 | DB/UoW/reloj/auditoría, sesiones y permisos disponibles e integrados localmente. |
+| Fachada/UI001 y proveedores002 | `consumption/{queries,schemas,router,store}.py`, página `frontend/src/app/consumption/page.tsx` y componentes existentes. `Consumption.query_aggregates`, snapshots, `FunctionalSummary` y retirada protegida disponibles.002:T024/T025 y US2–US4 tienen evidencia local; no existe bloqueo por ausencia de fachada. |
+| Adquisición003 | Falta `backend/src/ecs_ec/acquisition/`;002:T064 sigue pendiente de adaptador/publicación SFTP reales, recuperación del mismo intento y reenvío con ID nuevo. |
+| Emisión007 | Existen `observability/{logging,tracing,lifecycle}.py` y emisor registrado en `main.py`.002:T065 sigue pendiente: faltan llamadas propias y semántica común de recepción/continuación durable (007:T037/T038). `Telemetry.complete` admite solo `operation.completed`, no `reception.completed`; no basta con conectar el emisor básico. |
+| Consumidores004/005/008 | Costos004 implementado localmente con `Costs.read_snapshot`;005 tiene puertos y captura parcial en `reports/{ports,snapshots}.py`, sin generación/descarga;008 sigue sin módulo. Disponibilidad de productores002 no acredita aceptación conjunta de consumidores. |
+| Personas / VPS |002:T068/SC-005 sigue pendiente de personas. La verificación externa no se acredita por pruebas locales. |
+
+Propiedad del emisor y sus ampliaciones: [contrato007](../../007-observabilidad-externa/contracts/integrations.md)
+y [tareas007](../../007-observabilidad-externa/tasks.md). No se implementan desde002.
+
+## Registro histórico — 2026-11-02
+
+La información siguiente corresponde a sus cortes originales; para disponibilidad actual
+prevalece la actualización anterior. No se reejecutaron sus pruebas en esta revisión.
+
 Fecha: 2026-11-02. Base: `cb5134494bd9032ab50bd47f085b052518e04bbb`;
 árbol limpio al inicio. Checklist requirements: 16/16, sin modificar marcadores.
 Selección explícita mediante `SPECIFY_FEATURE_DIRECTORY=specs/002-registro-retencion-consumo`.

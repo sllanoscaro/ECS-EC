@@ -1,5 +1,28 @@
 # Prerrequisitos observados de spec-001
 
+## Disponibilidad vigente — 2026-11-03
+
+Revisión estática del checkout. No modifica tareas ni acredita aceptación ampliada.
+
+| Capacidad / propietario | Disponibilidad actual y límite |
+| --- | --- |
+| Plataforma009 e identidad006 | `backend/src/ecs_ec/core/`, `audit/`, `identity/` y composición en `main.py` disponibles. |
+| Recepción/almacenamiento002 | `consumption/reception.py`, `store.py` y `pending_totals.py` disponibles e integrados. `MeasurementStore.read_detail` devuelve `crossing_diagnostic_ids`; `read_reconfiguration_bounds` y retirada protegida002 disponibles. Ya no bloquean por ausencia de proveedor T018/T038/T041/T044 de spec-001; sus verificaciones ampliadas siguen pendientes. |
+| Consulta/UI001 | `consumption/{queries,schemas,router}.py`, `frontend/src/app/consumption/page.tsx` y `frontend/src/app/administracion/consumo/page.tsx` existen y se componen con006. No se necesita crear el layout general previsto originalmente. |
+| Emisión007 | `observability/{logging,tracing,lifecycle}.py` y perfil técnico disponibles. Instrumentación propia001:T054 e integración001:T056 pendientes; emisor básico no equivale a cobertura de productores. |
+| Recepción nativa003 / correo008 | Siguen ausentes `backend/src/ecs_ec/acquisition/` y `notifications/`;001:T056 espera proveedores reales, incluidos SFTP y correo de prueba. |
+| Personas / VPS |001:T059/T060 pendientes; no se sustituyen con pruebas automatizadas. |
+
+La evidencia de ampliación002 está en su [aceptación vigente](../../002-registro-retencion-consumo/validation/acceptance.md).
+El [incremento001](increment-2026-11-02.md) conserva el estado anterior a esa ampliación;
+sus bloqueos por diagnósticos/retirada no describen la disponibilidad actual. La ejecución
+de los casos ampliados de001 sigue pendiente.
+
+## Registro histórico — 2026-11-02
+
+La información siguiente corresponde a sus cortes originales; para disponibilidad actual
+prevalece la actualización anterior. No se reejecutaron sus pruebas en esta revisión.
+
 **Actualización2026-11-02:** recepción/almacenamiento002 y el shell006 ya están
 integrados; la evaluación anterior se conserva como registro histórico.
 [Capacidades actuales y pendientes](increment-2026-11-02.md). El nuevo gate de002
