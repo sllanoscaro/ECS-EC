@@ -9,7 +9,7 @@ from ecs_ec.consumption.catalog_storage import read_revisions
 from ecs_ec.consumption.configuration import ConfigurationError, ConfigurationService
 from ecs_ec.consumption.models import ConfigurationInput
 from ecs_ec.consumption.queries import InvalidSelection
-from ecs_ec.consumption.schemas import AggregateResponse, Catalog, Configuration, DetailResult, configuration_view
+from ecs_ec.consumption.schemas import AggregateResponse, Catalog, Configuration, DetailResult, DashboardView, configuration_view
 from ecs_ec.consumption.ports import AggregateSelection, Granularity
 from ecs_ec.core.unit_of_work import UnitOfWork
 from ecs_ec.core.security import require_action
@@ -42,6 +42,17 @@ async def catalog(request: Request):
     """Read current category states/global period after middleware has checked the current session."""
     try:
         return await request.app.state.consumption.catalog()
+    except ValueError:
+        raise ConsumptionProblem('consumption_unavailable', 503) from None
+
+
+@router.get('/dashboard', response_model=DashboardView, dependencies=[Depends(require_action('consumption.read'))])
+@observe('consumption.query_detail', 'read')
+async def dashboard(request: Request):
+    """Return a read-only daily snapshot; scheduled browser refresh never promises arrival."""
+    from ecs_ec.consumption.dashboard import read_dashboard
+    try:
+        return await read_dashboard(request.app.state.consumption)
     except ValueError:
         raise ConsumptionProblem('consumption_unavailable', 503) from None
 

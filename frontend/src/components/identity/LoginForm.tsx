@@ -28,7 +28,7 @@ export function LoginForm() {
     try {
       const result = await sessionApi.login(email, password);
       accept(result);
-      window.location.assign(result.must_change_password ? "/cuenta/" : safeReturn(new URLSearchParams(window.location.search).get("retorno")));
+      window.location.assign(result.must_change_password ? "/cuenta/" : (new URLSearchParams(window.location.search).has("retorno") ? safeReturn(new URLSearchParams(window.location.search).get("retorno")) : "/"));
     } catch (error) {
       setMessage(error instanceof Problem ? error.message : "No se pudo conectar. Intente de nuevo.");
       if (error instanceof Problem && error.status === 429) { setRemaining(error.retryAfter); setWaitUntil(Date.now()+error.retryAfter*1000); }

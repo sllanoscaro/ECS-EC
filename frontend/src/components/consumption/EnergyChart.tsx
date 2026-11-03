@@ -1,52 +1,55 @@
-/** Independent SVG intervals, never interpolated/downsampled, backed by exactly the table's response rows. */
+/** Responsive exact-interval SVG; geometry never changes the underlying decimal or joins gaps. */
 "use client";
-
-import { useId, useState } from "react";
-import type { DetailRow, AggregateBlock } from "../../lib/api/consumption";
-import { blockLabel } from "./historyFormat";
-import { chartMaximum, energyLabel, instantMicros, intervalLabel, projectRatio } from "./format";
-
-/** Render all incorporated rows with focusable exact evidence; only SVG coordinates are approximate. */
-export function EnergyChart({ rows: detailRows, blocks, timezone }: { blocks?: readonly AggregateBlock[]; rows: readonly DetailRow[]; timezone: string }) {
+import { useEffect, useId, useRef, useState } from 'react';
+import Decimal from 'decimal.js';
+import type { DetailRow, AggregateBlock, CategoryId, Period } from '../../lib/api/consumption';
+import { blockLabel } from './historyFormat';
+import { chartMaximum, energyLabel, instantMicros, intervalLabel, projectRatio } from './format';
+import { categoryColors, shortInstant } from '../../lib/visual';
+const AxisDecimal = Decimal.clone({ precision: 50 });
+/** Render shared source values at actual container width; each datum has keyboard-accessible exact evidence. */
+export function EnergyChart({ rows: detailRows, blocks, points, timezone, categoryId = 'CAT-01', period }: { points?: readonly { start: string; end: string; energy_kwh: string | null }[]; blocks?: readonly AggregateBlock[]; rows: readonly DetailRow[]; timezone: string; categoryId?: CategoryId; period?: Period }) {
   const [active, setActive] = useState<string | null>(null);
-  const description = useId();
-  const tooltip = useId();
-  const rows = blocks ? blocks.map(block => ({ start: block.start, end: block.end, energy_kwh: block.energy_kwh,
-    record_id: block.aggregate_id ?? block.start })) : detailRows;
-  if (!rows.length) return <p>Sin intervalos incorporados.</p>;
+  const [width, setWidth] = useState(800);
+  const container = useRef<HTMLElement>(null);
+  const description = useId(), tooltip = useId();
+  useEffect(() => {
+    if (!container.current || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(entries => setWidth(Math.max(260, entries[0].contentRect.width)));
+    observer.observe(container.current); return () => observer.disconnect();
+  }, []);
+  const rows = points ? points.map(point => ({...point, record_id: point.start})) : blocks ? blocks.map(block => ({ start: block.start, end: block.end, energy_kwh: block.energy_kwh, record_id: block.aggregate_id ?? block.start })) : detailRows;
   const times = rows.map(row => ({ start: instantMicros(row.start), end: instantMicros(row.end) }));
-  const lower = times.reduce((minimum, t) => t.start < minimum ? t.start : minimum, times[0].start);
-  const upper = times.reduce((maximum, t) => t.end > maximum ? t.end : maximum, times[0].end);
+  const lower = period ? instantMicros(period.start) : times[0]?.start ?? 0n;
+  const upper = period ? instantMicros(period.end) : times.reduce((maximum, t) => t.end > maximum ? t.end : maximum, lower + 1n);
   const span = (upper - lower).toString();
   const maximum = chartMaximum(rows.flatMap(row => row.energy_kwh === null ? [] : [row.energy_kwh]));
-  return <figure>
-    <svg role="img" aria-label={blocks ? "Energía eléctrica por bloque (kWh)" : "Energía eléctrica por intervalo (kWh)"} aria-describedby={description} viewBox="0 0 800 290" style={{ width: "100%", minHeight: "16rem" }}>
-      <desc id={description}>Barras independientes por intervalo. Círculo: cero. Rombo: positivo inferior a un píxel. Cada dato admite foco y muestra su cifra exacta. No se unen huecos.</desc>
-      <text x="4" y="18" fontSize="10">{energyLabel(maximum)}</text>
-      <text x="4" y="244" fontSize="10">0 kWh</text>
-      <line x1="60" x2="780" y1="240" y2="240" stroke="currentColor" />
+  const left = width < 500 ? 52 : 64, right = width - 18, plot = right - left, top = 26, baseline = 226;
+  const color = categoryColors[categoryId];
+  return <figure ref={container} className="energy-chart">
+    <svg role="img" aria-label={blocks ? 'Energía eléctrica por bloque (kWh)' : 'Energía eléctrica por intervalo (kWh)'} aria-describedby={description} viewBox={`0 0 ${width} 288`} style={{ width: '100%', display: 'block' }}>
+      <desc id={description}>Barras independientes. Círculo: cero medido. Rombo: positivo inferior a un píxel. No se unen huecos. Cada dato admite foco y conserva su cifra exacta.</desc>
+      {[0, 1, 2, 3, 4].map(i => <g key={i}><line x1={left} x2={right} y1={baseline - i * 50} y2={baseline - i * 50} stroke="var(--rule)" /><text x={left - 10} y={baseline - i * 50 + 5} textAnchor="end" fontSize="13" fill="var(--muted)">{`${new AxisDecimal(maximum).mul(i).div(4).toSignificantDigits(4).toString()}${i === 4 ? ' kWh' : ''}`}</text></g>)}
+      <text x={left} y="14" fontSize="13" fill="var(--muted)">kWh</text>
       {rows.map((row, index) => {
-        /** Project one interval; its source string and textual evidence stay untouched. */
-        const x = 60 + 720 * projectRatio((times[index].start - lower).toString(), span);
-        const right = 60 + 720 * projectRatio((times[index].end - lower).toString(), span);
-        const height = 200 * projectRatio(row.energy_kwh ?? "0", maximum);
-        const zero = /^0(?:\.0+)?$/.test(row.energy_kwh ?? "");
-        const kind = row.energy_kwh === null ? "gap" : zero ? "zero" : height < 1 ? "subpixel-positive" : "bar";
-        const label = blocks ? blockLabel(blocks[index], timezone) : intervalLabel(row.start, row.end, row.energy_kwh!, timezone);
-        return <g key={row.record_id} role="graphics-symbol" tabIndex={0} aria-label={label} aria-describedby={active === label ? tooltip : undefined}
-          data-kind={kind} data-x={x} data-x-end={right}
-          onFocus={() => { setActive(label); }} onBlur={() => { setActive(null); }}
-          onMouseEnter={() => { setActive(label); }} onMouseLeave={() => { setActive(null); }}>
-          <title>{label}</title>
-          {kind === "gap" ? <line x1={x} x2={right} y1="250" y2="250" stroke="currentColor" strokeDasharray="2 3" /> : kind === "bar" ? <rect x={x} y={240-height} width={Math.max(0.5, right-x)} height={height} fill="#176996" />
-            : kind === "zero" ? <circle cx={(x+right)/2} cy="240" r="4" fill="white" stroke="currentColor" />
-            : <polygon points={`${(x+right)/2},232 ${(x+right)/2+4},236 ${(x+right)/2},240 ${(x+right)/2-4},236`} fill="#176996" />}
+        /** Only dimensionless geometry is approximate; textual evidence stays exact. */
+        const x = left + plot * projectRatio((times[index].start - lower).toString(), span);
+        const end = left + plot * projectRatio((times[index].end - lower).toString(), span);
+        const height = (baseline - top) * projectRatio(row.energy_kwh ?? '0', maximum);
+        const zero = /^0(?:\.0+)?$/.test(row.energy_kwh ?? '');
+        const kind = row.energy_kwh === null ? 'gap' : zero ? 'zero' : height < 1 ? 'subpixel-positive' : 'bar';
+        const label = blocks ? blockLabel(blocks[index], timezone) : row.energy_kwh === null ? `${row.start} → ${row.end}: Sin datos` : intervalLabel(row.start, row.end, row.energy_kwh, timezone);
+        return <g key={row.record_id} role="graphics-symbol" tabIndex={0} aria-label={label} aria-describedby={active === label ? tooltip : undefined} data-kind={kind} data-x={x} data-x-end={end} onFocus={() => setActive(label)} onBlur={() => setActive(null)} onMouseEnter={() => setActive(label)} onMouseLeave={() => setActive(null)}>
+          <title>{label}</title>{kind === 'bar' ? <rect x={x + .5} y={baseline - height} width={Math.max(.5, end - x - 1)} height={height} fill={color} /> : kind === 'zero' ? <circle cx={(x + end) / 2} cy={baseline} r="4" fill="white" stroke={color} strokeWidth="2" /> : kind === 'subpixel-positive' ? <polygon points={`${(x+end)/2},${baseline-7} ${(x+end)/2+4},${baseline-3} ${(x+end)/2},${baseline+1} ${(x+end)/2-4},${baseline-3}`} fill={color} /> : <line x1={x} x2={end} y1={baseline+7} y2={baseline+7} stroke="var(--muted)" strokeDasharray="2 3" />}
         </g>;
       })}
-      <text x="60" y="266" fontSize="9">{rows[0].start}</text>
-      <text x="780" y="283" fontSize="9" textAnchor="end">{rows[rows.length-1].end}</text>
+      {[0, 1, 2, 3, 4].filter(i => width >= 500 || i % 2 === 0).map(i => {
+        const instant = new Date(Number(lower / 1000n) + Number((upper - lower) / 1000n) * i / 4).toISOString();
+        return <text key={i} x={left + plot * i / 4} y="253" textAnchor={i === 0 ? 'start' : i === 4 ? 'end' : 'middle'} fontSize="13" fill="var(--muted)">{shortInstant(instant, timezone, upper - lower <= 86400000000n)}</text>;
+      })}
     </svg>
-    <figcaption>Energía eléctrica (kWh) · {timezone}. Intervalos [inicio, fin).</figcaption>
-    {active && <p id={tooltip} role="tooltip">{active}</p>}
+    {!rows.length && <p className="chart-empty">Sin intervalos incorporados.</p>}
+    <figcaption className="chart-legend"><span><i className="zero-key" style={{ borderColor: color }} /> Cero medido</span><span>— Sin datos: intervalo vacío</span></figcaption>
+    {active && <p id={tooltip} role="tooltip" className="chart-tooltip">{active}</p>}
   </figure>;
 }

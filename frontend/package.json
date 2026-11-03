@@ -10,6 +10,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "test": "vitest run",
+    "review:views": "node scripts/review-views.mjs",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test"
   },

@@ -1,16 +1,18 @@
 /** Shared textual state for graph/table; numeric rows and diagnostics remain separate. */
 import type { DetailResult, AggregateQueryResult } from "../../lib/api/consumption";
+import { Icon } from '../identity/Icon';
 
 /** Explain transport, absence and incomplete evidence using static text and explicit retry action. */
 export function QueryState({ loading, error, data, retry }: {
   loading: boolean; error: string | null; data: DetailResult | AggregateQueryResult | null; retry: () => void;
 }) {
   if (loading) return <p role="status">Consultando consumo…</p>;
-  if (error) return <div role="alert"><p>{error}</p><button onClick={retry}>Reintentar</button></div>;
+  if (error) return <div className="notice notice--error" role="alert"><Icon name="warning" /><p>{error}</p><button onClick={retry}>Reintentar</button></div>;
   if (!data) return null;
   const labels = { available: "Datos disponibles", no_meter: "Sin medidor", no_data: "Sin datos", incomplete: "Datos incompletos" };
-  return <section aria-label="Estado del consumo"><p role="status">{labels[data.state]}</p>
-    {data.warnings.map((warning, i) => <p key={i}>{"message" in warning ? `${warning.message} (${warning.count})` : warning.detail}</p>)}
+  const hasGaps = data.warnings.some(warning => warning.code === 'observed_gaps');
+  return <section className={data.state === 'available' && !data.warnings.length ? 'sr-only' : 'notice notice--warning'} aria-label="Estado del consumo"><Icon name="warning" /><p role="status">{hasGaps ? 'Datos incompletos' : labels[data.state]}</p>
+    {data.warnings.map((warning, i) => <p key={i}>{warning.code === 'observed_gaps' ? 'Faltan lecturas en el período consultado.' : "message" in warning ? `${warning.message} (${warning.count})` : warning.detail}</p>)}
     {"blocks" in data && data.blocks.length === 0 && <p>Ningún bloque cabe completamente en el filtro. Se conserva el período seleccionado.</p>}
     {data.diagnostics.map((diagnostic, index) => <div key={index}>
       <p>{diagnostic.start} → {diagnostic.end}</p>

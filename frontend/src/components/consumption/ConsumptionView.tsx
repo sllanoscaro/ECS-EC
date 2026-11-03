@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { consumptionApi, type Catalog, type CategoryId, type Period, type Granularity } from "../../lib/api/consumption";
 import { SessionGuard } from "../identity/SessionProvider";
-import { CategorySelector } from "./CategorySelector";
-import { GranularitySelector } from "./GranularitySelector";
+import { ConsumptionFilters } from './ConsumptionFilters';
+import { useBuildingTimezone } from '../identity/ApplicationFrame';
 import { EnergyChart } from "./EnergyChart";
 import { EnergyTable } from "./EnergyTable";
-import { PeriodForm } from "./PeriodForm";
 import { QueryState } from "./QueryState";
 import { useConsumptionQuery } from "./useConsumptionQuery";
+import { Icon } from '../identity/Icon';
 
 /** Load catalog only at runtime; the guard unmounts all private state when the session changes. */
 export function ConsumptionView() {
@@ -24,7 +24,7 @@ function ConsumptionContent() {
   const [catalogError, setCatalogError] = useState(false);
   const [catalogAttempt, setCatalogAttempt] = useState(0);
   const [granularity, setGranularity] = useState<Granularity>("detail");
-  const [view, setView] = useState("both");
+  useBuildingTimezone(catalog?.timezone);
   useEffect(() => {
     /** Ignore catalog responses after unmount or retries and retain a previously selected period. */
     let active = true;
@@ -35,25 +35,24 @@ function ConsumptionContent() {
     }).catch(() => { if (active) setCatalogError(true); });
     return () => { active = false; controller.abort(); };
   }, [catalogAttempt]);
+  useEffect(() => {
+    /** Preserve explicit historical grouped links without restoring the removed filter toolbar. */
+    const scale = new URLSearchParams(window.location.search).get('escala');
+    if (['hour', 'day', 'month', 'year'].includes(scale ?? '')) setGranularity(scale as Granularity);
+  }, []);
   const query = useConsumptionQuery(category, period, consumptionApi.detail, granularity);
-  if (catalogError) return <div role="alert">No se pudo cargar el catálogo.<button onClick={() => { setCatalogAttempt(value => value + 1); }}>Reintentar catálogo</button></div>;
+  if (catalogError) return <div className="notice notice--error" role="alert"><Icon name="warning" />No se pudo cargar el catálogo.<button onClick={() => { setCatalogAttempt(value => value + 1); }}>Reintentar catálogo</button></div>;
   if (!catalog || !period) return <p role="status">Cargando catálogo…</p>;
   const selected = catalog.categories.find(item => item.id === category)!;
   return <>
-    <CategorySelector categories={catalog.categories} value={category} onChange={setCategory} />
-    <PeriodForm period={period} onSubmit={setPeriod} />
-    <GranularitySelector value={granularity} onChange={setGranularity} />
-    <h2>{selected.name} · {{ detail: "Detalle", hour: "Hora", day: "Día", month: "Mes", year: "Año" }[granularity]} · Energía eléctrica · kWh</h2>
-    <p>{period.start} → {period.end} · {period.timezone} · [inicio, fin)</p>
-    <label>Representación<select value={view} onChange={event => { setView(event.target.value); }}><option value="both">Gráfico y tabla</option><option value="chart">Gráfico</option><option value="table">Tabla</option></select></label>
-    <button onClick={query.retry}>Actualizar consumo</button>
-    <QueryState {...query} />
+    <div className="consumption-toolbar"><p>Consulta por categoría y período</p><button onClick={query.retry}>Actualizar consumo</button></div>
+    <ConsumptionFilters catalog={catalog} category={category} period={period} choose={setCategory} apply={setPeriod} />
+    <QueryState loading={query.loading} error={query.error} data={query.data} retry={query.retry} />
     {query.data && <>
-      <p>Corte: {query.data.cutoff_at}</p>
-      {category === "CAT-01" && <p>{query.data.source_mode === "measured" ? "Total medido" : query.data.source_mode === "calculated" ? "Total calculado de las categorías presentes" : "Procedencia según segmentos de configuración"}</p>}
-      <ul aria-label="Configuración del período">{query.data.configuration_segments.map((segment, i) => <li key={i}>{segment.start} → {segment.end} · {segment.source_mode} · Base: {segment.base_categories.join(", ") || "No aplica"} · Revisión {segment.category_revision}</li>)}</ul>
-      {view !== "table" && <EnergyChart rows={"rows" in query.data ? query.data.rows : []} blocks={"blocks" in query.data ? query.data.blocks : undefined} timezone={period.timezone} />}
-      {view !== "chart" && <EnergyTable rows={"rows" in query.data ? query.data.rows : []} blocks={"blocks" in query.data ? query.data.blocks : undefined} timezone={period.timezone} categoryId={category} />}
+      <section className="panel chart-panel"><h2>Energía por intervalo</h2><p className="section-description">{selected.name} · {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(period.start))} → {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(period.end))} · kWh</p>
+      <EnergyChart rows={"rows" in query.data ? query.data.rows : []} blocks={"blocks" in query.data ? query.data.blocks : undefined} timezone={period.timezone} categoryId={category} period={period} /></section>
+      <section className="panel values-panel"><h2>Valores del período</h2><p className="section-description">{"rows" in query.data ? `${query.data.rows.length} lecturas disponibles` : 'Valores agrupados'} · Corte: {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(query.data.cutoff_at))}</p>
+      <EnergyTable compact rows={"rows" in query.data ? query.data.rows : []} blocks={"blocks" in query.data ? query.data.blocks : undefined} timezone={period.timezone} categoryId={category} /></section>
     </>}
   </>;
 }

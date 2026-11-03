@@ -45,6 +45,41 @@ class Catalog(DomainModel):
     categories: tuple[CategoryStatus, ...]
 
 
+class DailyCategoryView(DomainModel):
+    """Captured daily energy and elapsed coverage, with historical source semantics."""
+
+    id: CategoryId
+    name: str
+    source_mode: Literal['measured', 'calculated', 'mixed', 'unavailable']
+    base_categories: tuple[CategoryId, ...]
+    energy_kwh: str | None
+    coverage_percent: str
+    covered_duration_us: str
+    elapsed_duration_us: str
+    last_reading_at: str | None
+    state: Literal['available', 'incomplete', 'no_data', 'no_meter']
+
+
+class DailyPointView(DomainModel):
+    """Completed quarter-hour projection; null is absence, never an inferred zero."""
+
+    start: str
+    end: str
+    energy_kwh: str | None
+    coverage_percent: str
+
+
+class DashboardView(DomainModel):
+    """Read-only one-cutoff daily dashboard without a predicted arrival time."""
+
+    timezone: Timezone
+    cutoff_at: str
+    period: PeriodView
+    categories: tuple[DailyCategoryView, ...]
+    series: tuple[DailyPointView, ...]
+    chart_excluded_count: int = Field(ge=0)
+
+
 class Configuration(DomainModel):
     """Administrative revision projection; actor metadata stays out of this wire view."""
 
