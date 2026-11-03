@@ -11,7 +11,7 @@ Requiere sesión normal con `consumption.read`; errores de identidad siguen el c
 Respuesta tipada por `DashboardView` en `backend/src/ecs_ec/consumption/schemas.py`, publicada también en el OpenAPI de la aplicación:
 
 - `timezone`, `cutoff_at`, `period: {start,end,timezone}`: día local real, con límites y offsets explícitos; el corte puede estar dentro del día. El día puede durar 23 o 25 horas.
-- `categories`: siete proyecciones, cada una con `id`, `name`, `source_mode` (measured/calculated/mixed/unavailable), `base_categories`, `energy_kwh` (cadena exacta o null), `coverage_percent` (cadena), `covered_duration_us`, `elapsed_duration_us`, `last_reading_at` (instante o null) y `state` (available/incomplete/no_data/no_meter).
+- `categories`: siete proyecciones, cada una con `id`, `name`, `source_mode` (measured/calculated/mixed/unavailable), `base_categories`, `energy_kwh` (cadena exacta o null), `coverage_percent` (cadena), `covered_duration_us`, `elapsed_duration_us`, `last_reading_at` (instante o null) y `state` (available/incomplete/no_data/no_meter). Cada categoría incluye además su propia `series` de bloques de quince minutos y `chart_excluded_count`, bajo las mismas reglas que el total.
 - `series`: bloques completos de quince minutos desde el inicio real del día hasta el corte. Cada bloque contiene `start`, `end`, `energy_kwh` y `coverage_percent`. No se generan lecturas futuras. Un bloque sin aportes tiene energía null; un cero medido conserva la cadena cero.
 - `chart_excluded_count`: lecturas del total diario que no caben completamente en un bloque terminado de quince minutos. La vista advierte esa diferencia sin prorratearlas.
 
@@ -25,8 +25,12 @@ Cobertura = duración de lecturas disjuntas contenidas / tiempo real transcurrid
 
 La serie de quince minutos utiliza las mismas lecturas, pero únicamente cuando están completamente contenidas en su bloque. Se pueden sumar lecturas menores completamente contenidas; no se fracciona una lectura horaria en cuatro valores supuestos. La energía parcial disponible y la cobertura de cada bloque permanecen explícitas. Esta es una proyección de lectura, no un nuevo nivel de agregados persistidos ni una nueva regla de recepción.
 
-El navegador intenta refrescar a los 60 segundos de terminar cada consulta. La hora anunciada corresponde al siguiente intento de consulta, no a un compromiso de adquisición ni a `next_admissible_at` de recepción002. La demora real depende de red, navegador y disponibilidad; la respuesta siguiente vuelve a calcular el día desde el reloj del servidor.
+El navegador intenta refrescar en el próximo cuarto de hora, cinco segundos después del cierre. La hora anunciada corresponde al siguiente intento de consulta, no a un compromiso de adquisición ni a `next_admissible_at` de recepción002. La demora real depende de red, navegador y disponibilidad; la respuesta siguiente vuelve a calcular el día desde el reloj del servidor.
 
 ## Evidencia local
 
 Pruebas puras: `backend/tests/unit/consumption/test_dashboard.py`. Prueba HTTP con identidad y PostgreSQL reales: `backend/tests/integration/consumption/test_dashboard.py`. La aceptación integral de consumo001/002 no se altera por esta integración de interfaz.
+
+## Selección de categoría
+
+Las categorías del desglose son botones con selección exclusiva (`aria-pressed`). Elegir una muestra únicamente su serie y su color estable, manteniendo la escala temporal y los huecos. La selección se conserva al actualizar. El botón gris «Ver consumo total», visible solo con una categoría seleccionada en la esquina superior derecha del gráfico, restaura CAT-01. Los indicadores y las barras conservan su referencia al total diario. No se solicitan series adicionales ni se deduce la curva desde la proporción diaria.

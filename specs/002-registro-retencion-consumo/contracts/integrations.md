@@ -289,3 +289,13 @@ por ID `status: withdrawn|rejected|already_withdrawn` y `reason_code`. Vista pre
 retirada usan los mismos bloqueos/revalidación; únicamente ejecución escribe auditoría.
 El ledger, fuentes/configuración y aportes no se purgan; solicitudes pending y dependientes
 protegidos impiden retirar evidencia necesaria. El servicio no tiene endpoint público.
+
+## Excepción local de demostración por calendario
+
+La demo de `deploy/demo/` puede configurar explícitamente sus procesos internos con
+admisión al siguiente cuarto de hora UTC. Permite una carga inicial a18:20 y novedad
+a18:30; la fila registra `calendar_admission=true`. `DEMO_CALENDAR` se valida solo
+para ENVIRONMENT=local. Configuración, duplicados, conservación, contribuciones y
+transacciones siguen usando los mismos proveedores. Sin esa selección, la restricción
+SQL conserva exactamente900s desde `last_new_data_at`. Esta excepción no acredita la
+aceptación de cadencia estricta de002/003 ni se habilita en producción.

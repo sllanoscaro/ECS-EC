@@ -137,3 +137,24 @@ Respuesta 200 `Configuration` con revisión nueva y fechas confirmadas. La opera
 atómica respecto de recepción/cambio de fuentes. No reescribe totales anteriores ni
 dispara incorporación en GET. La edición administrativa es la integración de consumo
 con permisos/layout de 006; no implementa la administración general de identidad.
+
+### Fuentes existentes para el total
+
+`GET /api/v1/consumption/configuration/sources` requiere
+`consumption.configuration.manage`. Devuelve una lista de `{source_id, source_label}`
+del edificio actual, incluso si una fuente dejó de estar activa. No crea fuentes ni
+concede permisos para modificar configuración. Usa sesión y `no-store` comunes.
+La interfaz permite elegir total calculado (`CAT-01.has_meter=false`, fuente/etiqueta
+null) o medidor propio (`has_meter=true`, fuente explícita). El origen se conserva por
+segmento histórico; un cambio no reinterpreta mediciones previamente incorporadas.
+
+### Cobertura diaria del dashboard
+
+`GET /api/v1/consumption/dashboard` devuelve `cutoff_at` (instante único de consulta)
+y `coverage_end_at` (último cierre de15min desde el inicio local del día). La cobertura
+es duración con evidencia válida entre medianoche y ese cierre dividida por la duración
+de ese período. El intervalo abierto no se penaliza. El denominador no se reduce a la
+última lectura disponible: un intervalo cerrado ausente sí reduce el porcentaje. Antes
+del primer cierre la duración es cero y la interfaz muestra «—». La hora límite de
+cobertura se indica en pantalla. Las sumas energéticas siguen siendo exactas, sin
+prorratear mediciones que cruzan bloques del gráfico.

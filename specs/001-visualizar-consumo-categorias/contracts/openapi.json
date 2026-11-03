@@ -546,6 +546,46 @@
           }
         }
       }
+    },
+    "/api/v1/consumption/configuration/sources": {
+      "get": {
+        "summary": "Fuentes existentes para configurar un medidor total",
+        "responses": {
+          "200": {
+            "description": "Fuentes del edificio; solo Administrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "source_id",
+                      "source_label"
+                    ],
+                    "properties": {
+                      "source_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "source_label": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida"
+          },
+          "403": {
+            "description": "Requiere consumption.configuration.manage"
+          }
+        }
+      }
     }
   },
   "components": {

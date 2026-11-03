@@ -28,9 +28,13 @@ npm --prefix frontend ci
 npm --prefix frontend test
 npm --prefix frontend run build
 docker compose build app
-docker compose up -d --wait app
+docker compose up -d --wait
 curl --fail http://localhost:8000/api/v1/health/ready
 ```
+
+El arranque local incluye un simulador continuo y provisión sintética mediante
+`compose.override.yaml`; ver [demostración automática](deploy/demo/README.md).
+Para un despliegue real usar explícitamente `docker compose -f compose.yaml`.
 
 Compose espera PostgreSQL sano y ejecuta Alembic antes de iniciar el único proceso
 Uvicorn. La aplicación sirve la exportación Next desde `/` y la API desde `/api/v1`.
