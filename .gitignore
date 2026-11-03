@@ -229,6 +229,7 @@ sketch
 .agents/
 .github/skills/
 copilot
+.impeccable/
 # La infraestructura generada de Spec Kit es local; versionar overrides de proyecto.
 .specify/*
 !.specify/templates/
