@@ -43,6 +43,7 @@ for (const role of ["admin", "operator"]) {
       const result = await response.json() as DetailResult;
       if (category === "CAT-01") expect(result.rows[0].energy_kwh).toBe(process.env.CONSUMPTION_E2E_MODE === "physical" ? "100" : "20");
       await expect(page.getByRole("heading", { level: 2 })).toContainText(result.category.name);
+      await expect(page.getByText(({available:"Datos disponibles",no_meter:"Sin medidor",no_data:"Sin datos",incomplete:"Datos incompletos"})[result.state], {exact:true})).toBeVisible();
       await expect(page.locator("tbody tr")).toHaveCount(result.rows.length);
       await expect(page.locator('[role="graphics-symbol"]')).toHaveCount(result.rows.length);
       for (const [index, row] of result.rows.entries()) {
@@ -66,6 +67,25 @@ for (const role of ["admin", "operator"]) {
     await page.getByRole("button", { name: "Consultar período" }).click();
     await expect(page.getByText("Se excluyeron intervalos que cruzan los límites.", { exact: false })).toBeVisible();
     await expect(page.locator("tbody tr")).toHaveCount(0);
+    //001 periods preserve building offsets even while the browser runs in Tokyo.
+    for (const [start, end] of [
+      ["2025-12-30T00:00:00-03:00", "2025-12-31T00:00:00-03:00"],
+      ["2026-01-03T00:00:00-03:00", "2026-01-04T00:00:00-03:00"],
+      ["2025-04-05T23:00:00-03:00", "2025-04-05T23:00:00-04:00"],
+    ]) {
+      await page.getByLabel("Inicio con offset", { exact: true }).fill(start);
+      await page.getByLabel("Fin con offset", { exact: true }).fill(end);
+      const received = page.waitForResponse(r => r.url().includes("/CAT-05/detail?") && new URL(r.url()).searchParams.get("start") === start && r.status() === 200);
+      await page.getByRole("button", { name: "Consultar período" }).click();
+      const result = await (await received).json() as DetailResult;
+      expect(result.period.start).toBe(start);
+      expect(result.period.end).toBe(end);
+      await expect(page.locator("tbody tr")).toHaveCount(0);
+      await expect(page.locator('[role="graphics-symbol"]')).toHaveCount(0);
+      await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption("CAT-03");
+      await expect(page.getByLabel("Inicio con offset", { exact: true })).toHaveValue(start);
+      await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption("CAT-05");
+    }
     //002 grouping keeps the explicit filter/category and compares every block to the real API.
     await page.getByLabel("Inicio con offset", { exact: true }).fill("2026-01-01T00:00:00-03:00");
     await page.getByLabel("Fin con offset", { exact: true }).fill("2026-01-02T00:00:00-03:00");

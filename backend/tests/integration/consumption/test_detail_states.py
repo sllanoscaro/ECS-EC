@@ -82,3 +82,26 @@ async def test_calculated_zero_and_empty_basis(consumption_reception_environment
     empty = await service.detail('CAT-01', '2025-12-31T23:00:00-03:00', '2026-01-01T00:00:00-03:00', ZONE)
     assert empty.state == 'no_data' and empty.rows == ()
     assert any(w.code == 'no_calculation_basis' for w in empty.warnings)
+
+
+async def test_misaligned_contributions_do_not_fabricate_total(consumption_reception_environment, database, clock):
+    """Different contribution windows remain inspectable partials; no prorated general row is invented."""
+    env = consumption_reception_environment
+    await env.publish([record(value='12'), record(category_id='CAT-03', source_id=UUID(int=3),
+        start='2026-01-01T00:30:00Z', end='2026-01-01T01:30:00Z', value='8')])
+    service = facade(database, clock)
+    total = await service.detail('CAT-01', START, END, ZONE)
+    assert total.state == 'incomplete' and total.rows == ()
+    assert total.diagnostics
+    assert (await service.detail('CAT-05', START, END, ZONE)).rows[0].energy_kwh == '12'
+    assert (await service.detail('CAT-03', START, END, ZONE)).rows[0].energy_kwh == '8'
+
+
+async def test_physical_gap_and_minimum_remain_visible(history_environment, database, clock):
+    """A gap separates zero from the smallest supported positive value without interpolation."""
+    from backend.tests.contract.consumption.test_reception_contract import publish
+    await publish(history_environment, [record(value='0'), record(value='0.000000000000001',
+        start='2026-01-01T02:00:00Z', end='2026-01-01T03:00:00Z')])
+    result = await facade(database, clock).detail('CAT-05', START, '2026-01-01T00:00:00-03:00', ZONE)
+    assert [r.energy_kwh for r in result.rows] == ['0', '0.000000000000001']
+    assert next(w for w in result.warnings if w.code == 'observed_gaps').count == 1

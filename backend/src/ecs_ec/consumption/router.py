@@ -4,6 +4,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
+from ecs_ec.consumption.telemetry import observe
 from ecs_ec.consumption.catalog_storage import read_revisions
 from ecs_ec.consumption.configuration import ConfigurationError, ConfigurationService
 from ecs_ec.consumption.models import ConfigurationInput
@@ -35,6 +36,7 @@ async def problem_response(request, error):
 
 
 @router.get('/catalog', response_model=Catalog)
+@observe('administration.query', 'read')
 async def catalog(request: Request):
     """Read current category states/global period after middleware has checked the current session."""
     try:
@@ -44,6 +46,7 @@ async def catalog(request: Request):
 
 
 @router.get('/categories/{category_id}/detail', response_model=DetailResult)
+@observe('consumption.query_detail', 'read')
 async def detail(request: Request, category_id: str, start: str, end: str, timezone: str):
     """Return full contained detail; malformed periods are explicit422 and unknown categories404."""
     from ecs_ec.consumption.catalog import CATEGORY_IDS
@@ -58,6 +61,7 @@ async def detail(request: Request, category_id: str, start: str, end: str, timez
 
 
 @router.get('/configuration', response_model=Configuration)
+@observe('administration.query', 'read')
 async def configuration(request: Request):
     """Read latest immutable administrative revision; do not bootstrap missing configuration."""
     service = request.app.state.consumption
@@ -69,6 +73,7 @@ async def configuration(request: Request):
 
 
 @router.put('/configuration', response_model=Configuration)
+@observe('administration.change', 'commit')
 async def configure(request: Request, body: ConfigurationInput):
     """Revalidate actor/session under locks, then commit revision and functional evidence together."""
     service, identity = request.app.state.consumption, request.app.state.identity
