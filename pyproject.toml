@@ -16,6 +16,8 @@ dependencies = [
     "psycopg[binary]==3.3.6",
     "pydantic==2.14.2",
     "pydantic-settings==2.16.2",
+    "pypdf==6.21.4",
+    "reportlab==5.1.0",
     "sqlalchemy==2.0.55",
     "tzdata==2026.6",
     "uvicorn==0.54.0",
