@@ -55,3 +55,22 @@ it("allows an explicitly configured empty basis during initial setup", async () 
   expect(input.expected_revision).toBe(0);
   expect(input.categories.every((entry: { source_id: string | null }) => entry.source_id === null)).toBe(true);
 });
+
+it("defaults to calculated total and saves either an existing total meter or the calculated basis", async () => {
+  /** Switching modes preserves the server contract and never reuses a partial source as the total. */
+  const save = vi.fn().mockResolvedValue(configuration());
+  const source = { source_id: "00000000-0000-0000-0000-000000000001", source_label: "Demo CAT-01" };
+  render(<ConfigurationForm configuration={configuration()} timezone="America/Santiago" categories={categories} availableSources={[source]} save={save} />);
+  const origin = screen.getByLabelText("Origen de la energía total");
+  expect((origin as HTMLSelectElement).value).toBe("calculated");
+  fireEvent.change(origin, { target: { value: "measured" } });
+  fireEvent.change(screen.getByLabelText("Medidor del total"), { target: { value: source.source_id } });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar configuración" }));
+  await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+  expect(save.mock.calls[0][0].categories[0]).toEqual({ category_id: "CAT-01", has_meter: true, ...source });
+  await screen.findByRole("status");
+  fireEvent.change(screen.getByLabelText("Origen de la energía total"), { target: { value: "calculated" } });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar configuración" }));
+  await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+  expect(save.mock.calls[1][0].categories[0]).toEqual({ category_id: "CAT-01", has_meter: false, source_id: null, source_label: null });
+});

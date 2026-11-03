@@ -44,6 +44,7 @@ class TransportSettings(BaseModel):
     username:str=Field(min_length=1,max_length=80)
     known_hosts_file:Path
     auth:Auth
+    local_calendar:bool=False
     publication_gap_seconds:int=Field(default=900,ge=900,strict=True)
     max_attempts:int=Field(default=3,ge=1,strict=True)
     connect_timeout_seconds:float=Field(default=30,gt=0,allow_inf_nan=False)
@@ -53,6 +54,8 @@ class TransportSettings(BaseModel):
     @model_validator(mode='after')
     def safe_directory(self):
         """Keep native names under one explicit virtual directory without traversal or control characters."""
+        if self.local_calendar and os.environ.get('ENVIRONMENT') != 'local':
+            raise ValueError('calendar_transport_requires_local')
         if not self.directory.startswith('/') or '..' in self.directory.split('/') or '\\' in self.directory or any(ord(c)<32 for c in self.directory):
             raise ValueError('invalid_directory')
         return self
@@ -88,8 +91,8 @@ class Cadence:
 
 
 @asynccontextmanager
-async def destination_lock(settings,publisher,stop):
-    """Hold an OS lock across waiting/networking; serialize all runs for one destination alias and publisher."""
+async def destination_lock(settings,publisher,stop,session=None):
+    """Serialize one destination; an optional process-local session preserves its monotonic deadline."""
     root=Path(os.environ.get('PAS600_SIM_STATE_DIRECTORY',Path.home()/'.local/state/ecs-ec-pas600'))
     root.mkdir(parents=True,exist_ok=True,mode=0o700)
     key=hashlib.sha256(json.dumps([settings.destination_alias,publisher],separators=(',',':')).encode()).hexdigest()
@@ -100,7 +103,15 @@ async def destination_lock(settings,publisher,stop):
             except BlockingIOError:
                 if stop.is_set():raise asyncio.CancelledError()
                 await asyncio.sleep(.1)
-        yield Cadence(root/(key+'.json'),settings.publication_gap_seconds)
+        path=root/(key+'.json')
+        marker=path.read_bytes() if path.exists() else None
+        cached=session.get(str(path)) if session is not None else None
+        cadence=cached[0] if cached and cached[1]==marker else Cadence(path,0 if getattr(settings,'local_calendar',False) else settings.publication_gap_seconds)
+        try:
+            yield cadence
+        finally:
+            if session is not None:
+                session[str(path)]=(cadence,path.read_bytes() if path.exists() else None)
     finally:
         stream.close()
 
@@ -184,10 +195,12 @@ async def test_connection(settings):
     return {'schema_version':1,'status':'connected','destination_alias':settings.destination_alias,'port':settings.port}
 
 
-async def publish_run(root,settings,*,resume=False,publication_key=None,stop=None):
+async def publish_run(root,settings,*,resume=False,publication_key=None,stop=None,session=None):
     """Serialize mutations of one run even across destination aliases, then read its current durable journal.
 
-    A second publisher must reread completed facts after the first releases the lock;
+    A session cache is valid only while its persistent marker is unchanged; external attempts
+    force the same conservative recovery as a restart. A second publisher must reread
+    completed facts after the first releases the lock;
     an interrupted waiter owns no attempt and must not overwrite the active owner's run state.
     """
     root=Path(root);stop=stop or asyncio.Event()
@@ -197,10 +210,10 @@ async def publish_run(root,settings,*,resume=False,publication_key=None,stop=Non
             except BlockingIOError:
                 if stop.is_set():return {'schema_version':1,'status':'stopped','exit_code':130}
                 await asyncio.sleep(.1)
-        return await _publish_run(root,settings,resume=resume,publication_key=publication_key,stop=stop)
+        return await _publish_run(root,settings,resume=resume,publication_key=publication_key,stop=stop,session=session)
 
 
-async def _publish_run(root,settings,*,resume=False,publication_key=None,stop=None):
+async def _publish_run(root,settings,*,resume=False,publication_key=None,stop=None,session=None):
     """Publish frozen complete cycles with persistent ordinal budgets, cooperative stop and crash-safe cadence."""
     root=Path(root)
     stop=stop or asyncio.Event()
@@ -233,7 +246,7 @@ async def _publish_run(root,settings,*,resume=False,publication_key=None,stop=No
     if pending.exists():attempts=json.loads(pending.read_text())['attempts']
     publisher=scenario['publisher']['publisher_serial']
     try:
-        async with destination_lock(settings,publisher,stop) as cadence:
+        async with destination_lock(settings,publisher,stop,session) as cadence:
             for publication in publications:
                 key=publication['key']
                 if publication_key and key!=publication_key:continue

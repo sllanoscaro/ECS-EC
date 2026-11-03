@@ -59,7 +59,7 @@ def create_app(
     from ecs_ec.consumption.pending_totals import PendingTotals
     from ecs_ec.consumption.reception import Reception
     from ecs_ec.consumption.store import MeasurementStore
-    pending_totals = PendingTotals(database, clock)
+    pending_totals = PendingTotals(database, clock, calendar=settings.demo_calendar)
     modules = modules + (Module("consumption-history", lifespan=pending_totals.lifespan),)
     app = FastAPI(title="ECS-EC", lifespan=application_lifespan(database, modules))
     app.state.settings = settings

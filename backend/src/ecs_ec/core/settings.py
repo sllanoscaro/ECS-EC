@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Installed identity is explicitly enabled with external keys; base-platform tools
     # and migrations can still run without loading identity-specific configuration.
     identity_enabled: bool = False
+    demo_calendar: bool = False
 
     def identity_options(self):
         """Load the installed identity configuration with the shared origin/environment."""
@@ -57,6 +58,8 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def check_deployment(self):
         """Production requires HTTPS and externally supplied non-synthetic credentials."""
+        if self.demo_calendar and self.environment != 'local':
+            raise ValueError('demo_calendar_requires_local')
         from urllib.parse import urlsplit
         parsed = urlsplit(self.public_url)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:

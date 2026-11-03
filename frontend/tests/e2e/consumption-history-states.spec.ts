@@ -25,7 +25,7 @@ test('late commit, future boundaries and expired detail preserve API/chart/table
   /** Existing006 credentials were renewed by consumption.spec.ts before this independent harness run. */
   async function login() {
     await page.goto('/ingreso/');
-    await page.getByLabel('Correo', { exact: true }).fill('operator-active@example.test');
+    await page.getByLabel("Correo electrónico", { exact: true }).fill('operator-active@example.test');
     await page.getByLabel('Contraseña', { exact: true }).fill(password + ' renewed');
     await page.getByRole('button', { name: 'Ingresar', exact: true }).click();
     await expect(page).toHaveURL(/\/cuenta\/$/);

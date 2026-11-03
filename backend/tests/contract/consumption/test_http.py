@@ -22,11 +22,12 @@ async def authenticate(client, account_factory, session_factory, identity_settin
 
 async def test_authorization_before_invalid_body(client, account_factory, session_factory, identity_settings):
     """Anonymous/Operator callers cannot inspect administrative data or exploit body validation order."""
-    for path in ('/consumption/catalog', '/consumption/configuration'):
+    for path in ('/consumption/catalog', '/consumption/configuration', '/consumption/configuration/sources'):
         response = await client.get('/api/v1' + path)
         assert response.status_code == 401 and response.headers['cache-control'] == 'no-store'
     headers = await authenticate(client, account_factory, session_factory, identity_settings)
     assert (await client.get('/api/v1/consumption/configuration')).status_code == 403
+    assert (await client.get('/api/v1/consumption/configuration/sources')).status_code == 403
     assert (await client.put('/api/v1/consumption/configuration', content='invalid', headers=headers)).status_code == 403
 
 
@@ -91,3 +92,12 @@ async def test_calculated_wire_schema(client, account_factory, session_factory,
         assert response.status_code == 200
         validator.validate(response.json())
         assert response.json()['rows'][0]['energy_kwh'] == ('12' if category == 'CAT-05' else '20')
+
+
+async def test_admin_can_list_provisioned_sources(client, account_factory, session_factory, identity_settings):
+    """Only the administrator receives the allowlisted source identities for this building."""
+    await authenticate(client, account_factory, session_factory, identity_settings, role='administrador_tecnico')
+    response = await client.get('/api/v1/consumption/configuration/sources')
+    assert response.status_code == 200
+    assert response.headers['cache-control'] == 'no-store'
+    assert all(set(row) == {'source_id', 'source_label'} for row in response.json())

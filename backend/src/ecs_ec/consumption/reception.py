@@ -136,10 +136,11 @@ async def request_total_evaluation(uow, row, update, now, timezone, revisions):
 class Reception:
     """Trusted in-process port; configured process→building capabilities authorize before DB lookup."""
 
-    def __init__(self, database, clock, *, authorized_processes):
+    def __init__(self, database, clock, *, authorized_processes, calendar_processes=()):
         """Inject009 resources and explicit trusted bindings; never infer permissions from record content."""
         self.database, self.clock = database, clock
         self.authorized_processes = {p: frozenset(ids) for p, ids in authorized_processes.items()}
+        self.calendar_processes = frozenset(calendar_processes)
         self.validator = MeasurementValidator()
 
     def _authorize(self, process, building_id):
@@ -239,8 +240,15 @@ class Reception:
             for category in (*CATEGORY_IDS, None):
                 positions = [(i, r) for i, r in enumerate(records) if i in missing
                     and (r.get('category_id') if r.get('category_id') in CATEGORY_IDS else None) == category]
-                if positions: await self._category(attempt_id, building_id, category, positions, correlation_ref, sessions)
-            await self._evaluate(building_id, sessions)
+                if positions:
+                    if process in self.calendar_processes:
+                        await self._category(attempt_id, building_id, category, positions, correlation_ref, sessions, calendar=True)
+                    else:
+                        await self._category(attempt_id, building_id, category, positions, correlation_ref, sessions)
+            if process in self.calendar_processes:
+                await self._evaluate(building_id, sessions, calendar=True)
+            else:
+                await self._evaluate(building_id, sessions)
             await self._complete(attempt_id, sessions)
         except Exception:
             # Previously committed categories survive. A DB failure may also prevent this
@@ -254,10 +262,10 @@ class Reception:
             raise
         return (await self._capture(sessions, attempt_id, building_id, process)).outcome
 
-    async def _evaluate(self, building_id, sessions):
+    async def _evaluate(self, building_id, sessions, *, calendar=False):
         """Evaluate committed partial work using the same coordinator connection, before final summary."""
         from ecs_ec.consumption.pending_totals import PendingTotals
-        await PendingTotals(self.database, self.clock, sessions=sessions).run_due(building_id)
+        await PendingTotals(self.database, self.clock, sessions=sessions, calendar=calendar).run_due(building_id)
 
     async def _complete(self, attempt_id, sessions=None):
         """Finalize summary only after all positions commit; a failed summary can be reconstructed."""
@@ -268,7 +276,7 @@ class Reception:
             attempt.status, attempt.completed_at = 'completed', utc(self.clock.now())
             await uow.commit()
 
-    async def _category(self, attempt_id, building_id, category, positions, correlation_ref, sessions=None):
+    async def _category(self, attempt_id, building_id, category, positions, correlation_ref, sessions=None, *, calendar=False):
         """Validate/classify before timing; commit one independent category with results/aggregates/events/work."""
         async with UnitOfWork(sessions or self.database.sessions) as uow:
             building, states, global_state, revisions = await lock_history(uow, building_id)
@@ -328,7 +336,7 @@ class Reception:
                 disposition = 'rejected' if reason else 'accepted' if status == 'new' else 'duplicate'
                 outcomes.append((position, disposition, reason, row))
             if update:
-                advance_state(state, global_state, accepted, now)
+                advance_state(state, global_state, accepted, now, calendar=calendar)
                 update.accepted_count = len(accepted)
                 update.duplicate_count = sum(s == 'duplicate' for _, s, _, _ in outcomes)
                 update.rejected_count = sum(s == 'rejected' for _, s, _, _ in outcomes)

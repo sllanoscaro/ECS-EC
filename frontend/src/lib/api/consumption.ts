@@ -6,7 +6,12 @@ export type * from "./consumption-history-types";
 import type { AggregateQueryResult, Granularity } from "./consumption-history-types";
 export type CategoryId = CategoryStatus["id"];
 
+export type AvailableSource = { source_id: string; source_label: string };
 export const consumptionApi = {
+  /** Offer provisioned sources only to the current configuration administrator. */
+  sources(signal?: AbortSignal): Promise<AvailableSource[]> {
+    return apiRequest<AvailableSource[]>("/consumption/configuration/sources", { signal });
+  },
   /** Read seven categories and global initial period; never derive either from visible rows. */
   catalog(signal?: AbortSignal): Promise<Catalog> {
     return apiRequest<Catalog>("/consumption/catalog", { signal });

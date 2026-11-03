@@ -23,7 +23,7 @@ test('detail preserves incomplete, late total, six maxima and changed calculatio
   }
   const partial = await scenario('partial');
   await page.goto('/ingreso/');
-  await page.getByLabel('Correo',{exact:true}).fill('operator-active@example.test');
+  await page.getByLabel("Correo electrónico",{exact:true}).fill('operator-active@example.test');
   await page.getByLabel('Contraseña',{exact:true}).fill(consumptionFixture().password+' renewed');
   await page.getByRole('button',{name:'Ingresar',exact:true}).click();
   await expect(page).toHaveURL(/\/cuenta\/$/);

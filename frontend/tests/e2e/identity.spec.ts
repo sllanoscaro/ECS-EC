@@ -11,7 +11,7 @@ test("both profiles renew, administer accounts, read history and close across ta
   const initial = readFileSync(file, "utf8").replace(/\n$/, "");
   for (const role of ["admin", "operator"]) {
     await page.goto("/ingreso/");
-    await page.getByLabel("Correo", { exact: true }).fill(`${role}-active@example.test`);
+    await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
     await page.getByLabel("Contraseña", { exact: true }).fill(initial);
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
     await expect(page).toHaveURL(/\/cuenta\/$/);
@@ -26,7 +26,7 @@ test("both profiles renew, administer accounts, read history and close across ta
     await page.getByLabel("Confirmar nueva contraseña", { exact: true }).fill(initial+" renewed");
     await page.getByRole("button", { name: "Cambiar contraseña", exact: true }).click();
     await expect(page).toHaveURL(/\/ingreso\/$/);
-    await page.getByLabel("Correo", { exact: true }).fill(`${role}-active@example.test`);
+    await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
     await page.getByLabel("Contraseña", { exact: true }).fill(initial+" renewed");
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
     await expect(page).toHaveURL(/\/cuenta\/$/);
@@ -89,7 +89,7 @@ test("both profiles renew, administer accounts, read history and close across ta
   }
   const clock = process.env.IDENTITY_E2E_CLOCK_FILE;
   if (clock) {
-    await page.getByLabel("Correo", { exact: true }).fill("operator-active@example.test");
+    await page.getByLabel("Correo electrónico", { exact: true }).fill("operator-active@example.test");
     await page.getByLabel("Contraseña", { exact: true }).fill(initial+" renewed");
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
     await expect(page).toHaveURL(/\/cuenta\/$/);

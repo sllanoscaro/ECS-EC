@@ -12,18 +12,21 @@ from ecs_ec.core.unit_of_work import UnitOfWork
 from sqlalchemy import text
 
 
-def summarize(rows, start, end):
+def summarize(rows, start, end, *, coverage_end=None):
     """Sum only fully contained disjoint rows; keep missing energy null and coverage exact.
 
-    Integer quanta preserve every decimal. Reject overlapping evidence rather than
-    double counting. The caller's end is captured now, never the future end of day.
+    Integer quanta preserve every decimal. Optional coverage_end limits coverage to
+    closed intervals without truncating energy or prorating crossing measurements.
     """
     selected = sorted((r for r in rows if start <= r.start < r.end <= end), key=lambda r: r.start)
     if any(a.end > b.start for a, b in zip(selected, selected[1:])):
         raise ValueError('overlapping_dashboard_evidence')
-    covered = sum(duration_us(r.start, r.end) for r in selected)
+    coverage_end = end if coverage_end is None else coverage_end
+    if not start <= coverage_end <= end:
+        raise ValueError('invalid_coverage_end')
+    covered = sum(duration_us(r.start, min(r.end, coverage_end)) for r in selected if r.start < coverage_end)
     total = sum(energy_quanta(r.energy_kwh) for r in selected)
-    elapsed = duration_us(start, end) if start < end else 0
+    elapsed = duration_us(start, coverage_end) if start < coverage_end else 0
     # Floor the displayed percentage so a genuine small gap cannot round to100.
     hundredths = min(10000, covered * 10000 // elapsed) if elapsed else 0
     return dict(energy_kwh=decimal_text(quanta_energy(total)) if selected else None,
@@ -44,6 +47,8 @@ async def read_dashboard(service):
         building, revisions = await service._context(uow)
         cutoff = service.clock.now()
         day = containing_block(cutoff, 'day', building.timezone)
+        quarter = timedelta(minutes=15)
+        coverage_end = day.start + ((cutoff - day.start) // quarter) * quarter
         categories, series, chart_excluded_count = [], [], 0
         for category in CATEGORIES:
             source = await service.source_status(category.id, cutoff_at=cutoff, unit_of_work=uow)
@@ -58,25 +63,28 @@ async def read_dashboard(service):
                 limited = bool(stored.diagnostics or stored.crossing_diagnostic_ids or stored.withdrawn_record_ids or stored.crossing_record_ids)
             else:
                 rows, limited = (), False
-            summary = summarize(rows, day.start, cutoff)
+            summary = summarize(rows, day.start, cutoff, coverage_end=coverage_end)
             if summary['last_reading_at'] is not None:
                 summary['last_reading_at'] = timestamp(summary['last_reading_at'], building.timezone)
+            # Each selectable category has its own exact bins from this same read snapshot.
+            category_series, chart_rows = [], 0
+            cursor = day.start
+            while cursor + quarter <= cutoff:
+                end = cursor + quarter
+                bin_value = summarize(rows, cursor, end)
+                chart_rows += sum(cursor <= r.start < r.end <= end for r in rows)
+                category_series.append(dict(start=timestamp(cursor, building.timezone), end=timestamp(end, building.timezone),
+                    energy_kwh=bin_value['energy_kwh'], coverage_percent=bin_value['coverage_percent']))
+                cursor = end
+            excluded = len(rows) - chart_rows
             categories.append(dict(id=category.id, name=category.name, source_mode=source['source_mode'],
-                base_categories=source['base_categories'], **summary,
+                base_categories=source['base_categories'], **summary, series=category_series, chart_excluded_count=excluded,
                 state='no_meter' if source['source_mode'] == 'unavailable' and not rows else
                     'no_data' if not rows else 'incomplete' if limited or summary['covered_duration_us'] != summary['elapsed_duration_us'] else 'available'))
             if category.id == 'CAT-01':
-                chart_rows = 0
-                cursor = day.start
-                while cursor + timedelta(minutes=15) <= cutoff:
-                    end = cursor + timedelta(minutes=15)
-                    bin_value = summarize(rows, cursor, end)
-                    chart_rows += sum(cursor <= r.start < r.end <= end for r in rows)
-                    series.append(dict(start=timestamp(cursor, building.timezone), end=timestamp(end, building.timezone),
-                        energy_kwh=bin_value['energy_kwh'], coverage_percent=bin_value['coverage_percent']))
-                    cursor = end
-                chart_excluded_count = len(rows) - chart_rows
+                series, chart_excluded_count = category_series, excluded
         return dict(timezone=building.timezone, cutoff_at=timestamp(cutoff, building.timezone),
+            coverage_end_at=timestamp(coverage_end, building.timezone),
             period=dict(start=timestamp(day.start, building.timezone), end=timestamp(day.end, building.timezone), timezone=building.timezone),
             categories=categories, series=series,
             chart_excluded_count=chart_excluded_count)

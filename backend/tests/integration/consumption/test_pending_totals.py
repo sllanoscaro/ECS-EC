@@ -219,3 +219,28 @@ async def test_empty_basis_and_physical_total_never_create_substitute(history_en
     async with UnitOfWork(database.sessions) as uow:
         assert not (await uow.session.scalars(select(TotalEvaluationRequest))).all()
         assert not (await uow.session.scalars(select(IncorporatedRecord).where(IncorporatedRecord.kind == 'calculated'))).all()
+
+
+async def test_local_calendar_bootstrap_then_next_quarter_without_extra_delay(history_environment, database, clock):
+    """At18:20 ingest through18:15, then at18:30 accept/calculatetotal immediately after only600s."""
+    from datetime import datetime, UTC
+    from ecs_ec.consumption.reception import Reception
+    from backend.tests.contract.consumption.test_reception_contract import PROCESS
+    await calculated_config(database, clock)
+    target = datetime(2026, 1, 3, 18, 20, tzinfo=UTC)
+    clock.advance((target-clock.now()).total_seconds())
+    service = Reception(database, clock, authorized_processes={PROCESS:{BUILDING}}, calendar_processes={PROCESS})
+    first = partials('2026-01-03T18:00:00Z', '2026-01-03T18:15:00Z')
+    assert all(r.status == 'accepted' for r in (await publish(service, first)).results)
+    clock.advance(599)
+    next_rows = partials('2026-01-03T18:15:00Z', '2026-01-03T18:30:00Z')
+    assert all(r.reason_code == 'too_early' for r in (await publish(service, next_rows)).results)
+    clock.advance(1)
+    # A fresh adapter simulates restart: no process-local bypass or timer reset is needed.
+    service = Reception(database, clock, authorized_processes={PROCESS:{BUILDING}}, calendar_processes={PROCESS})
+    assert all(r.status == 'accepted' for r in (await publish(service, next_rows)).results)
+    async with UnitOfWork(database.sessions) as uow:
+        totals = (await uow.session.scalars(select(IncorporatedRecord).where(IncorporatedRecord.kind=='calculated'))).all()
+        assert len(totals) == 2
+        assert all(row.energy_kwh == 3 for row in totals)
+        assert max(row.end for row in totals) == datetime(2026, 1, 3, 18, 30, tzinfo=UTC)

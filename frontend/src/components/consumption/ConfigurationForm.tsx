@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { consumptionApi, type Category, type CategoryId, type Configuration, type ConfigurationInput, type SourceEntry } from "../../lib/api/consumption";
+import { consumptionApi, type Category, type CategoryId, type Configuration, type ConfigurationInput, type SourceEntry, type AvailableSource } from "../../lib/api/consumption";
 import { Problem } from "../../lib/api/session";
 
 /** Predict source changes for explanation only; the server derives and validates all actual revisions. */
@@ -16,8 +16,8 @@ function signature(entries: readonly SourceEntry[], category: CategoryId): strin
 }
 
 /** Edit seven physical sources while preserving drafts on conflict/dependency errors; callbacks perform authorized IO. */
-export function ConfigurationForm({ configuration, timezone, categories, save = consumptionApi.configure, reload = consumptionApi.configuration }: {
-  configuration: Configuration | null; timezone: string; categories: readonly Category[];
+export function ConfigurationForm({ configuration, timezone, categories, availableSources = [], save = consumptionApi.configure, reload = consumptionApi.configuration }: {
+  availableSources?: readonly AvailableSource[]; configuration: Configuration | null; timezone: string; categories: readonly Category[];
   save?: (input: ConfigurationInput) => Promise<Configuration>; reload?: () => Promise<Configuration>;
 }) {
   const [current, setCurrent] = useState(configuration);
@@ -76,7 +76,17 @@ export function ConfigurationForm({ configuration, timezone, categories, save = 
         /** Keep every category configurable, including an absent total and an entirely empty basis. */
         const entry = entries.find(item => item.category_id === category.id)!;
         return <fieldset key={category.id}><legend>{category.id} · {category.name}</legend>
-          <label><input type="checkbox" checked={entry.has_meter} onChange={event => { edit(category.id, event.target.checked ? { has_meter: true } : { has_meter: false, source_id: null, source_label: null }); }} />Con medidor {category.id}</label>
+          {category.id === "CAT-01" ? <label>Origen de la energía total
+            <select value={entry.has_meter ? "measured" : "calculated"} onChange={event => {
+              edit(category.id, event.target.value === "measured" ? { has_meter: true } : { has_meter: false, source_id: null, source_label: null });
+            }}><option value="calculated">Total calculado de las categorías</option><option value="measured">Medidor propio del total</option></select>
+          </label> : <label><input type="checkbox" checked={entry.has_meter} onChange={event => { edit(category.id, event.target.checked ? { has_meter: true } : { has_meter: false, source_id: null, source_label: null }); }} />Con medidor {category.id}</label>}
+          {category.id === "CAT-01" && entry.has_meter && availableSources.length > 0 && <label>Medidor del total
+            <select value={entry.source_id ?? ""} onChange={event => {
+              const source = availableSources.find(item => item.source_id === event.target.value);
+              if (source) edit(category.id, source);
+            }}><option value="">Seleccionar fuente existente</option>{availableSources.map(source => <option key={source.source_id} value={source.source_id}>{source.source_label}</option>)}</select>
+          </label>}
           {entry.has_meter && <>
             <label>Fuente UUID {category.id}<input required pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" value={entry.source_id ?? ""} onChange={event => { edit(category.id, { source_id: event.target.value }); }} /></label>
             <label>Etiqueta {category.id}<input required maxLength={200} value={entry.source_label ?? ""} onChange={event => { edit(category.id, { source_label: event.target.value }); }} /></label>

@@ -70,9 +70,44 @@ async def test_daily_capture_shares_cutoff_and_never_adds_partial_categories(mon
     data = DashboardView.model_validate(await module.read_dashboard(service))
     assert data.categories[0].energy_kwh == '5'  # Never605 from six100kWh partials.
     assert data.categories[1].energy_kwh == '100'
+    assert data.categories[0].series == data.series
+    assert data.categories[0].chart_excluded_count == 1
+    for category in data.categories[1:]:
+        assert len(category.series) == 58
+        assert category.series[0].energy_kwh == '100'
+        assert category.series[1].energy_kwh is None
+        assert category.chart_excluded_count == 0
+    assert data.coverage_end_at == '2026-01-01T14:30:00+00:00'
+    assert data.categories[0].elapsed_duration_us == str(870 * 60 * 1000000)
     assert len(data.series) == 58
     assert data.series[1].energy_kwh == '0'
     assert data.series[2].energy_kwh is None  # One-hour crossing is not divided into fake quarter-hours.
     assert data.chart_excluded_count == 1
     assert data.series[-1].end == '2026-01-01T14:30:00+00:00'
     session.execute.assert_awaited_once()
+
+
+def test_closed_quarters_are_stable_between_refreshes_without_hiding_missing_data():
+    """Full evidence through18:15 stays100% at18:20/18:29; a missing closed quarter stays partial."""
+    records = [row(i, i+15) for i in range(0, 18*60+15, 15)]
+    closed = START + timedelta(hours=18, minutes=15)
+    first = summarize(records, START, START+timedelta(hours=18, minutes=20), coverage_end=closed)
+    later = summarize(records, START, START+timedelta(hours=18, minutes=29, seconds=59), coverage_end=closed)
+    assert first == later
+    assert first['coverage_percent'] == '100.00'
+    next_close = START + timedelta(hours=18, minutes=30)
+    missing = summarize(records, START, next_close, coverage_end=next_close)
+    assert Decimal(missing['coverage_percent']) < 100
+    records.append(row(18*60+15, 18*60+30))
+    assert summarize(records, START, next_close, coverage_end=next_close)['coverage_percent'] == '100.00'
+    assert Decimal(summarize(records[1:], START, next_close, coverage_end=next_close)['coverage_percent']) < 100
+
+
+def test_no_closed_quarters_and_crossing_evidence_preserve_exact_energy():
+    """Before00:15 coverage has no denominator; clipping covered time never prorates energy."""
+    early = summarize([], START, START+timedelta(minutes=7), coverage_end=START)
+    assert early['elapsed_duration_us'] == '0'
+    assert early['energy_kwh'] is None
+    crossing = summarize([row(0, 20, '4')], START, START+timedelta(minutes=23), coverage_end=START+timedelta(minutes=15))
+    assert crossing['energy_kwh'] == '4'
+    assert crossing['coverage_percent'] == '100.00'

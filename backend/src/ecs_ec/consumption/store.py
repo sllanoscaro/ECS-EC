@@ -44,11 +44,13 @@ async def classify(uow, measurement):
     return ('overlapping_interval', None) if overlapping else ('new', None)
 
 
-def advance_state(state, global_state, records, now):
-    """Advance once for committed novelties; caller must include this in their category transaction."""
+def advance_state(state, global_state, records, now, *, calendar=False):
+    """Advance committed novelties atomically; explicit local calendar mode uses the next quarter hour."""
     if not records: return
+    state.calendar_admission = calendar
     state.last_new_data_at = now
-    state.next_admissible_at = now + timedelta(seconds=900)
+    state.next_admissible_at = (now.replace(minute=now.minute//15*15, second=0, microsecond=0) + timedelta(minutes=15)
+        if calendar else now + timedelta(seconds=900))
     state.latest_interval_end = max([r.end for r in records] + ([state.latest_interval_end] if state.latest_interval_end else []))
     state.revision += 1
     global_state.has_accepted_history = True

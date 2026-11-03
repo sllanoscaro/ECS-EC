@@ -45,8 +45,17 @@ class Catalog(DomainModel):
     categories: tuple[CategoryStatus, ...]
 
 
+class DailyPointView(DomainModel):
+    """Completed quarter-hour projection; null is absence, never an inferred zero."""
+
+    start: str
+    end: str
+    energy_kwh: str | None
+    coverage_percent: str
+
+
 class DailyCategoryView(DomainModel):
-    """Captured daily energy and elapsed coverage, with historical source semantics."""
+    """Captured daily energy and closed-quarter coverage, with historical source semantics."""
 
     id: CategoryId
     name: str
@@ -58,15 +67,8 @@ class DailyCategoryView(DomainModel):
     elapsed_duration_us: str
     last_reading_at: str | None
     state: Literal['available', 'incomplete', 'no_data', 'no_meter']
-
-
-class DailyPointView(DomainModel):
-    """Completed quarter-hour projection; null is absence, never an inferred zero."""
-
-    start: str
-    end: str
-    energy_kwh: str | None
-    coverage_percent: str
+    series: tuple[DailyPointView, ...]
+    chart_excluded_count: int = Field(ge=0)
 
 
 class DashboardView(DomainModel):
@@ -74,6 +76,7 @@ class DashboardView(DomainModel):
 
     timezone: Timezone
     cutoff_at: str
+    coverage_end_at: str
     period: PeriodView
     categories: tuple[DailyCategoryView, ...]
     series: tuple[DailyPointView, ...]

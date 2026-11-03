@@ -109,3 +109,11 @@ energía, cobertura y extremos disponibles; conserva diferencias y limitaciones.
 Un proveedor unavailable, bloques excluidos o extremos retirados nunca acreditan éxito
 vacío. La revisión documental19, reproducción por otra persona y aceptación integral
 permanecen abiertas en la [evidencia003](../../specs/003-simulador-pas600-sftp/validation/acceptance.md).
+
+La demostración automática de desarrollo usa un perfil de transporte separado,
+`local_calendar=true`, permitido solo con ENVIRONMENT=local. Carga el día inmediatamente
+y publica al cierre de los cuartos de hora; no acredita la cadencia estricta de900s.
+`generate_run(..., emit_from=...)` permite emitir un sufijo de canales por intervalo
+manteniendo la semilla e índices diarios; el manifiesto registra el corte y el oráculo
+contiene solo las muestras emitidas. La CLI normal mantiene sus valores predeterminados.
+Ver [operación y límites de la demo](../../deploy/demo/README.md).

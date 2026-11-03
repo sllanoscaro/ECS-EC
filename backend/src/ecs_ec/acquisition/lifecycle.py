@@ -14,14 +14,36 @@ from ecs_ec.consumption.queries import Consumption
 from ecs_ec.consumption.store import MeasurementStore
 
 
-async def recovery_loop(service):
+async def recovery_loop(service, demo_file=None):
     """Recover durable work independently of sessions; expected transient failures retain pending003 state for retry."""
     while True:
-        try:await service.recover()
+        try:
+            await service.recover()
+            if demo_file:
+                await export_demo_configuration(service, demo_file)
         except asyncio.CancelledError:raise
         except Exception:
             service.signal(None,stage='observe',outcome='unexpected_error')
         await asyncio.sleep(1)
+
+
+async def export_demo_configuration(service, filename):
+    """Share only local source metadata with the external demo publisher, never session credentials."""
+    import json
+    from pathlib import Path
+    from ecs_ec.consumption.catalog_storage import read_revisions
+    from ecs_ec.core.unit_of_work import UnitOfWork
+    async with UnitOfWork(service.database.sessions) as uow:
+        revision = (await read_revisions(uow, service.consumption.building_id))[-1]
+        payload = json.dumps(dict(revision=revision.revision, timezone=revision.timezone,
+            categories=[c.model_dump(mode='json') for c in revision.categories]), sort_keys=True)
+    path = Path(filename)
+    if path.exists() and path.read_text() == payload:
+        return
+    temporary = path.with_suffix('.tmp')
+    temporary.write_text(payload)
+    temporary.chmod(0o600)
+    temporary.replace(path)
 
 
 def acquisition_module(clock,settings=None):
@@ -48,12 +70,13 @@ def acquisition_module(clock,settings=None):
                 if not bindings:raise ValueError('acquisition_binding_required')
                 await abort_receiving(database,clock)
                 processes={'process:acquisition:'+str(row.id):{row.building_id} for row in bindings}
-                reception=Reception(database,clock,authorized_processes=processes)
+                reception=Reception(database,clock,authorized_processes=processes,
+                    calendar_processes=processes if app.state.settings.demo_calendar else ())
                 consumption=Consumption(database,clock,bindings[0].building_id,MeasurementStore())
                 service=Acquisition(database,clock,settings,reception,consumption,getattr(app.state,'telemetry',None))
                 app.state.acquisition=service
                 listener=await start_listener(database,clock,settings,getattr(app.state,'telemetry',None))
-                job=asyncio.create_task(recovery_loop(service),name='acquisition-recovery')
+                job=asyncio.create_task(recovery_loop(service, '/acquisition/configuration.json' if app.state.settings.demo_calendar else None),name='acquisition-recovery')
                 yield
             finally:
                 if listener:

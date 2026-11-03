@@ -1,0 +1,52 @@
+# Automatic local demonstration. Use `docker compose -f compose.yaml ...` for real deployments.
+services:
+  db:
+    restart: unless-stopped
+  demo-setup:
+    image: ecs-ec-platform:local
+    user: root
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ecs_local}:${POSTGRES_PASSWORD:?Set an external PostgreSQL password}@db:5432/${POSTGRES_DB:-ecs_local}
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      BUILDING_TIMEZONE: ${BUILDING_TIMEZONE:-America/Santiago}
+      IDENTITY_BUILDING_ID: ${IDENTITY_BUILDING_ID:-00000000-0000-0000-0000-000000000001}
+      PAS600_MAINTENANCE_PROCESSES: process:pas600-demo
+    volumes:
+      - demo_data:/demo
+      - ./deploy/demo:/runner:ro
+    command: [/app/.venv/bin/python, /runner/setup.py]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  app:
+    restart: unless-stopped
+    depends_on:
+      demo-setup:
+        condition: service_completed_successfully
+    environment:
+      DEMO_CALENDAR: 'true'
+      PAS600_SFTP_ENABLED: 'true'
+      PAS600_STORAGE: /acquisition/bytes
+      PAS600_HOST_KEY_FILE: /run/secrets/demo/server/host_key
+      PAS600_AUTH_FILE: /run/secrets/demo/server/auth.json
+      PAS600_MAINTENANCE_PROCESSES: process:pas600-demo
+    volumes:
+      - demo_data:/acquisition
+      - demo_data:/run/secrets/demo:ro
+    # Override paths instead of replacing existing protected mounts.
+  simulator:
+    build:
+      context: .
+      dockerfile: deploy/demo/Dockerfile
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      BUILDING_TIMEZONE: ${BUILDING_TIMEZONE:-America/Santiago}
+    volumes:
+      - demo_data:/demo
+    depends_on:
+      app:
+        condition: service_healthy
+    stop_grace_period: 25s
+volumes:
+  demo_data:

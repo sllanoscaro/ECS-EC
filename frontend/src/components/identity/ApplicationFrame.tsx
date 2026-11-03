@@ -1,6 +1,7 @@
 /** Responsive application shell and actual building-time context, populated after hydration. */
 "use client";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { Navigation, type NavigationLink } from './Navigation';
 import { Icon } from './Icon';
 import { useSession } from './SessionProvider';
@@ -22,6 +23,8 @@ function FooterClock({ timezone }: { timezone: string | null }) {
 /** Keep desktop collapse and keyboard-dismissable mobile navigation distinct, with one shared footer. */
 export function ApplicationFrame({ children, links }: { children: ReactNode; links: NavigationLink[] }) {
   const { status } = useSession();
+  const pathname = usePathname();
+  const isLogin = pathname?.replace(/\/$/, '') === '/ingreso';
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [timezone, setTimezone] = useState<string | null>(null);
@@ -29,6 +32,8 @@ export function ApplicationFrame({ children, links }: { children: ReactNode; lin
   useEffect(() => { if (status !== 'authenticated') { setTimezone(null); setMobileOpen(false); } }, [status]);
   /** Restore focus to the mobile disclosure after keyboard dismissal. */
   function closeMenu() { setMobileOpen(false); menu.current?.focus(); }
+  // The public login owns a centered canvas at every session state, including hydration.
+  if (isLogin) return <div className="login-frame"><a className="skip-link" href="#login-content">Ir al contenido</a>{children}<footer className="login-footer">ECS-EC · Electro Conforma</footer></div>;
   return <BuildingTime.Provider value={setTimezone}><div className={`app-frame ${collapsed ? 'shell--collapsed' : ''}`} data-mobile-open={mobileOpen} onKeyDown={event => { if (event.key === 'Escape' && mobileOpen) closeMenu(); }}>
     <a className="skip-link" href="#page-content">Ir al contenido</a>
     <header className="mobile-header"><button ref={menu} type="button" className="icon-button" aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={mobileOpen} aria-controls="app-navigation" onClick={() => setMobileOpen(value => !value)}><Icon name="menu" /></button><span>Electro Conforma</span></header>

@@ -58,7 +58,7 @@ async function fixtures(context, role, scenario, unknown) {
       const start = '2026-11-02T00:00:00-03:00';
       const series = Array.from({length: 58}, (_, i) => ({ start: new Date(Date.parse(start) + i * 900000).toISOString(), end: new Date(Date.parse(start) + (i + 1) * 900000).toISOString(), energy_kwh: scenario === 'empty' ? null : String(i < 24 ? 2 : 10 + i % 4), coverage_percent: scenario === 'empty' ? '0' : '100' }));
       const energy = series.reduce((sum, r) => sum + Number(r.energy_kwh ?? 0), 0);
-      return reply({timezone: period.timezone, cutoff_at: '2026-11-02T14:32:08-03:00', period: {start, end: '2026-11-03T00:00:00-03:00', timezone: period.timezone}, chart_excluded_count: 0, series, categories: categories.map((c, i) => ({...c, state: scenario === 'empty' ? 'no_data' : c.has_meter ? 'available' : 'no_meter', energy_kwh: scenario === 'empty' || !c.has_meter ? null : String(i === 0 ? energy : [0, 160, 45, 84, 132][i]), coverage_percent:'99.75', covered_duration_us:'52200000000', elapsed_duration_us:'52328000000', last_reading_at:'2026-11-02T14:30:00-03:00'}))});
+      return reply({timezone: period.timezone, cutoff_at: '2026-11-02T14:32:08-03:00', period: {start, end: '2026-11-03T00:00:00-03:00', timezone: period.timezone}, chart_excluded_count: 0, series, categories: categories.map((c, i) => ({...c, series: series.map(point => ({...point, energy_kwh: !c.has_meter || point.energy_kwh === null ? null : String(Number(point.energy_kwh) * (i === 0 ? 1 : 1 / (i + 1)))})), chart_excluded_count: 0, state: scenario === 'empty' ? 'no_data' : c.has_meter ? 'available' : 'no_meter', energy_kwh: scenario === 'empty' || !c.has_meter ? null : String(i === 0 ? energy : [0, 160, 45, 84, 132][i]), coverage_percent:'99.75', covered_duration_us:'52200000000', elapsed_duration_us:'52328000000', last_reading_at:'2026-11-02T14:30:00-03:00'}))});
     }
     if (path === '/consumption/catalog') return reply(catalog);
     if (path === '/consumption/configuration') return reply(configuration);
@@ -115,7 +115,7 @@ async function capture(path, viewport, role, scenario) {
     if (['/', '/consumption/'].includes(path) && role === 'admin' && scenario === 'populated') {
       if (viewport.width >= 900) {
         await page.getByRole('button', {name:'Plegar panel lateral'}).click();
-        await page.getByRole('button', {name:'Expandir panel lateral'}).click();
+        await page.locator('nav [aria-current="page"]').click();
       } else {
         await page.getByRole('button', {name:'Abrir menú'}).click();
         await page.locator('nav [aria-current="page"]').waitFor({state:'visible'});
@@ -124,6 +124,56 @@ async function capture(path, viewport, role, scenario) {
       }
       const activeStyle = await page.locator('nav [aria-current="page"]').evaluate(el => ({background:getComputedStyle(el).backgroundColor, color:getComputedStyle(el).color}));
       if (activeStyle.background !== 'rgb(79, 154, 23)' || activeStyle.color !== 'rgb(255, 255, 255)') throw new Error('El enlace activo no conserva los colores aprobados.');
+    }
+    if (path === '/' && scenario === 'populated') {
+      const totalPaths = await page.locator('[data-series="smooth"]').evaluateAll(paths => paths.map(p => p.getAttribute('d')));
+      const category = page.getByRole('button', { name: /Iluminación exterior/ });
+      await category.focus();
+      await page.keyboard.press('Enter');
+      if (await category.getAttribute('aria-pressed') !== 'true') throw new Error('Category selection missing.');
+      if (await page.locator('[data-series="smooth"]').first().getAttribute('stroke') !== '#7A6EAB') throw new Error('Incorrect category color.');
+      const reset = page.getByRole('button', { name: 'Ver consumo total' });
+      if (await page.locator('.dashboard-series').evaluate(el => getComputedStyle(el).animationName) !== 'dashboard-series-fade') throw new Error('Reduced motion alternative missing.');
+      const amount = category.locator('.category-energy');
+      const amountStyle = await amount.evaluate(el => ({ color: getComputedStyle(el).color, weight: getComputedStyle(el).fontWeight, text: el.textContent }));
+      if (amountStyle.color !== 'rgb(122, 110, 171)' || amountStyle.weight !== '700' || !amountStyle.text.endsWith(' kWh')) throw new Error('Category energy must be bold, colored and include kWh.');
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await reset.click();
+      if (await page.locator('.dashboard-series').evaluate(el => getComputedStyle(el).animationName) !== 'dashboard-series-reveal') throw new Error('Total transition missing.');
+      await category.click();
+      if (await page.locator('.dashboard-series').evaluate(el => getComputedStyle(el).animationName) !== 'dashboard-series-reveal') throw new Error('Category transition missing.');
+      await page.locator('.dashboard-series').evaluate(async el => { await Promise.all(el.getAnimations().map(animation => animation.finished)); });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      if (await reset.evaluate(el => getComputedStyle(el).color) !== 'rgb(93, 101, 99)') throw new Error('Reset button must be gray.');
+      if (viewport.width >= 900) {
+        const legendTop = await page.locator('.chart-legend>span').evaluateAll(spans => spans.map(el => el.getBoundingClientRect().top));
+        if (Math.max(...legendTop) - Math.min(...legendTop) > 2) throw new Error('Refresh note is not aligned with the legend.');
+      }
+      const point = page.locator('.chart-panel [role="graphics-symbol"][data-kind="bar"]').last();
+      await point.focus();
+      const tooltip = page.getByRole('tooltip');
+      if (!/^\d+(?:\.\d{3})*,\d kWh · \d{2}:\d{2}:\d{2}$/.test(await tooltip.textContent())) throw new Error('Dashboard tooltip format is incorrect.');
+      if (await page.locator('p.chart-tooltip').count()) throw new Error('Measurement still appears below the chart.');
+      if (viewport.width >= 900) {
+        const chartBox = await page.locator('.chart-panel').boundingBox();
+        const categoryBox = await page.locator('.category-panel').boundingBox();
+        const hvacLines = await page.getByRole('button', { name: /HVAC y agua caliente sanitaria/ }).locator('.category-label>span').evaluate(el => {
+          const range = document.createRange(); range.selectNodeContents(el); return range.getClientRects().length;
+        });
+        if (hvacLines !== 1) throw new Error('HVAC category name must occupy one line on desktop.');
+        if (chartBox.width <= categoryBox.width) throw new Error('Chart must remain wider than category panel.');
+        if (chartBox.height >= categoryBox.height) throw new Error('Chart panel still stretches to category panel height.');
+      }
+      await page.evaluate(() => scrollTo(0, 0));
+      await page.screenshot({ path: resolve(output, `${slug}-selected.png`), fullPage: true });
+      await page.getByRole('button', { name: /Iluminación interior/ }).click();
+      if (await category.getAttribute('aria-pressed') !== 'false') throw new Error('Old category stays selected.');
+      if (await page.locator('[data-series="smooth"]').first().getAttribute('stroke') !== '#2876B7') throw new Error('Second category color missing.');
+      await page.getByRole('button', { name: /Ascensores/ }).click();
+      if (await page.locator('[data-series="smooth"]').count()) throw new Error('Missing meter must have no curve.');
+      await reset.click();
+      const restoredPaths = await page.locator('[data-series="smooth"]').evaluateAll(paths => paths.map(p => p.getAttribute('d')));
+      if (JSON.stringify(totalPaths) !== JSON.stringify(restoredPaths) || await reset.count()) throw new Error('Original total was not restored.');
     }
     if (role === 'admin' && path === '/administracion/costos/' && scenario !== 'error') await page.getByRole('heading', { name: /Suministro general/ }).waitFor();
     if (scenario === 'hour') await page.goto(`${baseURL}${path}?escala=hour`, {waitUntil:'networkidle'});

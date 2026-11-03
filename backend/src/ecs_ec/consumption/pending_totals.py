@@ -45,10 +45,11 @@ async def _incorporate(uow, candidate, state, update, now, timezone, correlation
 class PendingTotals:
     """Recover requests without candidates and pending incorporation, independent from source re-sends/GET."""
 
-    def __init__(self, database, clock, *, sessions=None):
+    def __init__(self, database, clock, *, sessions=None, calendar=False):
         """Receive shared009 DB/clock; each run uses fresh READ COMMITTED category transactions."""
         self.database, self.clock = database, clock
         self.sessions = sessions or database.sessions
+        self.calendar = calendar
         self.calculator = TotalCalculator()
 
     async def run_due(self, building_id=None):
@@ -132,7 +133,7 @@ class PendingTotals:
                     diagnostic.next_admissible_at, diagnostic.incorporated_record_id = None, record.id
                     diagnostic.updated_at = now
                     records.append(record)
-                advance_state(state, global_state, records, now)
+                advance_state(state, global_state, records, now, calendar=self.calendar)
                 update.next_admissible_at = state.next_admissible_at
                 await append_update_events(uow, update, records, [], str(update.id), self.clock, building.timezone)
             await self._finish_requests(uow, requests, now)

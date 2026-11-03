@@ -31,5 +31,11 @@ async def test_dashboard_authorization_exact_projection_and_no_business_writes(c
     assert categories['CAT-01']['energy_kwh'] is None
     assert len(data['series']) == 90  #22:30 local on the previous date, not a future full day.
     assert all(point['energy_kwh'] is None for point in data['series'])
+    # Manual refreshes inside the same quarter must not change coverage or its denominator.
+    clock.advance(60)
+    refreshed = (await client.get('/api/v1/consumption/dashboard', headers={'X-Session-Activity': 'background'})).json()
+    assert refreshed['cutoff_at'] != data['cutoff_at']
+    assert refreshed['coverage_end_at'] == data['coverage_end_at']
+    assert refreshed['categories'] == data['categories']
     async with UnitOfWork(database.sessions) as uow:
         assert [(r.id, r.retain_until) for r in (await uow.session.scalars(select(IncorporatedRecord))).all()] == before

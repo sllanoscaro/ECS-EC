@@ -6,7 +6,7 @@ test.skip(!process.env.COSTS_INITIAL_E2E, "Requires seed_costs_reference.py --wi
 test("create supply and initial published calendar, calculate and reload", async ({ page }) => {
   const password = readFileSync(process.env.IDENTITY_E2E_PASSWORD_FILE!, "utf8").replace(/\n$/, "");
   await page.goto("/ingreso/");
-  await page.getByLabel("Correo", { exact: true }).fill("admin-active@example.test");
+  await page.getByLabel("Correo electrónico", { exact: true }).fill("admin-active@example.test");
   await page.getByLabel("Contraseña", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await expect(page).toHaveURL(/\/cuenta\/$/);
@@ -15,7 +15,7 @@ test("create supply and initial published calendar, calculate and reload", async
   await page.getByLabel("Confirmar nueva contraseña", { exact: true }).fill(password + " renewed");
   await page.getByRole("button", { name: "Cambiar contraseña", exact: true }).click();
   await expect(page).toHaveURL(/\/ingreso\/$/);
-  await page.getByLabel("Correo", { exact: true }).fill("admin-active@example.test");
+  await page.getByLabel("Correo electrónico", { exact: true }).fill("admin-active@example.test");
   await page.getByLabel("Contraseña", { exact: true }).fill(password + " renewed");
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await expect(page).toHaveURL(/\/cuenta\/$/);

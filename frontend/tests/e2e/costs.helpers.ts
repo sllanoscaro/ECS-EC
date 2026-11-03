@@ -6,7 +6,7 @@ import { expect, type Page } from "@playwright/test";
 export async function loginCosts(page: Page, role = "admin") {
   const password = readFileSync(process.env.IDENTITY_E2E_PASSWORD_FILE!, "utf8").replace(/\n$/, "") + " renewed";
   await page.goto("/ingreso/");
-  await page.getByLabel("Correo", { exact: true }).fill(`${role}-active@example.test`);
+  await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
   await page.getByLabel("Contraseña", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await expect(page).toHaveURL(/\/cuenta\/$/);

@@ -418,13 +418,14 @@ class BuildingReceptionState(Base):
 
 
 class CategoryReceptionState(RevisionRow, Base):
-    """Durable900s admission and all-time maximum independent from retained payloads."""
+    """Durable admission policy (strict900s by default) and all-time maximum, independent of retention."""
 
     __tablename__ = 'category_reception_state'
     __table_args__ = (CheckConstraint('revision > 0', name='revision'),
-        CheckConstraint("(last_new_data_at IS NULL AND next_admissible_at IS NULL AND latest_interval_end IS NULL) OR (last_new_data_at IS NOT NULL AND next_admissible_at = last_new_data_at + interval '900 seconds' AND latest_interval_end IS NOT NULL)", name='admission'))
+        CheckConstraint("(last_new_data_at IS NULL AND next_admissible_at IS NULL AND latest_interval_end IS NULL) OR (last_new_data_at IS NOT NULL AND latest_interval_end IS NOT NULL AND ((NOT calendar_admission AND next_admissible_at = last_new_data_at + interval '900 seconds') OR (calendar_admission AND next_admissible_at > last_new_data_at AND next_admissible_at <= last_new_data_at + interval '900 seconds' AND mod(extract(epoch from next_admissible_at),900)=0)))", name='admission'))
     building_id: Mapped[UUID] = mapped_column(ForeignKey('consumption_building.id', ondelete='RESTRICT'), primary_key=True)
     category_id: Mapped[str] = mapped_column(ForeignKey('consumption_category.id', ondelete='RESTRICT'), primary_key=True)
+    calendar_admission: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text('false'))
     last_new_data_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     next_admissible_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     latest_interval_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

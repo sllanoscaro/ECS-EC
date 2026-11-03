@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 from ecs_ec.consumption.telemetry import observe
-from ecs_ec.consumption.catalog_storage import read_revisions
+from ecs_ec.consumption.catalog_storage import read_revisions, MeasurementSourceRow
 from ecs_ec.consumption.configuration import ConfigurationError, ConfigurationService
 from ecs_ec.consumption.models import ConfigurationInput
 from ecs_ec.consumption.queries import InvalidSelection
@@ -82,6 +82,17 @@ async def configuration(request: Request):
         if not revisions:
             raise ConsumptionProblem('configuration_missing', 404)
         return configuration_view(revisions[-1])
+
+
+@router.get('/configuration/sources', dependencies=[Depends(require_action('consumption.configuration.manage'))])
+async def configuration_sources(request: Request) -> list[dict[str, str]]:
+    """Offer existing installation sources to administrators without inferring a new physical identity."""
+    service = request.app.state.consumption
+    async with UnitOfWork(service.database.sessions) as uow:
+        rows = (await uow.session.scalars(select(MeasurementSourceRow)
+            .where(MeasurementSourceRow.building_id == service.building_id)
+            .order_by(MeasurementSourceRow.label, MeasurementSourceRow.id))).all()
+        return [dict(source_id=str(row.id), source_label=row.label) for row in rows]
 
 
 @router.put('/configuration', response_model=Configuration, dependencies=[Depends(require_action('consumption.configuration.manage'))])

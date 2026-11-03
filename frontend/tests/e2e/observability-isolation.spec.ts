@@ -39,7 +39,7 @@ test("functional navigation retains006 permissions without a technical viewer", 
     const context = await browser.newContext({ baseURL: process.env.OBS_FUNCTIONAL_BASE_URL, ignoreHTTPSErrors: false });
     const page = await context.newPage();
     await page.goto("/ingreso/");
-    await page.getByLabel("Correo", { exact: true }).fill(`obs-${role}@example.test`);
+    await page.getByLabel("Correo electrónico", { exact: true }).fill(`obs-${role}@example.test`);
     await page.getByLabel("Contraseña", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
     await expect(page).toHaveURL(/\/cuenta\/$/);

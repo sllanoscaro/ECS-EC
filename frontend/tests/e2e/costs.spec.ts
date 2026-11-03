@@ -8,7 +8,7 @@ for (const role of ["admin", "operator"]) {
     /** Use ordinary login and password renewal, never a special authentication or calculation fixture endpoint. */
     const initial = readFileSync(process.env.IDENTITY_E2E_PASSWORD_FILE!, "utf8").replace(/\n$/, "");
     await page.goto("/ingreso/");
-    await page.getByLabel("Correo", { exact: true }).fill(`${role}-active@example.test`);
+    await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
     await page.getByLabel("Contraseña", { exact: true }).fill(process.env.COSTS_E2E_RENEWED ? initial + " renewed" : initial);
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
     await expect(page).toHaveURL(/\/cuenta\/$/);
@@ -18,7 +18,7 @@ for (const role of ["admin", "operator"]) {
       await page.getByLabel("Confirmar nueva contraseña", { exact: true }).fill(initial + " renewed");
       await page.getByRole("button", { name: "Cambiar contraseña", exact: true }).click();
       await expect(page).toHaveURL(/\/ingreso\/$/);
-      await page.getByLabel("Correo", { exact: true }).fill(`${role}-active@example.test`);
+      await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
       await page.getByLabel("Contraseña", { exact: true }).fill(initial + " renewed");
       await page.getByRole("button", { name: "Ingresar", exact: true }).click();
       await expect(page).toHaveURL(/\/cuenta\/$/);

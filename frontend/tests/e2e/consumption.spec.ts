@@ -11,7 +11,7 @@ for (const role of ["admin", "operator"]) {
     /** First renewal uses006's real form; reruns authenticate the renewed credential after a process/DB restart. */
     const { password: initial } = consumptionFixture();
     await page.goto("/ingreso/");
-    await page.getByLabel("Correo", { exact: true }).fill(`${role}-active@example.test`);
+    await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
     await page.getByLabel("Contraseña", { exact: true }).fill(process.env.CONSUMPTION_E2E_RENEWED ? initial + " renewed" : initial);
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
     await expect(page).toHaveURL(/\/cuenta\/$/);
@@ -21,7 +21,7 @@ for (const role of ["admin", "operator"]) {
       await page.getByLabel("Confirmar nueva contraseña", { exact: true }).fill(initial + " renewed");
       await page.getByRole("button", { name: "Cambiar contraseña", exact: true }).click();
       await expect(page).toHaveURL(/\/ingreso\/$/);
-      await page.getByLabel("Correo", { exact: true }).fill(`${role}-active@example.test`);
+      await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
       await page.getByLabel("Contraseña", { exact: true }).fill(initial + " renewed");
       await page.getByRole("button", { name: "Ingresar", exact: true }).click();
       await expect(page).toHaveURL(/\/cuenta\/$/);

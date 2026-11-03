@@ -31,12 +31,16 @@ def json_value(value):
     raise TypeError('unsupported control value')
 
 
-def generate_run(scenario, output: Path):
+def generate_run(scenario, output: Path, *, emit_from=None):
     """Stream one cycle of all measured channels at a time and freeze its evidence.
 
+    emit_from optionally emits an interval-only suffix while retaining the daily deterministic seed/index.
     Validate unsupported anomalies and name collisions before reserving output.
     Failures preserve a failed journal and never present partial data as generated.
     """
+    if emit_from is not None:
+        if not scenario.start <= emit_from < scenario.end or any(c.has_meter and c.meter.semantics != 'interval' for c in scenario.categories):
+            raise ValueError('invalid_emission_window')
     from pas600_simulator.anomalies import alter_sample, AnomalyAssignment
     from pas600_simulator.calendar import interval_count
     measured = sorted((c for c in scenario.categories if c.has_meter),key=lambda c:c.category_id)
@@ -46,6 +50,8 @@ def generate_run(scenario, output: Path):
     logical, complete = scenario_hashes(scenario)
     run = LocalRun.create(output, logical)
     manifest = asdict(ControlReport(profile_id=scenario.profile_id, seed=scenario.seed, logical_hash=logical, complete_hash=complete))
+    if emit_from is not None:
+        manifest['emit_from'] = emit_from.isoformat()
     counts = {c.category_id: {'state': 'measured' if c.has_meter else 'not_configured', 'expected': 0} for c in scenario.categories}
     try:
         atomic_json(output / 'control/scenario.safe.json', scenario.model_dump(mode='json'))
@@ -56,7 +62,7 @@ def generate_run(scenario, output: Path):
         with (output / 'control/expected.jsonl').open('x', encoding='utf-8') as expected, (output / 'control/anomalies.jsonl').open('x', encoding='utf-8') as anomalies:
             for batch in zip_longest(*iterators):
                 for sample in batch:
-                    if sample is None:
+                    if sample is None or (emit_from is not None and sample.start < emit_from):
                         continue
                     expected.write(json.dumps(asdict(sample), default=json_value, sort_keys=True) + '\n')
                     counts[sample.category_id]['expected'] += 1
