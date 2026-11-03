@@ -1,5 +1,50 @@
 # Aceptación parcial de spec-006
 
+## Estado vigente — continuación2026-11-03
+
+**73/87 tareas completas;14 pendientes.** Completadas006:T042/T075/T082/T083 con
+consultas reales001/002/004, dependencias administrativas e instrumentación propia007.
+Hay pruebas parciales de006:T068/T076 y actividad de lectura, sin declarar cerradas esas
+tareas ni la aceptación de US2/US4. Personas/VPS se difieren por instrucción del usuario.
+
+| Verificación del incremento | Resultado |
+| --- | --- |
+| Regresión backend local de plataforma, identidad, consumo, costos, preparación PDF y unidades del emisor |428 aprobadas en69,01s, sin omisiones. No incluye integración del stack externo007 ni generación PDF todavía inexistente. |
+| Vitest / TypeScript / export Next |53 pruebas aprobadas en23 archivos; typecheck y build aprobados. |
+| Playwright identidad |Un recorrido conjunto pasa: ambos perfiles, renovación, cuentas, historial, cierre entre pestañas y expiración. HTTP loopback con claves sintéticas y reloj privado. |
+| Documentación / contratos |AST de45 archivos Python006 y pruebas sin docstrings ausentes; contratos API y espacios/enlaces comprobados. |
+
+Comando de regresión final:
+
+```sh
+.venv/bin/pytest backend/tests/unit backend/tests/integration/identity backend/tests/integration/consumption backend/tests/integration/costs backend/tests/integration/core backend/tests/integration/audit backend/tests/integration/reports backend/tests/contract/identity backend/tests/contract/consumption backend/tests/contract/costs -q
+```
+
+Se usó `TEST_DATABASE_URL` hacia `ecs006_completion_test`, PostgreSQL18.3 desechable
+`ecs006-completion`, loopback55449. Navegador en otra base `ecs006_browser_test`; sin datos
+reales, secretos en Git ni endpoints de fixture. Contenedor/volumen exclusivos retirados
+al finalizar. No se modificaron dependencias, migraciones o checklists; requirements16/16.
+Selección persistida006 mediante script oficial; `.specify/extensions.yml` ausente antes
+y después, sin hooks que ejecutar. No se hizo commit ni despliegue.
+
+[Lecturas y límites de actividad](operator-matrix.md),
+[administración disponible y parcial](system-administration.md),
+[telemetría006](observability.md) y [regresión](regression.md) detallan evidencia y límites.
+La regresión detectó una prueba001 que contaba señales de todos los módulos; se corrigió
+el filtro de productor sin suprimir señales de identidad. Repetición final428/428.
+
+Permanecen pendientes006:T043/T046/T048/T049/T050/T068/T069/T076/T077/T078/T084/T085/T086/T087.
+PDF005 y SFTP003 deben entregar sus proveedores reales en sus propias specs. También
+faltan la integración completa de vistas/actividad, matrices y evidencias asociadas,
+personas, VPS y consolidación. No se implementan otros módulos desde006 ni se usa la
+preparación PDF existente como generación/descarga funcional. T084 tiene regresión local
+actualizada, pero conserva el prerrequisito de historias/integraciones completas.
+
+## Registro histórico — 2026-11-02
+
+Las cifras y estados siguientes corresponden al corte original; prevalece la actualización
+vigente anterior, sin reatribuir pruebas históricas al incremento actual.
+
 2026-11-02. **69/87 tareas completadas;18 pendientes por capacidades externas.** No se
 declara aceptación integral. Checklist de requisitos conservada16/16; no se modificaron
 sus marcadores por implementar. El repositorio estaba limpio al comenzar y no se hizo commit.

@@ -1,22 +1,22 @@
 # Integraciones pendientes por capacidad
 
-Actualización2026-11-03 por inspección estática. Los proveedores de consultas001/002,
-costos/mantenimiento004 y emisor básico007 ya existen. Siguen faltando generación/descarga005
-y receptor/publicador SFTP003. La disponibilidad no completa las18 tareas006 de integración
-y aceptación: ver [gates vigentes](prerequisites.md). No se ejecutaron nuevas pruebas ni se
-contaron omisiones como éxito; el participante concreto/SMTP sigue perteneciendo a008.
+Actualización2026-11-03 tras implementación y pruebas locales. Estado73/87;14 pendientes.
+Lectores001/002/004 e integración administrativaG3 verificados; instrumentación006 con
+emisor007 real disponible. Ver [matriz](operator-matrix.md), [administración](system-administration.md)
+y [telemetría](observability.md). No hay aceptación integral ni modificaciones de checklists.
 
-| Tareas006 pendientes | Gate/propietario y contrato/ruta |
+| Tareas006 pendientes | Capacidad y condición restante |
 | --- | --- |
-| T042/T046/T048/T049/T050 | G1: lectores001/002 y costos004; `backend/src/ecs_ec/consumption/router.py`, `costs/api.py` y sus contratos HTTP. |
-| T043/T046/T048/T049/T050 | G2: generación/descarga/replay005; `backend/src/ecs_ec/reports/api.py`, [HTTP005](../../005-generar-reportes-pdf/contracts/http.md). |
-| T068/T075/T076/T078 | G1/G2/G3: configuración001, suministro/perfiles/boletas/recálculo004 y validadores de recepción/retención002. No se crean paneles/API para los mínimos obligatorios002. |
-| T069/T077 | G4: receptor/publicador003 y entorno técnico007; [SFTP003](../../003-simulador-pas600-sftp/contracts/sftp-reception.md). |
-| T082/T083 | G5 disponible para operaciones ordinarias, instrumentación propia pendiente: emisor007, `backend/src/ecs_ec/observability/logging.py` y `tracing.py`. No se construyó otro emisor/cola. |
-| T084 | Regresión integral espera T083; regresión local y CI disponibles documentados en [regression](regression.md). |
-| T085 | G6 personas + vista real de datos. [Usabilidad](usability.md). |
-| T086 | G6 VPS009 + consultas/descargas reales. [VPS](vps.md). |
-| T087 | Consolidación/aceptación integral espera resultados reales de los gates anteriores; [aceptación parcial](acceptance.md). |
+| T043 | G2: generación/descarga/replay005 real, aún sin `backend/src/ecs_ec/reports/api.py`; [HTTP005](../../005-generar-reportes-pdf/contracts/http.md). |
+| T046/T048 | Integración completa con G1/G2; rutas001/004 están protegidas, falta PDF y completar limpieza/actividad/retorno seguro en todas las vistas según sus tareas. |
+| T049/T050 | Matriz y UI integrales esperan T046/T048 y PDF real. Consultas locales y límites de actividad con proveedores reales tienen evidencia, sin sustituir descarga/replay. |
+| T068/T076/T078 | G1/G3 disponibles y ensayos administrativos parciales; cierre integral exige G2, prerrequisitos de US2 y toda la evidencia prevista. No se aceptan por existir sus archivos. |
+| T069/T077 | G4: receptor/publicador003 reales aún ausentes en `backend/src/ecs_ec/acquisition/`; [SFTP003](../../003-simulador-pas600-sftp/contracts/sftp-reception.md). |
+| T084 | Regresión local actualizada después de T083; cierre integral todavía exige historias e integraciones completas. |
+| T085 | Personas reales, diferidas por instrucción del usuario. [Usabilidad](usability.md). |
+| T086 | VPS real009 y capacidades de consulta/descarga; diferida por instrucción del usuario. [VPS](vps.md). |
+| T087 | Consolidación/aceptación integral condicionada a las evidencias anteriores. |
 
-Son18 tareas pendientes. Las tareas propias disponibles se marcan solo por ejecución real.
-El participante concreto008 y SMTP siguen perteneciendo a008, sin dependencia inversa.
+El participante concreto008 y SMTP permanecen en su propietario, sin dependencia inversa.
+No se ejecutaron tareas de proveedores ausentes desde006 ni se aprobaron integraciones con
+skips, dobles o generación documental. Las14 tareas conservan sus casillas pendientes.

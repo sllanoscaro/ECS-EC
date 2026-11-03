@@ -292,3 +292,30 @@ ejecutados, entorno sintético, resultados de suites/matriz, carreras, auditorí
 UI y resultados de personas/HTTPS público. Usar referencias sintéticas; no cookies,
 CSRF, contraseñas, hashes ni datos personales reales. Una guía o la existencia de archivos
 no marca criterios de éxito, tareas o checklists como completados.
+
+
+## Integraciones e instrumentación006 disponibles (2026-11-03)
+
+Con PostgreSQL18 real y `TEST_DATABASE_URL` apuntando a una base desechable `_test`
+distinta de aplicación, ejecutar los nuevos casos sobre proveedores reales:
+
+```sh
+.venv/bin/pytest backend/tests/integration/identity/test_read_integrations.py backend/tests/integration/identity/test_system_administration.py backend/tests/integration/identity/test_telemetry.py -q
+```
+
+La suite de lectura prepara datos sintéticos001/002/004 y comprueba ambos perfiles sin
+modificar filas de negocio. Incluye actividad interactiva/background y límites30min/8h.
+La suite administrativa es parcial respecto del gate PDF005: no acredita T068/T076/T078
+íntegros. Telemetría usa007 real y comprueba privacidad, contexto concurrente y continuidad
+ante saturación/fallo de IO; no necesita SMTP ni visores.
+
+HTTP y CLI usan el emisor común configurado mediante las opciones007 ya existentes.
+Sin configuración técnica válida, la autenticación y las transacciones siguen disponibles.
+Cada petición/ejecución tiene contexto privado que se restaura al terminar; no propagar
+credenciales, IP, correos o cabeceras públicas a logs/trazas. Ver [instrumentación](validation/observability.md).
+
+Las dependencias de rutas administrativas revalidan permisos; los cambios renuevan
+actividad después del éxito confirmado por el servicio, nunca por admitir un cuerpo
+que después se rechaza. Las futuras rutas PDF deben integrar autorización antes de replay
+y descarga, y sus vistas deben completar limpieza/actividad conforme a T046/T048.
+No crear endpoints sustitutos para cerrar esos gates desde006.

@@ -1,5 +1,36 @@
 # Regresión local y límites de cierre
 
+## Continuación local — 2026-11-03
+
+Identidad006 ampliada con lecturas reales001/002/004, autorización administrativa
+explícita e instrumentación propia con emisor007. Estado73/87;006:T084 permanece
+pendiente de sus historias/integraciones completas (PDF/SFTP), no por ausencia del emisor.
+No se añadieron checks redundantes a CI: el workflow existente descubre las nuevas
+pruebas006 dentro de su ejecución general de pytest. No se ejecutó CI remoto.
+
+| Comprobación actual | Resultado |
+| --- | --- |
+| Suite focal de identidad y contratos001/002/004 |143 aprobadas en32,60s antes de los dos últimos casos; nueva ejecución focal de los tres archivos de integración:12 aprobadas en7,01s. |
+| Frontend |53 pruebas en23 archivos; typecheck y exportación estática aprobados. |
+| Playwright `identity.spec.ts` |Un recorrido conjunto aprobado en4,2s: ambos perfiles, renovación, cuentas, historial, cierre entre pestañas y expiración por reloj privado. HTTP loopback explícito; no acredita VPS ni la matriz PDF. |
+| Documentación Python006 |AST de45 archivos propios/backend de identidad, fachada de seguridad, CLI y pruebas:sin módulos/clases/funciones sin docstring. Nuevas funciones documentadas. |
+| Contratos/OpenAPI |Las suites contract006 y proveedores reales pasan con las dependencias actuales; no cambian DTO, errores ni rutas públicas. El snapshot inferior conserva su corte original. |
+| Dependencias/setup |Locks y migraciones sin cambios. Ignores Python/npm/Docker/secretos/salidas existentes comprobados; frontend privado, sin ESLint/Prettier/Terraform/Helm que requieran ignores adicionales. |
+
+La regresión amplia inicial tuvo427 aprobadas y un fallo: la prueba de telemetría001
+contaba terminales de todos los productores del emisor compartido. Ahora filtra
+`source_module=consumption` para conservar el contrato de su operación, sin suprimir las
+nuevas señales006. La repetición final pasa428/428 en69,01s, sin omisiones; comando y alcance en [aceptación](acceptance.md).
+
+PostgreSQL18.3 desechable `ecs006-completion`, loopback55449. Base de suites
+`ecs006_completion_test` y de navegador `ecs006_browser_test`, distintas de aplicación;
+credenciales sintéticas efímeras y archivos0600. CLI real con pseudo-TTY forma parte de
+la regresión de identidad. No hay aceptación SFTP/PDF/personas/VPS.
+
+## Registro histórico — 2026-11-02
+
+Lo siguiente conserva herramientas y resultados originales; prevalece el estado anterior.
+
 2026-11-02. La regresión local de plataforma+006 se ejecutó contra PostgreSQL18.3 real,
 DB `ecs_identity_test` en55446. Solo datos sintéticos; ningún destino de producción.
 
