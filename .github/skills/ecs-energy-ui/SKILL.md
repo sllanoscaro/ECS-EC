@@ -9,6 +9,8 @@ description: "Diseñar y mejorar pantallas, dashboards, navegación y componente
 
 Crear interfaces coherentes, legibles y accesibles para el monitoreo energético de edificios, respetando el MVP, las especificaciones y los contratos existentes. Trabajar únicamente en la UI solicitada: no completar funcionalidades de backend pendientes por iniciativa propia.
 
+**Referencia seleccionada por el usuario:** si la tarea menciona el video de CopilotKit, pide un dashboard similar o busca aproximar el estilo del ejemplo, usar primero la skill `/ecs-dashboard-reference` y leer `docs/ui/copilotkit-dashboard-reference.md`. Esa referencia específica prevalece sobre el estilo genérico propuesto aquí; las reglas de arquitectura, datos y accesibilidad siguen vigentes.
+
 ## Antes de diseñar
 
 1. Leer `AGENTS.md`, `docs/architecture.md`, `docs/implementation-roadmap.md` y la spec propietaria del área que se va a modificar.
