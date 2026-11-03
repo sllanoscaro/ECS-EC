@@ -15,7 +15,7 @@ La [arquitectura](architecture.md) es la referencia compartida, no el plan de la
 | [003 Simulador PAS600/SFTP](../specs/003-simulador-pas600-sftp/spec.md) | Fuente e integración de archivos según su spec. | 28/76 [tareas](../specs/003-simulador-pas600-sftp/tasks.md) completas: paquete independiente, generación CSV/JSON normal y anómala, históricos de doce meses y control local; 40 pruebas locales pasan. [US1 parcial](../specs/003-simulador-pas600-sftp/validation/us1.md) y [US3 parcial](../specs/003-simulador-pas600-sftp/validation/us3.md). T003 (referencia DOCA0172EN-19) diferida por el usuario; conformidad documental, SFTP, contraste y aceptación integrada pendientes. Consultas/cobertura de 001/002 y emisor 007 aún requieren sus proveedores reales; ver [prerrequisitos](../specs/003-simulador-pas600-sftp/validation/prerequisites.md). |
 | [004 Costos](../specs/004-costos-tarifa-bt43/spec.md) | Cálculos BT4.3, boletas, resultados persistidos, snapshot y `cost.failed`. | 66/67 [tareas](../specs/004-costos-tarifa-bt43/tasks.md) completas sobre001/002/006/009 reales: US1–US4, API/UI, calendario completo, revisiones/capturas reproducibles y eventos atómicos. [Validación local](../specs/004-costos-tarifa-bt43/validation/acceptance.md); T064/personas pendiente, tarifas reales por configurar. Productores005/008 disponibles; sus integraciones pertenecen a esas specs. |
 | [005 PDF](../specs/005-generar-reportes-pdf/spec.md) | Generación, persistencia, descarga y `pdf.failed`. | [Plan](../specs/005-generar-reportes-pdf/plan.md) y [tareas](../specs/005-generar-reportes-pdf/tasks.md), pendientes de implementación. |
-| [007 Observabilidad](../specs/007-observabilidad-externa/spec.md) | Logging/tracing comunes, recolectores/visores, acceso Programador y política técnica. | [Plan y diseño integral](../specs/007-observabilidad-externa/plan.md) y [tareas integrales](../specs/007-observabilidad-externa/tasks.md) generados, conservando el traslado; `$speckit-analyze` completado sin hallazgos. Pendientes de implementación y aceptación funcional. |
+| [007 Observabilidad](../specs/007-observabilidad-externa/spec.md) | Logging/tracing comunes, recolectores/visores, acceso Programador y política técnica. | 26/65 [tareas](../specs/007-observabilidad-externa/tasks.md) completas: emisor básico y acceso externo Viewer verificados localmente. [Evidencia parcial](../specs/007-observabilidad-externa/validation/access.md). T022/PDF005 y cadenaT028–T030 pendientes; US2–US4, cuotas, retención real, personas y aceptación integral pendientes. |
 | [008 Notificaciones](../specs/008-notificaciones-programables/spec.md) | Reglas, calendario, evaluación, entregas, SMTP, historial e instrumentación propia. | [Plan](../specs/008-notificaciones-programables/plan.md) y [tareas](../specs/008-notificaciones-programables/tasks.md), pendientes de implementación. |
 
 La spec-009 es una funcionalidad técnica de soporte: conserva el formato nativo de Spec Kit
@@ -27,8 +27,8 @@ diseño y tareas integrales que incorporan el trabajo trasladado; `$speckit-anal
 la consistencia y se resolvieron sus tres hallazgos documentales. 001 y 002 también cuentan
 con revisión de consistencia tras incorporar sus aclaraciones aprobadas. Para 007 ya existen
 plan, diseño y tareas integrales; `$speckit-analyze` completó la revisión de consistencia
-sin hallazgos. Su implementación y aceptación funcional siguen pendientes, sujetas a los
-prerrequisitos por capacidad; encontrar archivos o generar documentos no acredita aceptación.
+sin hallazgos. Su implementación es parcial (emisor básico/acceso local); cobertura de productores
+y aceptación integral siguen pendientes, sujetas a los prerrequisitos por capacidad; encontrar archivos o generar documentos no acredita aceptación.
 
 ## Dependencias por capacidad
 
@@ -87,7 +87,8 @@ SPECIFY_FEATURE_DIRECTORY=specs/009-fundaciones-plataforma SPECIFY_FEATURE_NO_PE
 
 Para 007, la comprobación encuentra `plan.md`, sus artefactos de diseño y las tareas
 integrales que conservan el traslado; `$speckit-analyze` completó la revisión de consistencia
-sin hallazgos. Implementación y aceptación funcional siguen pendientes.
+sin hallazgos. Emisor/acceso local están parcialmente implementados; la aceptación
+integral sigue pendiente con evidencia por capacidad.
 001 tiene detalle/API y administración web integrados sobre002;002 incorpora consulta
 agrupada/UI, proveedores internos y retirada protegida, con validación automatizada local.
 La aceptación conjunta externa y con personas permanece pendiente. 006 ya tiene

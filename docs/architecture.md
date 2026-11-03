@@ -12,6 +12,10 @@ sigue pendiente.
 [Estado de 002](../specs/002-registro-retencion-consumo/validation/acceptance.md).
 [Aceptación parcial](../specs/001-visualizar-consumo-categorias/validation/acceptance.md).
 
+007 tiene emisor básico y acceso técnico externo verificados localmente; cobertura
+completa001–006, políticas/cuotas/retención real, personas y VPS siguen pendientes.
+[Estado parcial007](../specs/007-observabilidad-externa/validation/acceptance.md).
+
 ## Unidad de aplicación y herramientas
 
 ECS-EC es un monolito modular: una imagen y un proceso Uvicorn inicial sirven la API

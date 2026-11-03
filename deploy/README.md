@@ -213,3 +213,11 @@ Instalar con `uv sync --locked`; ejecutar
 `uv run --locked pytest backend/tests/unit/reports -q`. La integración requiere
 PostgreSQL de pruebas independiente (`TEST_DATABASE_URL`, sufijo `_test`).
 Ver [evidencia y límites](../specs/005-generar-reportes-pdf/validation/dependencies.md).
+
+## Observabilidad opcional (007)
+
+[Stack, señales y limitaciones](observability/README.md) y
+[frontera Programador, TLS/mTLS y revocación](technical-gateway/README.md).
+El emisor no condiciona readiness, permisos, DB ni commits. El perfil técnico está
+separado de SMTP008 y de identidad006. Cobertura de negocio, cuotas, retención real,
+aceptación humana y VPS continúan pendientes según evidencia007.
