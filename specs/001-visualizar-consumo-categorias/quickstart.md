@@ -236,3 +236,33 @@ La suite conserva **un xfail estricto** por diagnósticos cruzados no expuestos 
 no equivale a una aceptación completa de períodos. Ver responsable y caso reproducible
 en [el incremento](validation/increment-2026-11-02.md). Instrumentación 007, perfilesSFTP 003,
 SMTP 008, evaluación humana y VPS permanecen gates separados.
+
+
+## Verificación ampliada001 (2026-11-03)
+
+Sobre las bases sintéticas anteriores, ejecutar `consumption.spec.ts` en modo físico y
+calculado. Las pruebas de períodos usan navegador Asia/Tokyo y conservan offsets de
+Santiago; las lecturas de la hora repetida se verifican además en PostgreSQL mediante
+`test_detail_periods.py`.
+
+Para el recorrido ampliado de estados, usar el harness privado existente
+`backend.tests.run_history_browser:create_test_app` en lugar de la factory habitual,
+con las mismas opciones test/identidad/base separada y un archivo0600
+`HISTORY_E2E_CLOCK_FILE` que contenga un instante ISO UTC posterior a la semilla.
+No cambiar el reloj del host. Después de renovar las dos cuentas mediante
+`consumption.spec.ts`, ejecutar en el mismo entorno físico:
+
+```sh
+npm --prefix frontend run test:e2e -- tests/e2e/consumption-detail-states.spec.ts --workers=1
+```
+
+El proceso Playwright necesita también las variables test de la base y de identidad
+porque invoca `.venv/bin/python -m backend.tests.control_consumption_browser` desde la
+raíz. Ese comando solo acepta escenarios cerrados y bases `_test`; usa los servicios
+reales, sin modificar directamente mediciones. Cambia la configuración de la instalación
+sintética y adelanta el reloj privado901s por paso, por lo que debe ejecutarse al final,
+sobre una base desechable nueva. El ensayo posterior requiere volver a provisionar otra
+base, no reutilizar sus fuentes modificadas. El archivo de contraseña sigue siendo privado.
+
+Resultados y límites en [aceptación](validation/acceptance.md), [US3](validation/us3.md)
+y [US4](validation/us4.md). No habilitar estos helpers en un entorno real.

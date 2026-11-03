@@ -1,9 +1,45 @@
 # Aceptación parcial de spec-001
 
-**Estado vigente (continuación2026-11-02): 48/61 tareas completas.** Consulta/API y
-administración integradas sobre002; [evidencia actual](increment-2026-11-02.md).
-El registro anterior que sigue conserva resultados históricos; sus faltantes002 y
-cifras de23 tareas no describen el incremento actual. No hay aceptación integral.
+## Continuación vigente — 2026-11-03
+
+**57/61 tareas completas.** Completadas001:T018/T038/T041/T043/T044/T045/T052/T053/T054.
+No hay aceptación integral: T056 espera receptor/adaptador003 y correo008 reales;
+T059/personas y T060/VPS se difieren por instrucción del usuario; T061 depende de esos
+resultados. No se modificaron checklists ni tareas ajenas. requirements16/16, sin hooks
+registrados antes/después (`.specify/extensions.yml` ausente). Selección explícita001.
+
+| Verificación | Resultado observado |
+| --- | --- |
+| `.venv/bin/pytest backend/tests/unit/consumption backend/tests/contract/consumption backend/tests/integration/consumption -q` |188 aprobadas en39,42s. Incluye pruebas compartidas002, carreras recepción/configuración en ambas órdenes, recuperación, retiro real y límites conservados; sin omisiones. |
+| `npm --prefix frontend test -- --maxWorkers=1 --no-file-parallelism` |53 pruebas aprobadas en23 archivos. |
+| TypeScript / exportación Next |Ambos aprobados; datos privados se obtienen por API. |
+| Playwright `consumption.spec.ts` |Dos perfiles en modo físico y dos en calculado; períodos antes/dentro/después, cruce excluido, offsets y estados/API/gráfico/tabla. |
+| Playwright `consumption-detail-states.spec.ts` |Recorrido ampliado real en fixture físico de siete fuentes: incompleto→20, M/6*M, cambios de base/fuente, A→B y error/reintento. |
+| Documentación / enlaces / espacios |Docstrings de archivos nuevos comprobados mediante AST; enlaces locales y `git diff --check` verificados. |
+
+PostgreSQL18.3, contenedor exclusivo `ecs001-completion`, loopback55449, bases desechables
+terminadas `_test` distintas de aplicación; no se usaron datos reales. La publicación de
+fixtures se hace mediante Reception002 y la configuración mediante ConfigurationService001.
+Sin nuevas migraciones, dependencias ni modificaciones del emisor007.
+
+El adaptador `consumption/telemetry.py` instrumenta catálogo, detalle y configuración,
+correlacionando el UUID generado por el servidor; nunca entradas/correos/cookies ni kWh.
+La prueba de terminales falló inicialmente por ausencia de instrumentación y pasó después.
+Verificados rechazo de selección, cola007 saturada con pérdidas visibles y fallo técnico
+sin afectar consulta/mutación. No emite terminales de recepción/agregados/retención002.
+La autorización previa sigue siendo de006; no se duplica su operación de autorización.
+
+Evidencia por historia: [US3](us3.md), [US4](us4.md). Reglas de recepción/configuración
+FR-002..006/010 y SC-003 verificadas sobre002 real junto con retirada y límites permanentes;
+períodos FR-011..013 y estados FR-014..016/SC-004 cubiertos localmente. Las pruebas previas
+US1/US2 y construcción se conservan en [incremento anterior](increment-2026-11-02.md).
+FR-019/SC-006 transversal, SC-005 humano y FR-017/018/SC-007 VPS permanecen pendientes.
+No se sustituyen con este ensayo local. Ningún resultado certifica PAS600/SFTP ni SMTP.
+
+## Registro histórico anterior
+
+La disponibilidad y cifras siguientes corresponden a sus cortes originales; prevalece
+la actualización vigente anterior.
 
 Fecha: 2026-11-02. Base Git `c9f336c14372b6fe8f82a0a66038f55c0fb1122a`;
 cambios de esta ejecución sin commit. **23/61 tareas completas; aceptación funcional

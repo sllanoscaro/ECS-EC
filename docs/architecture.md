@@ -7,8 +7,8 @@ La constitución local `.specify/memory/constitution.md` conserva su precedencia
 
 Consumo 001 tiene catálogo/configuración, reglas puras y consulta web de detalle integrados
 con la incorporación durable y almacenamiento 002. 002 también integra agrupaciones web, diagnósticos cruzados y retirada protegida con
-validación automatizada local. La aceptación integral con dependencias externas y personas
-sigue pendiente.
+validación automatizada local. 001 también verifica localmente períodos/estados ampliados e instrumentación propia
+con el emisor007. La aceptación integral con dependencias externas y personas sigue pendiente.
 [Estado de 002](../specs/002-registro-retencion-consumo/validation/acceptance.md).
 [Aceptación parcial](../specs/001-visualizar-consumo-categorias/validation/acceptance.md).
 
