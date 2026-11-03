@@ -2,9 +2,10 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Header, Query, Request, Response
+from fastapi import APIRouter, Depends, Header, Query, Request, Response
 from fastapi.responses import JSONResponse
 
+from ecs_ec.core.security import require_action
 from ecs_ec.costs.repository import CostsProblem
 from ecs_ec.costs.schemas import CalculateRequest, CalculationDetail, SupplyDetail, BillInput, ComparisonRequest, SupplyInput, ProfileInput, BillDetail, ComparisonDetail, ProfileDetail, CyclePage, BillPage, ProfilePage
 from ecs_ec.identity.schemas import ProblemView
@@ -32,7 +33,7 @@ def resource_response(data, status, *, kind, location=None):
     return JSONResponse(content=data, status_code=status, headers=headers)
 
 
-@router.get('/supply', response_model=SupplyDetail)
+@router.get('/supply', response_model=SupplyDetail, dependencies=[Depends(require_action('costs.configuration.read'))])
 async def supply(request: Request, response: Response):
     """Read administrative supply configuration or404 without creating it."""
     data = await request.app.state.costs.get_supply(request.state.principal)
@@ -40,7 +41,7 @@ async def supply(request: Request, response: Response):
     return data
 
 
-@router.post('/calculations', response_model=CalculationDetail, status_code=201)
+@router.post('/calculations', response_model=CalculationDetail, status_code=201, dependencies=[Depends(require_action('costs.calculations.create'))])
 async def calculate(request: Request, body: CalculateRequest, idempotency_key: str | None = Header(default=None)):
     """Persist one explicit calculation/recalculation; same authorized key/body replays the original revision."""
     data, status = await request.app.state.costs.calculate(request.state.principal, body, idempotency_key)
@@ -81,21 +82,21 @@ async def bill(request: Request, bill_id: UUID, response: Response, revision: in
     return data
 
 
-@router.post('/bills', response_model=BillDetail, status_code=201)
+@router.post('/bills', response_model=BillDetail, status_code=201, dependencies=[Depends(require_action('costs.bills.manage'))])
 async def create_bill(request: Request, body: 'BillInput', idempotency_key: str | None = Header(default=None)):
     """Register a manual document; repeated identity/body reuses its immutable resource without changing sources."""
     data, status = await request.app.state.costs.save_bill(request.state.principal, body, idempotency_key)
     return resource_response(data, status, kind='bill', location='/api/v1/costs/bills')
 
 
-@router.put('/bills/{bill_id}', response_model=BillDetail)
+@router.put('/bills/{bill_id}', response_model=BillDetail, dependencies=[Depends(require_action('costs.bills.manage'))])
 async def correct_bill(request: Request, bill_id: UUID, body: 'BillInput', idempotency_key: str | None = Header(default=None), if_match: str | None = Header(default=None)):
     """Append an explicit document correction, preserving its previous revision and every comparison of it."""
     data, status = await request.app.state.costs.save_bill(request.state.principal, body, idempotency_key, bill_id=bill_id, if_match=if_match)
     return resource_response(data, status, kind='bill')
 
 
-@router.post('/comparisons', response_model=ComparisonDetail, status_code=201)
+@router.post('/comparisons', response_model=ComparisonDetail, status_code=201, dependencies=[Depends(require_action('costs.comparisons.create'))])
 async def create_comparison(request: Request, body: 'ComparisonRequest', idempotency_key: str | None = Header(default=None)):
     """Confirm a comparison of explicit immutable references; no read path generates this resource."""
     data, status = await request.app.state.costs.create_comparison(request.state.principal, body, idempotency_key)
@@ -108,7 +109,7 @@ async def comparison(request: Request, comparison_id: UUID):
     return await request.app.state.costs.get_comparison(request.state.principal, comparison_id)
 
 
-@router.put('/supply', response_model=SupplyDetail)
+@router.put('/supply', response_model=SupplyDetail, dependencies=[Depends(require_action('costs.configuration.manage'))])
 async def configure_supply(request: Request, body: SupplyInput, idempotency_key: str | None = Header(default=None),
         if_match: str | None = Header(default=None), if_none_match: str | None = Header(default=None)):
     """Create/update actual physical-supply configuration with explicit strong revision preconditions."""
@@ -117,13 +118,13 @@ async def configure_supply(request: Request, body: SupplyInput, idempotency_key:
     return resource_response(data, status, kind='supply')
 
 
-@router.get('/profiles', response_model=ProfilePage)
+@router.get('/profiles', response_model=ProfilePage, dependencies=[Depends(require_action('costs.configuration.read'))])
 async def profiles(request: Request, limit: int = Query(default=25, ge=1, le=100), cursor: str | None = Query(default=None, max_length=4096)):
     """Read administrative full-calendar revisions, distinguishing saved drafts from the selected publication."""
     return await request.app.state.costs.profiles(request.state.principal, limit=limit, cursor=cursor)
 
 
-@router.post('/profiles', response_model=ProfileDetail, status_code=201)
+@router.post('/profiles', response_model=ProfileDetail, status_code=201, dependencies=[Depends(require_action('costs.configuration.manage'))])
 async def create_profile(request: Request, body: ProfileInput, idempotency_key: str | None = Header(default=None)):
     """Publish/store an immutable full-calendar revision against an explicit latest-saved base."""
     data, status = await request.app.state.costs.create_profile(request.state.principal, body, idempotency_key)

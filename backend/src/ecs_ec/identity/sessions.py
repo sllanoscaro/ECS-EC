@@ -1,5 +1,7 @@
 """Durable login/throttle and fresh session admission; all hashing runs before DB locks."""
 
+from ecs_ec.identity.telemetry import observe, stage
+
 import hmac
 import math
 from datetime import datetime, timedelta
@@ -48,9 +50,11 @@ async def migrate_blocked(identity, key, keys):
                 await uow.session.delete(row)
         problem = wait_problem(destination.blocked_until, now) if waits else None
         await uow.commit()
+        stage('commit')
         return problem
 
 
+@observe('identity.authenticate')
 async def login(identity, email, password, preauth_cookie, origin):
     """Authenticate under bucket→preauth→account SHARE→new session, rechecking time/hash/version.
 
@@ -81,6 +85,7 @@ async def login(identity, email, password, preauth_cookie, origin):
         if snapshot:
             # Keep a detached hash/version capture; UoW rollback expires attached ORM rows.
             uow.session.expunge(snapshot)
+    stage('validate')
     matched = await identity.credentials.verify(password, snapshot.password_hash if snapshot else None)
     async with UnitOfWork(identity.database.sessions) as uow:
         for candidate in sorted(keys):
@@ -117,6 +122,7 @@ async def login(identity, email, password, preauth_cookie, origin):
             if len(bucket.failed_at) >= 5:
                 bucket.blocked_until = now+timedelta(minutes=15)
             await uow.commit()
+            stage('commit')
             problem = wait_problem(bucket.blocked_until, now) if bucket.blocked_until else IdentityProblem("invalid_credentials", 401)
         else:
             bearer = new_secret()
@@ -128,12 +134,15 @@ async def login(identity, email, password, preauth_cookie, origin):
             context.consumed_at = now
             bucket.failed_at, bucket.blocked_until = [], None
             await uow.commit()
+            stage('commit')
             return bearer, Principal.from_rows(account, session, identity.settings.building_id)
     raise problem
 
 
+@observe('identity.session')
 async def resolve(identity, bearer, *, action="session.read", activity="background"):
     """Resolve fresh DB state, authorize, then optionally update activity without reviving an old session."""
+    stage('read')
     hashed = digest(bearer)
     if hashed is None:
         raise IdentityProblem("session_required", 401)
@@ -160,9 +169,11 @@ async def resolve(identity, bearer, *, action="session.read", activity="backgrou
             session.idle_expires_at = min(session.absolute_expires_at, session.last_activity_at+timedelta(minutes=30))
             principal = Principal.from_rows(account, session, identity.settings.building_id)
             await uow.commit()
+            stage('commit')
     return principal
 
 
+@observe('identity.session')
 async def logout(identity, principal):
     """Revoke only the original session under its row lock, leaving other devices untouched."""
     async with UnitOfWork(identity.database.sessions) as uow:
@@ -172,3 +183,4 @@ async def logout(identity, principal):
             raise IdentityProblem("session_required", 401)
         session.revoked_at, session.revocation_code = identity.clock.now(), "logout"
         await uow.commit()
+        stage('commit')

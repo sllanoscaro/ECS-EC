@@ -1,6 +1,6 @@
 """001 authenticated detail/configuration routes; no public reception or measurement mutation API."""
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
@@ -12,6 +12,7 @@ from ecs_ec.consumption.queries import InvalidSelection
 from ecs_ec.consumption.schemas import AggregateResponse, Catalog, Configuration, DetailResult, configuration_view
 from ecs_ec.consumption.ports import AggregateSelection, Granularity
 from ecs_ec.core.unit_of_work import UnitOfWork
+from ecs_ec.core.security import require_action
 from ecs_ec.identity.errors import IdentityProblem
 from ecs_ec.identity.models import Account, Session
 from ecs_ec.identity.schemas import Principal, ProblemView
@@ -60,7 +61,7 @@ async def detail(request: Request, category_id: str, start: str, end: str, timez
         raise ConsumptionProblem('consumption_unavailable', 503) from None
 
 
-@router.get('/configuration', response_model=Configuration)
+@router.get('/configuration', response_model=Configuration, dependencies=[Depends(require_action('consumption.configuration.read'))])
 @observe('administration.query', 'read')
 async def configuration(request: Request):
     """Read latest immutable administrative revision; do not bootstrap missing configuration."""
@@ -72,7 +73,7 @@ async def configuration(request: Request):
         return configuration_view(revisions[-1])
 
 
-@router.put('/configuration', response_model=Configuration)
+@router.put('/configuration', response_model=Configuration, dependencies=[Depends(require_action('consumption.configuration.manage'))])
 @observe('administration.change', 'commit')
 async def configure(request: Request, body: ConfigurationInput):
     """Revalidate actor/session under locks, then commit revision and functional evidence together."""

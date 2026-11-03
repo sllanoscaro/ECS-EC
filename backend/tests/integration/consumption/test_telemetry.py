@@ -26,7 +26,8 @@ async def test_detail_terminals_and_sensitive_input_isolation(client, account_fa
         while telemetry.logs.drain_one():
             pass
         events = [json.loads(item) for item in payloads]
-        terminals = [e for e in events if e['event'] == 'operation.completed']
+        # Other installed producers share007; assert only the consumption operation under test.
+        terminals = [e for e in events if e['event'] == 'operation.completed' and e['source_module'] == 'consumption']
         assert [e['outcome'] for e in terminals] == ['success', 'expected_rejection']
         assert all(e['operation'] == 'consumption.query_detail' and e['operation_ref'] for e in terminals)
         assert len({e['operation_ref'] for e in terminals}) == 2

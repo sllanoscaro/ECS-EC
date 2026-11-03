@@ -19,7 +19,9 @@ def require_action(action):
         if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
             verify_origin(request, identity.settings)
             verify_csrf(identity.settings, "session", request.cookies.get("ecs_ec_session"), request.headers.get("x-csrf-token"))
-        activity = "interactive" if request.method != "GET" else request.headers.get("x-session-activity", "background")
+        # A mutation renews activity only after its owning service commits successfully.
+        # Admission happens before body validation and must not extend a rejected request.
+        activity = request.headers.get("x-session-activity", "background") if request.method == "GET" else "background"
         return await identity.resolve_session(request.cookies.get("ecs_ec_session"), action=action, activity=activity)
     authorize.identity_action = action
     return authorize

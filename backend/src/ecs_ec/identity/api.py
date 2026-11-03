@@ -116,12 +116,22 @@ class IdentityMiddleware:
         self.app, self.identity = app, identity
 
     async def __call__(self, scope, receive, send):
+        """Bind request-local007 instrumentation, never transporting identity in public headers."""
+        from ecs_ec.identity.telemetry import emission_scope
+        state = scope.setdefault('state', {})
+        state['operation_ref'] = uuid4()
+        app = scope.get('app')
+        emitter = getattr(app.state, 'telemetry', None) if app else None
+        with emission_scope(emitter, state['operation_ref']):
+            return await self._dispatch(scope, receive, send)
+
+    async def _dispatch(self, scope, receive, send):
         """Process API admission and no-store responses without logging or persisting request values."""
         path = scope.get("path", "")
         if scope["type"] != "http" or not path.startswith("/api/v1/") or path.startswith("/api/v1/health/"):
             return await self.app(scope, receive, send)
         request = StarletteRequest(scope, receive)
-        scope.setdefault("state", {})["operation_ref"] = uuid4()
+        scope.setdefault("state", {}).setdefault("operation_ref", uuid4())
         identity = self.identity
 
         async def no_store(message):

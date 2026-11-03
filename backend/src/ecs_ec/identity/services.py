@@ -1,4 +1,6 @@
 """Identity orchestration: ordered DB locks, live authorization and atomic account evidence."""
+from ecs_ec.identity.telemetry import observe, operation, stage
+
 
 from dataclasses import replace
 from uuid import uuid4
@@ -50,13 +52,16 @@ class Identity:
         from ecs_ec.identity.sessions import login
         return await login(self, email, password, preauth_cookie, origin)
 
+    @observe('administration.change')
     async def bootstrap(self, email, password):
         """Create the first active administrator only in an empty guarded installation."""
         email, key = normalize_email(email, self.settings.environment != "production")
+        stage('validate')
         encoded = await self.credentials.hash(password)
         return await self._mutate(operation="bootstrap", actor="process:bootstrap", email=email, email_key=key,
                                   role="administrador_tecnico", status="active", prepared_hash=encoded)
 
+    @observe('administration.change')
     async def recover_admin(self, email, password, reason):
         """Host-only recovery of an already active admin; validate bounded reason, capture revision before hashing."""
         if not isinstance(reason, str) or not reason.strip() or len(reason) > 500 or any(ord(char) < 32 or ord(char) == 127 for char in reason):
@@ -72,10 +77,12 @@ class Identity:
             await self.rejection(actor="process:recovery", action="identity.recovery", target_id=snapshot.id if snapshot else None,
                                   problem=problem, operation_ref=operation_ref)
             raise problem
+        stage('validate')
         encoded = await self.credentials.hash(password)
         return await self._mutate(operation="recover", actor="process:recovery", target_id=snapshot.id,
             expected_revision=snapshot.revision, prepared_hash=encoded, operation_ref=operation_ref)
 
+    @observe('identity.session')
     async def change_password(self, principal, current_password, new_password, *, operation_ref=None):
         """Verify current/exactly distinct password off-lock, then revalidate captured revision and original session."""
         self.authorize(principal, "account.password.change", self.settings.building_id)
@@ -91,6 +98,7 @@ class Identity:
         return await self._mutate(operation="password", actor=principal, target_id=principal.account_id,
                                   expected_revision=snapshot.revision, prepared_hash=encoded, operation_ref=operation_ref)
 
+    @observe('administration.change')
     async def create_account(self, principal, command, *, operation_ref=None):
         """Prepare a validated credential off-lock, then create with renewal and atomic evidence."""
         self.authorize(principal, "identity.accounts.manage", self.settings.building_id)
@@ -99,6 +107,7 @@ class Identity:
         return await self._mutate(operation="create", actor=principal, email=email, email_key=key,
             role=command.role, status=command.status, prepared_hash=encoded, operation_ref=operation_ref)
 
+    @observe('administration.change')
     async def update_account(self, principal, target_id, command, expected_revision, *, operation_ref=None):
         """Edit current email/role/state under the original actor/session and revision locks."""
         self.authorize(principal, "identity.accounts.manage", self.settings.building_id)
@@ -106,6 +115,7 @@ class Identity:
         return await self._mutate(operation="update", actor=principal, target_id=target_id, email=email,
             email_key=key, role=command.role, status=command.status, expected_revision=expected_revision, operation_ref=operation_ref)
 
+    @observe('administration.change')
     async def reset_account(self, principal, target_id, new_password, expected_revision, *, operation_ref=None):
         """Reset only another account, with a new initial credential and complete revocation."""
         self.authorize(principal, "identity.accounts.manage", self.settings.building_id)
@@ -162,6 +172,12 @@ class Identity:
             return account_view(row)
 
     def authorize(self, principal, action, building_id):
+        """Emit a separate authorization decision without changing the policy or retaining its inputs."""
+        with operation('identity.authorize'):
+            stage('authorize')
+            return self._authorize(principal, action, building_id)
+
+    def _authorize(self, principal, action, building_id):
         """Apply fixed policy to this request's principal; future durable phases must re-resolve."""
         if not isinstance(principal, Principal):
             raise IdentityProblem("session_required", 401)
@@ -321,6 +337,7 @@ class Identity:
                         renewal=original.must_change_password, operation_ref=operation_ref, administrative=operation != "password",
                         reason_code="operational_recovery" if operation == "recover" else "changed")
                     await uow.commit()
+                    stage('commit')
                     return original
             raise IdentityProblem("identity_coordination_retry", 409)
         except IntegrityError:

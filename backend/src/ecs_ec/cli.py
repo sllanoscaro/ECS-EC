@@ -39,13 +39,23 @@ async def execute(options, password):
     settings = Settings()
     database = Database(settings.database_url.get_secret_value())
     identity = Identity(database, settings.identity_options(), SystemClock(), settings.building_timezone)
+    from ecs_ec.identity.telemetry import emission_scope
+    from ecs_ec.observability.lifecycle import Telemetry
+    telemetry = Telemetry.from_environment(clock=identity.clock)
     try:
-        if options.command == "bootstrap-admin":
-            await identity.bootstrap(options.email, password)
-        else:
-            await identity.recover_admin(options.email, password, options.reason)
+        with emission_scope(telemetry):
+            await execute_identity_command(identity, options, password)
     finally:
+        telemetry.shutdown()
         await database.close()
+
+
+async def execute_identity_command(identity, options, password):
+    """Dispatch the guarded service within the host's technical context; never inspect credential values."""
+    if options.command == "bootstrap-admin":
+        await identity.bootstrap(options.email, password)
+    else:
+        await identity.recover_admin(options.email, password, options.reason)
 
 
 def main(argv=None):
