@@ -16,7 +16,7 @@ it("renders seven ordered selectable categories and emits only the chosen id", (
   const options = screen.getAllByRole("option") as HTMLOptionElement[];
   expect(options.map(option => option.value)).toEqual(["CAT-01","CAT-02","CAT-03","CAT-04","CAT-05","CAT-06","CAT-07"]);
   expect(options.every(option => !option.disabled)).toBe(true);
-  expect(options[4].textContent).toContain("Sin medidor");
+  expect(options[4].textContent?.trim()).toBe("CAT-05 · Categoría CAT-05");
   fireEvent.change(screen.getByLabelText("Categoría"), { target: { value: "CAT-05" } });
   expect(choose).toHaveBeenCalledExactlyOnceWith("CAT-05");
 });

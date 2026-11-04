@@ -9,6 +9,7 @@ import { EnergyChart } from "./EnergyChart";
 import { EnergyTable } from "./EnergyTable";
 import { QueryState } from "./QueryState";
 import { useConsumptionQuery } from "./useConsumptionQuery";
+import { PeriodMetrics } from './PeriodMetrics';
 import { Icon } from '../identity/Icon';
 
 /** Load catalog only at runtime; the guard unmounts all private state when the session changes. */
@@ -16,7 +17,7 @@ export function ConsumptionView() {
   return <SessionGuard permission="consumption.read"><ConsumptionContent /></SessionGuard>;
 }
 
-/** Own the last valid period/category and render one full response without any browser-side energy arithmetic. */
+/** Own the last valid period/category and render a single response shared by the metrics, chart and table. */
 function ConsumptionContent() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [category, setCategory] = useState<CategoryId>("CAT-01");
@@ -45,13 +46,14 @@ function ConsumptionContent() {
   if (!catalog || !period) return <p role="status">Cargando catálogo…</p>;
   const selected = catalog.categories.find(item => item.id === category)!;
   return <>
-    <div className="consumption-toolbar"><p>Consulta por categoría y período</p><button onClick={query.retry}>Actualizar consumo</button></div>
-    <ConsumptionFilters catalog={catalog} category={category} period={period} choose={setCategory} apply={setPeriod} />
+    <div className="consumption-toolbar"><p>En esta sección, puedes consultar el registro histórico del consumo eléctrico del edificio</p><button disabled={query.loading} onClick={query.retry}><Icon name="refresh" />Actualizar</button></div>
+    <ConsumptionFilters catalog={catalog} category={category} period={period} apply={(nextCategory, nextPeriod) => { setCategory(nextCategory); setPeriod(nextPeriod); query.retry(); }} />
     <QueryState loading={query.loading} error={query.error} data={query.data} retry={query.retry} />
     {query.data && <>
-      <section className="panel chart-panel"><h2>Energía por intervalo</h2><p className="section-description">{selected.name} · {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(period.start))} → {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(period.end))} · kWh</p>
-      <EnergyChart rows={"rows" in query.data ? query.data.rows : []} blocks={"blocks" in query.data ? query.data.blocks : undefined} timezone={period.timezone} categoryId={category} period={period} /></section>
-      <section className="panel values-panel"><h2>Valores del período</h2><p className="section-description">{"rows" in query.data ? `${query.data.rows.length} lecturas disponibles` : 'Valores agrupados'} · Corte: {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(query.data.cutoff_at))}</p>
+      <PeriodMetrics data={query.data} />
+      <section className="panel chart-panel"><h2>Consumo energético en el intervalo solicitado</h2><p className="section-description">{selected.name} · {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(period.start))} → {new Intl.DateTimeFormat('es-CL', {timeZone: period.timezone, dateStyle: 'short', timeStyle: 'short'}).format(new Date(period.end))} · kWh</p>
+      <EnergyChart presentation="consumption" rows={"rows" in query.data ? query.data.rows : []} blocks={"blocks" in query.data ? query.data.blocks : undefined} timezone={period.timezone} categoryId={category} period={period} /></section>
+      <section className="panel values-panel"><h2>Valores del período</h2><p className="section-description">{"rows" in query.data ? `${query.data.rows.length} lecturas disponibles` : 'Valores agrupados'}</p>
       <EnergyTable compact rows={"rows" in query.data ? query.data.rows : []} blocks={"blocks" in query.data ? query.data.blocks : undefined} timezone={period.timezone} categoryId={category} /></section>
     </>}
   </>;

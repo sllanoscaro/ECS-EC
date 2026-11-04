@@ -20,3 +20,10 @@ export function blockLabel(block: AggregateBlock, timezone: string) {
 export function sourceModeLabel(mode: SourceMode) {
   return { measured: 'Medido', calculated: 'Calculado', mixed: 'Procedencia mixta', unavailable: 'Sin fuente disponible' }[mode];
 }
+
+/** Format provenance instants in the building's local calendar without a visible timezone suffix.
+ * Original offsets and fractional precision remain in the enclosing time element's metadata.
+ */
+export function originInstant(value: string, timezone: string): string {
+  return new Intl.DateTimeFormat('es-CL', {timeZone: timezone, day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(new Date(value));
+}

@@ -84,3 +84,15 @@ it('keeps dashboard zero and missing energy distinct in compact tooltips', () =>
   fireEvent.focus(points[1]);
   expect(screen.getByRole('tooltip').textContent).toBe('Sin datos · 02:30:00');
 });
+
+
+it('formats consumption tooltips like the dashboard and reserves axis space for large values', () => {
+  /** Large rounded ticks remain inside the SVG; compact hover evidence never appears below it. */
+  const { container } = render(<EnergyChart presentation="consumption" rows={[row('9432001.57')]} timezone="America/Santiago" />);
+  const tick = screen.getByText('9.432.001,6');
+  expect(Number(tick.getAttribute('x'))).toBeGreaterThanOrEqual(90);
+  fireEvent.mouseEnter(screen.getByRole('graphics-symbol'));
+  expect(screen.getByRole('tooltip').textContent).toBe('9.432.001,6 kWh · 01:00:00');
+  expect(container.querySelector('p.chart-tooltip')).toBeNull();
+  expect(screen.getByRole('graphics-symbol').getAttribute('aria-label')).toContain('9432001.57 kWh');
+});

@@ -32,6 +32,11 @@ const permissions = [...readPermissions, 'consumption.configuration.manage', 'co
 function detail(url, scenario) {
   const category = categories.find(c => url.pathname.includes(c.id)) ?? categories[0];
   const rows = ['25', '0', '32', '18'].map((energy, i) => ({ record_id: `synthetic-${i}`, revision: 1, start: `2026-01-01T0${i}:00:00-03:00`, end: `2026-01-01T0${i + 1}:00:00-03:00`, energy_kwh: energy, first_incorporated_at: now, configuration_revision: 1, category_revision: 1, origin: { kind: 'measured', source_id: source, original_value: energy, original_unit: 'kWh' } }));
+  if (scenario === 'days') rows.forEach((row, i) => {
+    row.start = new Date(Date.parse('2026-01-01T23:30:00-03:00') + i * 900000).toISOString();
+    row.end = new Date(Date.parse(row.start) + 900000).toISOString();
+  });
+  if (scenario === 'large') rows.forEach((row, i) => { row.energy_kwh = ['1234567.89', '0', '9432001.57', '1800000.12'][i]; });
   const state = !category.has_meter ? 'no_meter' : scenario === 'empty' ? 'no_data' : scenario === 'incomplete' ? 'incomplete' : 'available';
   const result = { request_ref: 'synthetic-preview', building_id: source, category, period, cutoff_at: now, state, source_mode: category.source_mode, configuration_segments: [{ ...period, configuration_revision: 1, category_revision: 1, source_mode: category.source_mode, base_categories: [], source_id: category.has_meter ? source : null, basis_sources: [] }], rows: ['no_meter', 'no_data'].includes(state) ? [] : rows, diagnostics: [], warnings: scenario === 'incomplete' ? [{ code: 'observed_gaps', count: 1, message: 'Falta un intervalo en esta muestra sintética.' }] : [] };
   if (scenario === 'incomplete') result.rows = rows.filter((_, i) => i !== 2);
@@ -60,7 +65,7 @@ async function fixtures(context, role, scenario, unknown) {
       const energy = series.reduce((sum, r) => sum + Number(r.energy_kwh ?? 0), 0);
       return reply({timezone: period.timezone, cutoff_at: '2026-11-02T14:32:08-03:00', period: {start, end: '2026-11-03T00:00:00-03:00', timezone: period.timezone}, chart_excluded_count: 0, series, categories: categories.map((c, i) => ({...c, series: series.map(point => ({...point, energy_kwh: !c.has_meter || point.energy_kwh === null ? null : String(Number(point.energy_kwh) * (i === 0 ? 1 : 1 / (i + 1)))})), chart_excluded_count: 0, state: scenario === 'empty' ? 'no_data' : c.has_meter ? 'available' : 'no_meter', energy_kwh: scenario === 'empty' || !c.has_meter ? null : String(i === 0 ? energy : [0, 160, 45, 84, 132][i]), coverage_percent:'99.75', covered_duration_us:'52200000000', elapsed_duration_us:'52328000000', last_reading_at:'2026-11-02T14:30:00-03:00'}))});
     }
-    if (path === '/consumption/catalog') return reply(catalog);
+    if (path === '/consumption/catalog') return reply(scenario === 'days' ? {...catalog, default_period: {...period, end: '2026-01-03T00:00:00-03:00'}} : catalog);
     if (path === '/consumption/configuration') return reply(configuration);
     if (/\/consumption\/categories\//.test(path)) return reply(detail(url, scenario));
     if (path === '/costs/supply') return reply(supply);
@@ -87,7 +92,7 @@ try {
     }
   }
   for (const [path, role, scenario] of [
-    ['/consumption/', 'admin', 'hour'], ['/consumption/', 'admin', 'empty'], ['/consumption/', 'admin', 'incomplete'], ['/consumption/', 'admin', 'no-meter'], ['/consumption/', 'admin', 'error'],
+    ['/consumption/', 'admin', 'days'], ['/consumption/', 'admin', 'large'], ['/consumption/', 'admin', 'hour'], ['/consumption/', 'admin', 'empty'], ['/consumption/', 'admin', 'incomplete'], ['/consumption/', 'admin', 'no-meter'], ['/consumption/', 'admin', 'error'],
     ['/costos/', 'admin', 'empty'], ['/costos/', 'admin', 'error'], ['/administracion/consumo/', 'admin', 'error'], ['/administracion/usuarios/', 'admin', 'empty'], ['/administracion/historial/', 'admin', 'empty'],
     ['/cuenta/', 'admin', 'renewal'], ['/administracion/costos/', 'admin', 'segment'], ['/administracion/costos/', 'admin', 'bill-edit'], ['/administracion/usuarios/', 'admin', 'edit'], ['/administracion/usuarios/', 'admin', 'reset'],
     ['/costos/', 'admin', 'evidence'], ['/consumption/', 'operator', 'populated'], ['/administracion/usuarios/', 'operator', 'denied'], ['/cuenta/', 'anonymous', 'anonymous'],
@@ -175,9 +180,52 @@ async function capture(path, viewport, role, scenario) {
       const restoredPaths = await page.locator('[data-series="smooth"]').evaluateAll(paths => paths.map(p => p.getAttribute('d')));
       if (JSON.stringify(totalPaths) !== JSON.stringify(restoredPaths) || await reset.count()) throw new Error('Original total was not restored.');
     }
+    if (path === '/consumption/' && ['populated', 'days', 'large'].includes(scenario)) {
+      const filter = page.getByRole('combobox', {name:'Categoría', exact:true});
+      const before = await page.locator('.chart-panel .section-description').textContent();
+      let requests = 0;
+      /** Count only energy captures while testing deferred draft filters. */
+      const countRequest = request => { if (/categories\/CAT-\d+\/(detail|aggregates)/.test(new URL(request.url()).pathname)) requests++; };
+      page.on('request', countRequest);
+      await filter.selectOption('CAT-03');
+      if ((await page.locator('.chart-panel .section-description').textContent()) !== before || requests !== 0) throw new Error('Category draft applied before Consultar.');
+      await page.getByRole('button',{name:'Consultar',exact:true}).click();
+      await page.waitForLoadState('networkidle');
+      if (requests !== 1 || !(await page.locator('.chart-panel .section-description').textContent()).includes('Iluminación exterior')) throw new Error('Submitted category did not apply atomically.');
+      await filter.selectOption('CAT-01');
+      await page.getByRole('button',{name:'Consultar',exact:true}).click();
+      await page.waitForLoadState('networkidle');
+      page.off('request', countRequest);
+      for (const label of ['Desde','Hasta']) {
+        if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(await page.getByLabel(label,{exact:true}).inputValue())) throw new Error('Filter still shows seconds.');
+      }
+      if (await page.locator('.values-panel .section-description').textContent().then(text => text.includes('Corte:'))) throw new Error('Cutoff text remains.');
+      const metricLabels = await page.locator('.period-metrics dt').allTextContents();
+      if (JSON.stringify(metricLabels) !== JSON.stringify(['Consumo máximo','Consumo mínimo','Media por intervalo','Consumo acumulado','Intervalos con datos'])) throw new Error('Period metric order mismatch.');
+      if (await page.locator('.period-metrics>p').count()) throw new Error('Metric explanatory text remains.');
+      await page.getByRole('heading',{name:'Consumo energético',exact:true}).waitFor();
+      await page.getByRole('heading',{name:'Consumo energético en el intervalo solicitado',exact:true}).waitFor();
+      if (await page.locator('.chart-panel .dashboard-series').evaluate(el => getComputedStyle(el).animationName) !== 'dashboard-series-fade') throw new Error('Consumption update animation missing.');
+      const refresh = page.getByRole('button', {name: 'Actualizar', exact: true});
+      if (!await refresh.locator('svg').count()) throw new Error('Refresh icon missing.');
+      const options = await page.getByLabel('Categoría', {exact:true}).locator('option').allTextContents();
+      if (options.some(text => /Con medidor|Total calculado|Sin medidor|Sin base/.test(text))) throw new Error('Category suffix remains.');
+      await page.locator('.chart-panel [role="graphics-symbol"]').first().focus();
+      if (!/^.+ kWh · \d{2}:\d{2}:\d{2}$/.test(await page.getByRole('tooltip').textContent())) throw new Error('Consumption tooltip format mismatch.');
+      if (await page.locator('p.chart-tooltip').count()) throw new Error('Tooltip still takes space below the plot.');
+      const clipped = await page.locator('.chart-panel svg text[text-anchor="end"]').evaluateAll(labels => labels.some(label => label.getBBox().x < 0));
+      if (clipped) throw new Error('Axis label clipped.');
+      if (scenario === 'days' && await page.locator('.consumption-day-divider').count() !== 2) throw new Error('Local day separators missing.');
+      const times = await page.locator('.consumption-table tbody tr:not(.consumption-day-divider)').evaluateAll(rows => rows.flatMap(row => [row.children[0].textContent, row.children[1].textContent]));
+      if (!times.every(text => /^\d{2}:\d{2}$/.test(text))) throw new Error('Table time cells still include dates.');
+      await page.locator('.consumption-table summary').first().click();
+      const originText = await page.locator('.row-evidence').first().innerText();
+      if (/America\/|[+-]\d{2}:\d{2}|\d{4}-\d{2}-\d{2}T/.test(originText)) throw new Error('Origin dates still show raw timezone syntax.');
+      await page.evaluate(() => scrollTo(0, 0));
+    }
     if (role === 'admin' && path === '/administracion/costos/' && scenario !== 'error') await page.getByRole('heading', { name: /Suministro general/ }).waitFor();
     if (scenario === 'hour') await page.goto(`${baseURL}${path}?escala=hour`, {waitUntil:'networkidle'});
-    if (scenario === 'no-meter') await page.getByLabel('Categoría').selectOption('CAT-07');
+    if (scenario === 'no-meter') { await page.getByLabel('Categoría').selectOption('CAT-07'); await page.getByRole('button',{name:'Consultar',exact:true}).click(); }
     if (scenario === 'segment') { await page.getByRole('button', { name: 'Añadir segmento', exact: true }).click(); await page.getByRole('button', { name: 'Añadir cargo al segmento 1' }).click(); }
     if (scenario === 'evidence') await page.getByText('Revisar bases de reproducción', { exact: true }).click();
     if (scenario === 'bill-edit') await page.getByRole('button', { name: 'Corregir boleta revisión 1' }).click();
@@ -191,6 +239,7 @@ async function capture(path, viewport, role, scenario) {
   } catch (error) {
     results.push({ path, role, scenario, viewport, errors: [...errors, error.message], unknown });
     console.error(`${slug}: ${error.message}`);
+    console.error(JSON.stringify({errors, consoleErrors, body: await page.locator('body').innerText()}));
   } finally { await context.close(); }
 }
 

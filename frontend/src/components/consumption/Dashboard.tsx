@@ -59,7 +59,7 @@ function DailyDashboard() {
   const totalEnergy = total?.energy_kwh ?? '0';
   const date = data ? new Intl.DateTimeFormat('es-CL', { timeZone: data.timezone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(data.cutoff_at)) : '';
   return <>
-    <div className="consumption-toolbar"><p>Electro Conforma {date && ` · ${date}`}</p><button disabled={busy} onClick={() => { background.current = false; setAttempt(value => value + 1); }}><Icon name="refresh" />Actualizar</button></div>
+    <div className="consumption-toolbar"><p>En esta sección, puedes consultar el consumo energético diario del edificio {date && ` · ${date}`}</p><button disabled={busy} onClick={() => { background.current = false; setAttempt(value => value + 1); }}><Icon name="refresh" />Actualizar</button></div>
     {busy && !data && <p className="loading-state" role="status">Consultando el consumo del día…</p>}
     {error && <p className="notice notice--error" role="alert"><Icon name="warning" />No se pudo consultar el dashboard. Intente actualizar de nuevo.</p>}
     {data && total && <>

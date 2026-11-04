@@ -1,24 +1,34 @@
 /** Semantic consumption table; diagnostics never become numeric rows and source evidence stays explicit. */
+import { Fragment } from 'react';
 import type { CategoryId, DetailRow, AggregateBlock } from "../../lib/api/consumption";
-import { coverageLabel, temporalLabel, sourceModeLabel } from "./historyFormat";
+import { coverageLabel, temporalLabel, sourceModeLabel, originInstant } from "./historyFormat";
 import { energyLabel, instantLabel } from "./format";
-import { shortInstant, readableDecimal } from '../../lib/visual';
+import { shortInstant } from '../../lib/visual';
+import { dashboardDecimal } from './dashboardFormat';
+
+/** Label each local calendar day once; full instants remain in row evidence and title attributes. */
+function dayDivider(start: string, previous: string | undefined, timezone: string, columns: number) {
+  const format = new Intl.DateTimeFormat('es-CL', { timeZone: timezone, dateStyle: 'full' });
+  const day = format.format(new Date(start));
+  if (previous && format.format(new Date(previous)) === day) return null;
+  return <tr className="consumption-day-divider"><th scope="rowgroup" colSpan={columns}>{day}</th></tr>;
+}
 
 /** Render exact incorporated rows and their historical origin using the same formatters as the SVG. */
 export function EnergyTable({ rows, blocks, timezone, categoryId, compact = false }: { compact?: boolean; blocks?: readonly AggregateBlock[]; rows: readonly DetailRow[]; timezone: string; categoryId: CategoryId }) {
-  if (compact && !blocks) return <div className="table-scroll" tabIndex={0} role="region" aria-label="Valores del período"><table className="consumption-table"><caption className="sr-only">Energía eléctrica por intervalo · kWh</caption><thead><tr><th>Inicio</th><th>Fin</th><th className="numeric">Energía (kWh)</th><th>Origen</th></tr></thead><tbody>{rows.map(row => <tr key={row.record_id}><td title={row.start}>{shortInstant(row.start, timezone)}</td><td title={row.end}>{shortInstant(row.end, timezone)}</td><td className="numeric" title={row.energy_kwh}>{readableDecimal(row.energy_kwh)} kWh</td><td><details><summary>{row.origin.kind === 'measured' ? 'Medido' : 'Calculado'}</summary><div className="row-evidence"><p>{instantLabel(row.start, timezone)} → {instantLabel(row.end, timezone)}</p><p>Configuración: {row.configuration_revision} · Revisión: {row.category_revision}</p>{row.origin.kind === 'measured' ? <><p>Fuente: {row.origin.source_id}</p><p>Original: {row.origin.original_value} {row.origin.original_unit}</p></> : <><p>Total calculado de las categorías presentes · Base: {row.origin.base_categories.join(', ')}</p><p>La base parcial no garantiza cubrir todas las cargas del edificio.</p>{row.origin.contributions.map(part => <p key={part.measurement_id}>{part.category_id}: {energyLabel(part.energy_kwh)} · {part.start} → {part.end} · Fuente: {part.source_id} · Medición: {part.measurement_id}, revisión {part.measurement_revision}</p>)}</>}</div></details></td></tr>)}</tbody></table>{!rows.length && <p className="empty-state">Sin lecturas para este período.</p>}</div>;
+  if (compact && !blocks) return <div className="table-scroll" tabIndex={0} role="region" aria-label="Valores del período"><table className="consumption-table"><caption className="sr-only">Energía eléctrica por intervalo · kWh</caption><thead><tr><th>Inicio</th><th>Fin</th><th className="numeric">Energía (kWh)</th><th>Origen</th></tr></thead><tbody>{rows.map((row, index) => <Fragment key={row.record_id}>{dayDivider(row.start, rows[index - 1]?.start, timezone, 4)}<tr><td title={row.start}>{shortInstant(row.start, timezone, true)}</td><td title={row.end}>{shortInstant(row.end, timezone, true)}</td><td className="numeric" title={row.energy_kwh}>{dashboardDecimal(row.energy_kwh)} kWh</td><td><details><summary>{row.origin.kind === 'measured' ? 'Medido' : 'Calculado'}</summary><div className="row-evidence"><p><time dateTime={row.start} title={row.start}>{originInstant(row.start, timezone)}</time> → <time dateTime={row.end} title={row.end}>{originInstant(row.end, timezone)}</time></p><p>Configuración: {row.configuration_revision} · Revisión: {row.category_revision}</p>{row.origin.kind === 'measured' ? <><p>Fuente: {row.origin.source_id}</p><p>Original: {row.origin.original_value} {row.origin.original_unit}</p></> : <><p>Total calculado de las categorías presentes · Base: {row.origin.base_categories.join(', ')}</p><p>La base parcial no garantiza cubrir todas las cargas del edificio.</p>{row.origin.contributions.map(part => <p key={part.measurement_id}>{part.category_id}: {energyLabel(part.energy_kwh)} · <time dateTime={part.start} title={part.start}>{originInstant(part.start, timezone)}</time> → <time dateTime={part.end} title={part.end}>{originInstant(part.end, timezone)}</time> · Fuente: {part.source_id} · Medición: {part.measurement_id}, revisión {part.measurement_revision}</p>)}</>}</div></details></td></tr></Fragment>)}</tbody></table>{!rows.length && <p className="empty-state">Sin lecturas para este período.</p>}</div>;
   if (blocks) return <table>
     <caption>Energía eléctrica agrupada · kWh · {timezone}</caption>
     <thead><tr><th scope="col">Inicio (incluido)</th><th scope="col">Fin (excluido)</th><th scope="col">Energía (kWh)</th><th scope="col">Cobertura</th><th scope="col">Situación temporal</th><th scope="col">Procedencia</th></tr></thead>
-    <tbody>{blocks.map(block => <tr key={block.start}>
-      <td>{instantLabel(block.start, timezone)}</td><td>{instantLabel(block.end, timezone)}</td>
-      <td>{block.energy_kwh === null ? '—' : energyLabel(block.energy_kwh)}</td>
+    <tbody>{blocks.map((block, index) => <Fragment key={block.start}>{compact && dayDivider(block.start, blocks[index - 1]?.start, timezone, 6)}<tr>
+      <td title={block.start}>{compact ? shortInstant(block.start, timezone, true) : instantLabel(block.start, timezone)}</td><td title={block.end}>{compact ? shortInstant(block.end, timezone, true) : instantLabel(block.end, timezone)}</td>
+      <td>{block.energy_kwh === null ? '—' : compact ? `${dashboardDecimal(block.energy_kwh)} kWh` : energyLabel(block.energy_kwh)}</td>
       <td>{coverageLabel(block)} · {block.coverage_state === 'no_data' ? 'Sin datos' : block.coverage_state === 'incomplete' ? 'Incompleto' : 'Completo'}</td>
       <td>{temporalLabel(block)}</td><td>{sourceModeLabel(block.source_mode)}<ul>{block.provenance_segments.map((segment, i) => <li key={i}>
-        {segment.start} → {segment.end} · {sourceModeLabel(segment.source_mode)} · Fuente: {segment.source_id ?? 'No aplica'} · Base: {segment.base_categories.join(', ') || 'No aplica'} · Revisión {segment.category_revision}
+        {compact ? <><time dateTime={segment.start} title={segment.start}>{originInstant(segment.start, timezone)}</time> → <time dateTime={segment.end} title={segment.end}>{originInstant(segment.end, timezone)}</time></> : <>{segment.start} → {segment.end}</>} · {sourceModeLabel(segment.source_mode)} · Fuente: {segment.source_id ?? 'No aplica'} · Base: {segment.base_categories.join(', ') || 'No aplica'} · Revisión {segment.category_revision}
         {segment.basis_sources.map(source => <span key={source.category_id}> · {source.category_id}: {source.source_id}</span>)}
       </li>)}</ul>{block.warnings.map((warning, i) => <p key={i}>{warning.detail}</p>)}</td>
-    </tr>)}</tbody>
+    </tr></Fragment>)}</tbody>
   </table>;
   return <table>
     <caption>Energía eléctrica por intervalo · kWh · {timezone}</caption>

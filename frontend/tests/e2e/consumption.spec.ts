@@ -1,4 +1,5 @@
 /** Browser acceptance against the real monolith/002 reception fixtures, with no public seed endpoint. */
+import { dashboardDecimal } from "../../src/components/consumption/dashboardFormat";
 import { consumptionFixture } from "./consumption.setup";
 import { expect, test } from "@playwright/test";
 import type { DetailResult, AggregateQueryResult } from "../../src/lib/api/consumption";
@@ -36,6 +37,7 @@ for (const role of ["admin", "operator"]) {
     const catalog = await apiResponse.json();
     for (const category of ["CAT-01", "CAT-02", "CAT-03", "CAT-04", "CAT-05", "CAT-06", "CAT-07"] as const) {
       await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption(category);
+      await page.getByRole('button', { name: 'Consultar', exact: true }).click();
       await expect(page.getByLabel("Inicio con offset", { exact: true })).toHaveValue(selectedStart);
       const params = new URLSearchParams(catalog.default_period);
       const response = await context.request.get(`/api/v1/consumption/categories/${category}/detail?${params}`);
@@ -44,10 +46,10 @@ for (const role of ["admin", "operator"]) {
       if (category === "CAT-01") expect(result.rows[0].energy_kwh).toBe(process.env.CONSUMPTION_E2E_MODE === "physical" ? "100" : "20");
       await expect(page.getByRole("heading", { level: 2 })).toContainText(result.category.name);
       await expect(page.getByText(({available:"Datos disponibles",no_meter:"Sin medidor",no_data:"Sin datos",incomplete:"Datos incompletos"})[result.state], {exact:true})).toBeVisible();
-      await expect(page.locator("tbody tr")).toHaveCount(result.rows.length);
+      await expect(page.locator("tbody tr:not(.consumption-day-divider)")).toHaveCount(result.rows.length);
       await expect(page.locator('[role="graphics-symbol"]')).toHaveCount(result.rows.length);
       for (const [index, row] of result.rows.entries()) {
-        await expect(page.getByRole("cell", { name: `${row.energy_kwh} kWh`, exact: true })).toBeVisible();
+        await expect(page.locator("tbody tr:not(.consumption-day-divider)").nth(index).locator("td").nth(2)).toHaveText(`${dashboardDecimal(row.energy_kwh)} kWh`);
         const symbol = page.locator('[role="graphics-symbol"]').nth(index);
         expect(await symbol.getAttribute("aria-label")).toContain(row.start);
         expect(await symbol.getAttribute("aria-label")).toContain(row.end);
@@ -55,18 +57,19 @@ for (const role of ["admin", "operator"]) {
       }
     }
     await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption("CAT-05");
-    await expect(page.locator("tbody tr")).toHaveCount(3);
+    await page.getByRole('button', { name: 'Consultar', exact: true }).click();
+    await expect(page.locator("tbody tr:not(.consumption-day-divider)")).toHaveCount(3);
     await expect(page.locator('[data-kind="zero"]')).toHaveCount(1);
     await expect(page.locator('[data-kind="subpixel-positive"]')).toHaveCount(1);
     await page.getByLabel("Inicio con offset", { exact: true }).fill("2026-01-03T00:00:00-03:00");
     await page.getByRole("button", { name: "Consultar período" }).click();
     await expect(page.getByText("Revise inicio y fin:", { exact: false })).toBeVisible();
-    await expect(page.locator("tbody tr")).toHaveCount(3);
+    await expect(page.locator("tbody tr:not(.consumption-day-divider)")).toHaveCount(3);
     await page.getByLabel("Inicio con offset", { exact: true }).fill("2026-01-01T00:15:00-03:00");
     await page.getByLabel("Fin con offset", { exact: true }).fill("2026-01-01T00:45:00-03:00");
     await page.getByRole("button", { name: "Consultar período" }).click();
     await expect(page.getByText("Se excluyeron intervalos que cruzan los límites.", { exact: false })).toBeVisible();
-    await expect(page.locator("tbody tr")).toHaveCount(0);
+    await expect(page.locator("tbody tr:not(.consumption-day-divider)")).toHaveCount(0);
     //001 periods preserve building offsets even while the browser runs in Tokyo.
     for (const [start, end] of [
       ["2025-12-30T00:00:00-03:00", "2025-12-31T00:00:00-03:00"],
@@ -80,11 +83,13 @@ for (const role of ["admin", "operator"]) {
       const result = await (await received).json() as DetailResult;
       expect(result.period.start).toBe(start);
       expect(result.period.end).toBe(end);
-      await expect(page.locator("tbody tr")).toHaveCount(0);
+      await expect(page.locator("tbody tr:not(.consumption-day-divider)")).toHaveCount(0);
       await expect(page.locator('[role="graphics-symbol"]')).toHaveCount(0);
       await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption("CAT-03");
+      await page.getByRole('button', { name: 'Consultar', exact: true }).click();
       await expect(page.getByLabel("Inicio con offset", { exact: true })).toHaveValue(start);
       await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption("CAT-05");
+      await page.getByRole('button', { name: 'Consultar', exact: true }).click();
     }
     //002 grouping keeps the explicit filter/category and compares every block to the real API.
     await page.getByLabel("Inicio con offset", { exact: true }).fill("2026-01-01T00:00:00-03:00");
@@ -99,15 +104,16 @@ for (const role of ["admin", "operator"]) {
       for (const category of ["CAT-01", "CAT-02", "CAT-03", "CAT-04", "CAT-05", "CAT-06", "CAT-07"] as const) {
         const query = new URLSearchParams({start: "2026-01-01T00:00:00-03:00", end, timezone: "America/Santiago", granularity});
         await page.getByRole("combobox", { name: "Categoría", exact: true }).selectOption(category);
+        await page.getByRole('button', { name: 'Consultar', exact: true }).click();
         const response = await context.request.get(`/api/v1/consumption/categories/${category}/aggregates?${query}`);
         expect(response.status()).toBe(200);
         const result = await response.json() as AggregateQueryResult;
-        await expect(page.locator("tbody tr")).toHaveCount(result.blocks.length);
+        await expect(page.locator("tbody tr:not(.consumption-day-divider)")).toHaveCount(result.blocks.length);
         await expect(page.locator('[role="graphics-symbol"]')).toHaveCount(result.blocks.length);
         for (const [index, block] of result.blocks.entries()) {
-          const row = page.locator("tbody tr").nth(index);
-          await expect(row.locator("td").nth(0)).toContainText(block.start);
-          await expect(row.locator("td").nth(2)).toHaveText(block.energy_kwh === null ? "—" : `${block.energy_kwh} kWh`);
+          const row = page.locator("tbody tr:not(.consumption-day-divider)").nth(index);
+          await expect(row.locator("td").nth(0)).toHaveAttribute("title", block.start);
+          await expect(row.locator("td").nth(2)).toHaveText(block.energy_kwh === null ? "—" : `${dashboardDecimal(block.energy_kwh)} kWh`);
           const symbol = page.locator('[role="graphics-symbol"]').nth(index);
           await expect(symbol).toHaveAttribute("aria-label", new RegExp(block.energy_kwh === null ? "Sin datos" : `${block.energy_kwh} kWh`));
         }
