@@ -2,7 +2,7 @@
 
 ## Autoridad y alcance
 
-El usuario confirmó que los logos de `docs/Identidad Visual Electro Conforma/` son la identidad con la que presentará la propuesta y que sus colores deben conservarse en todos los diseños futuros. Este compromiso prevalece sobre la paleta provisional de la primera maqueta. El usuario aprobó integrar dashboard versión 5, consumo versión 4 e ingreso escritorio y móvil versión 1. La implementación local y límites de dashboard y consumo se documentan en [ui-implementation.md](docs/ui-implementation.md), y los de ingreso en su [brief](docs/login-reference.md); Costos sigue en revisión visual.
+El usuario confirmó que los logos de `docs/Identidad Visual Electro Conforma/` son la identidad con la que presentará la propuesta y que sus colores deben conservarse en todos los diseños futuros. Este compromiso prevalece sobre la paleta provisional de la primera maqueta. El usuario aprobó integrar dashboard versión 5, consumo versión 4 e ingreso escritorio y móvil versión 1. La implementación local y límites de dashboard y consumo se documentan en [ui-implementation.md](docs/ui-implementation.md), y los de ingreso en su [brief](docs/login-reference.md). Costos versión 2 también fue aprobada e integrada localmente; su contrato y evidencia se documentan en [costs-implementation.md](docs/costs-implementation.md).
 
 ## Activos originales
 
@@ -68,7 +68,7 @@ En Consumo, el usuario solicita el aviso amarillo con todo su texto en peso regu
 
 [Ingreso, escritorio](.impeccable/mocks/login-desktop-v1.png) y [móvil](.impeccable/mocks/login-mobile-v1.png): referencias aprobadas e integradas localmente en `/ingreso/`. Panel centrado sin navegación privada en todos los estados de sesión, SVG original, tipografía autoalojada y tokens compartidos; ayuda de restablecimiento mediante administrador técnico y pie gris. Los errores usan rojo y el límite de intentos, ámbar. En alturas reducidas se permite desplazamiento vertical. El [brief de ingreso](docs/login-reference.md) registra la verificación y sus límites.
 
-[Costos, primera referencia](.impeccable/mocks/costs-v1.png): consulta por ciclo, desglose y contraste de boleta con subtotal parcial explícito. Pendiente de revisión, con tarifas ilustrativas. El [brief de costos](docs/costs-reference.md) detalla su alcance.
+[Costos, versión 2](.impeccable/mocks/costs-v2.png): referencia aprobada e integrada localmente en `/costos/`. Consulta por ciclo y revisión, resumen financiero, reparto estimado del cargo neto de energía por categoría, desglose y contraste de boleta; historial y procedencia desplegables. Conserva la identidad y los colores estables existentes, sin nuevos tokens. El [brief de costos](docs/costs-reference.md) y el [registro de integración](docs/costs-implementation.md) detallan alcance, evidencia y límites. La [preparación operativa de la demo](docs/costs-demo.md) registra su habilitación local con datos sintéticos. La [primera referencia](.impeccable/mocks/costs-v1.png), con subtotal parcial y tarifas ilustrativas, se conserva como antecedente; no es el estado vigente.
 
 [Dashboard y navegación, versión 5](.impeccable/mocks/dashboard-navigation-v5.png) y [consumo, versión 4](.impeccable/mocks/consumption-v4.png): referencias aprobadas e integradas localmente. Las imágenes conservan datos ilustrativos. Ambas incorporan la nueva navegación activa y colores por categoría. Los briefs de [dashboard](docs/dashboard-reference.md) y [consumo](docs/consumption-reference.md) conservan requisitos y límites.
 

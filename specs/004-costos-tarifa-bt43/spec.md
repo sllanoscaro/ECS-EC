@@ -289,7 +289,8 @@ según el perfil aplicable al suministro:
   modificar la evidencia de un cálculo anterior ni los límites del ciclo.
 - **FR-012**: Una variación del perfil dentro del ciclo DEBE aplicar la regla de vigencia
   documentada de cada componente. NO DEBE asignar arbitrariamente cuotas diarias u horarias
-  a cargos fijos o de demanda ni distribuir el costo entre las categorías parciales.
+  a cargos fijos o de demanda ni distribuir el costo BT4.3 completo entre las categorías
+  parciales. La estimación visual del cargo neto de energía de FR-024 se mantiene separada.
 - **FR-013**: Gráficos y tablas DEBEN presentar los mismos ciclos, importes, moneda, bases
   tributarias y estados, diferenciando costo calculado, importe comparable facturado y
   total a pagar cuando sean conceptos distintos.
@@ -340,6 +341,20 @@ según el perfil aplicable al suministro:
   del punto de medición de la distribuidora DEBEN documentarse; NO DEBEN introducirse
   factores de ajuste sin una regla y evidencia registradas.
 
+- **FR-024** (ampliación visual aprobada el 3 de noviembre de 2026): La consulta de Costos
+  DEBE incluir un gráfico circular con los porcentajes y montos estimados en CLP por categoría,
+  conservando sus colores de consumo001. Solo se distribuye el cargo neto de energía disponible
+  proporcionalmente al consumo del mismo ciclo; NO se reparten demanda, transmisión, cargo fijo
+  ni impuestos. La estimación DEBE identificarse como transitoria, con corte propio, y NO
+  modifica ni reproduce el cálculo financiero persistido. La evidencia física general DEBE
+  conciliar con su captura; cobertura incompleta, exceso de parciales, base cero o bases
+  tributarias incompatibles NO producen importes ficticios. La ausencia de medidor se mantiene
+  explícita y el consumo general no asignado conserva un sector propio. Los importes y
+  porcentajes DEBEN conservar sus sumas tras redondeo. El historial, los permisos y el contraste
+  de revisiones exactas se mantienen. El [contrato de distribución](contracts/distribution.md)
+  y la [integración visual](../../docs/costs-implementation.md) detallan esta ampliación;
+  no implican cierre automático de las tareas ni aceptación de la funcionalidad.
+
 ### Key Entities *(include if feature involves data)*
 
 - **Suministro del edificio**: Identificación del servicio eléctrico, su tablero general,
@@ -384,8 +399,9 @@ según el perfil aplicable al suministro:
 - **Alcance de suministro**: Se trabaja con un edificio, un suministro general y una única
   opción BT4.3. CAT-01 debe identificar el tablero general correspondiente y ser de origen
   medido para este análisis; la compatibilidad con totales calculados de la spec-001 no
-  cambia esa exigencia. No se implementan
-  reparto de costos por categoría, comparación entre tarifas ni optimización de contratos.
+  cambia esa exigencia. La ampliación visual autorizada el 3 de noviembre de 2026 permite
+  estimar el reparto del cargo neto de energía por categoría según FR-024; no distribuye
+  el costo BT4.3 completo. No se implementan comparación entre tarifas ni optimización de contratos.
 - **Marco de referencia**: La caracterización se apoya en las
   [opciones tarifarias descritas por la CNE](https://www.cne.cl/en/tarificacion/electrica/valor-agregado-de-distribucion/opciones-tarifarias-a-usuarios-finales/).
   Para el perfil inicial se consideran las secciones 3.4 y 4.8 del
