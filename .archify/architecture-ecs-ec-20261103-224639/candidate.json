@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ECS-EC · Arquitectura de alto nivel",
+    "locale": "es",
+    "output": ".archify/architecture-ecs-ec-20261103-224639/ecs-ec.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:sllanoscaro/ECS-EC.git",
+      "revision": "75d4e1bdee0f9051344166870677c8f87e6de7a8",
+      "link_mode": "local-only"
+    }
+  },
+  "components": [
+    {
+      "id": "usuarios",
+      "type": "external",
+      "label": "Usuarios del edificio",
+      "sublabel": "Operador / Administrador",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        170,
+        76
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/lib/api/session.ts",
+          "line": 61,
+          "end_line": 81
+        }
+      ]
+    },
+    {
+      "id": "interfaz",
+      "type": "frontend",
+      "label": "Interfaz web",
+      "sublabel": "React / Next.js estático",
+      "pos": [
+        310,
+        40
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "Dockerfile",
+          "line": 1,
+          "end_line": 22
+        },
+        {
+          "path": "frontend/src/lib/api/session.ts",
+          "line": 61,
+          "end_line": 81
+        },
+        {
+          "path": "frontend/next.config.ts",
+          "line": 1,
+          "end_line": 5
+        }
+      ]
+    },
+    {
+      "id": "acceso",
+      "type": "security",
+      "label": "API e identidad",
+      "sublabel": "FastAPI · sesión, CSRF, RBAC",
+      "pos": [
+        310,
+        240
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "backend/src/ecs_ec/main.py",
+          "line": 73,
+          "end_line": 98
+        },
+        {
+          "path": "backend/src/ecs_ec/identity/api.py",
+          "line": 155,
+          "end_line": 170
+        }
+      ],
+      "tag": "IDENTITY_ENABLED"
+    },
+    {
+      "id": "dominio",
+      "type": "backend",
+      "label": "Consumo y costos",
+      "sublabel": "Historial · agregados · BT4.3",
+      "pos": [
+        650,
+        240
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "backend/src/ecs_ec/main.py",
+          "line": 59,
+          "end_line": 98
+        },
+        {
+          "path": "backend/src/ecs_ec/consumption/store.py",
+          "line": 60,
+          "end_line": 78
+        },
+        {
+          "path": "backend/src/ecs_ec/costs/services.py",
+          "line": 31,
+          "end_line": 160
+        }
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL 18",
+      "sublabel": "Datos, sesiones y auditoría",
+      "pos": [
+        1000,
+        240
+      ],
+      "size": [
+        180,
+        76
+      ],
+      "sources": [
+        {
+          "path": "compose.yaml",
+          "line": 4,
+          "end_line": 42
+        },
+        {
+          "path": "backend/src/ecs_ec/core/database.py",
+          "line": 20,
+          "end_line": 33
+        }
+      ]
+    },
+    {
+      "id": "simulador",
+      "type": "external",
+      "label": "Simulador PAS600",
+      "sublabel": "Fuente de pruebas independiente",
+      "pos": [
+        40,
+        440
+      ],
+      "size": [
+        170,
+        76
+      ],
+      "sources": [
+        {
+          "path": "tools/pas600_simulator/README.md",
+          "line": 1,
+          "end_line": 26
+        }
+      ]
+    },
+    {
+      "id": "adquisicion",
+      "type": "backend",
+      "label": "Adquisición SFTP",
+      "sublabel": "CSV/JSON · validación · reintento",
+      "pos": [
+        310,
+        440
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "backend/src/ecs_ec/acquisition/lifecycle.py",
+          "line": 49,
+          "end_line": 88
+        },
+        {
+          "path": "backend/src/ecs_ec/acquisition/service.py",
+          "line": 20,
+          "end_line": 65
+        },
+        {
+          "path": "backend/src/ecs_ec/acquisition/staging.py",
+          "line": 63,
+          "end_line": 118
+        }
+      ],
+      "tag": "PAS600_SFTP_ENABLED"
+    },
+    {
+      "id": "emisor",
+      "type": "backend",
+      "label": "Emisor técnico",
+      "sublabel": "Logs JSON y trazas OTLP",
+      "pos": [
+        650,
+        440
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "backend/src/ecs_ec/observability/lifecycle.py",
+          "line": 24,
+          "end_line": 38
+        },
+        {
+          "path": "backend/src/ecs_ec/observability/lifecycle.py",
+          "line": 68,
+          "end_line": 129
+        },
+        {
+          "path": "backend/src/ecs_ec/observability/tracing.py",
+          "line": 30,
+          "end_line": 85
+        }
+      ],
+      "tag": "OBS_ENABLED"
+    },
+    {
+      "id": "archivos",
+      "type": "database",
+      "label": "Archivos de adquisición",
+      "sublabel": "Volumen /acquisition",
+      "pos": [
+        310,
+        650
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "backend/src/ecs_ec/acquisition/staging.py",
+          "line": 63,
+          "end_line": 118
+        },
+        {
+          "path": "compose.yaml",
+          "line": 58,
+          "end_line": 81
+        }
+      ]
+    },
+    {
+      "id": "observabilidad",
+      "type": "cloud",
+      "label": "Entorno técnico",
+      "sublabel": "Alloy · Loki · Jaeger · Grafana",
+      "pos": [
+        650,
+        650
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "compose.yaml",
+          "line": 83,
+          "end_line": 170
+        },
+        {
+          "path": "deploy/observability/alloy.alloy",
+          "line": 6,
+          "end_line": 48
+        },
+        {
+          "path": "deploy/technical-gateway/nginx.conf",
+          "line": 64,
+          "end_line": 107
+        }
+      ],
+      "tag": "Perfil observability"
+    },
+    {
+      "id": "programador",
+      "type": "external",
+      "label": "Programador",
+      "sublabel": "Acceso técnico independiente",
+      "pos": [
+        1000,
+        650
+      ],
+      "size": [
+        180,
+        76
+      ],
+      "sources": [
+        {
+          "path": "deploy/technical-gateway/nginx.conf",
+          "line": 64,
+          "end_line": 90
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Monolito ECS-EC · una imagen / un proceso Uvicorn",
+      "wraps": [
+        "interfaz",
+        "acceso",
+        "dominio",
+        "adquisicion",
+        "emisor"
+      ],
+      "pad": 24
+    }
+  ],
+  "connections": [
+    {
+      "id": "consulta-web",
+      "from": "usuarios",
+      "to": "interfaz",
+      "label": "Web",
+      "variant": "default"
+    },
+    {
+      "id": "consulta-api",
+      "from": "interfaz",
+      "to": "acceso",
+      "label": "JSON / sesión",
+      "variant": "security"
+    },
+    {
+      "id": "acceso-dominio",
+      "from": "acceso",
+      "to": "dominio",
+      "label": "Permisos",
+      "variant": "security"
+    },
+    {
+      "id": "datos-dominio",
+      "from": "dominio",
+      "to": "postgres",
+      "label": "SQL / UoW",
+      "variant": "emphasis"
+    },
+    {
+      "id": "publicacion-sftp",
+      "from": "simulador",
+      "to": "adquisicion",
+      "label": "SFTP*",
+      "variant": "emphasis"
+    },
+    {
+      "id": "admision-interna",
+      "from": "adquisicion",
+      "to": "dominio",
+      "label": "Admisión*",
+      "variant": "default"
+    },
+    {
+      "id": "archivo-durable",
+      "from": "adquisicion",
+      "to": "archivos",
+      "label": "Escritura / lectura",
+      "variant": "default"
+    },
+    {
+      "id": "instrumentacion",
+      "from": "dominio",
+      "to": "emisor",
+      "label": "Instrumentación*",
+      "variant": "default"
+    },
+    {
+      "id": "exportacion-tecnica",
+      "from": "emisor",
+      "to": "observabilidad",
+      "label": "JSONL / OTLP*",
+      "variant": "dashed"
+    },
+    {
+      "id": "consulta-tecnica",
+      "from": "programador",
+      "to": "observabilidad",
+      "label": "HTTPS / Basic",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Una unidad de aplicación",
+      "items": [
+        "FastAPI sirve la API y el export estático; React se ejecuta en el navegador. Node interviene solo durante la construcción.",
+        "Los módulos y sus tareas de lifespan comparten proceso. PostgreSQL y el entorno técnico son infraestructura externa."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Trazabilidad del consumo",
+      "items": [
+        "003 adapta los archivos; 001/002 validan, incorporan, consultan y agregan las mediciones. 004 calcula BT4.3 sobre capturas reproducibles.",
+        "core/009 aporta DB, UoW, reloj y retención; audit/009 conserva evidencia y eventos junto al resultado de negocio en la misma transacción."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Activación y alcance",
+      "items": [
+        "* SFTP requiere habilitación, credenciales y vínculos autorizados. Telemetría requiere OBS_ENABLED y el perfil observability. Identidad habilita las consultas privadas.",
+        "La pila técnica agrupa el gateway Nginx y los recolectores/visores: JSONL → Alloy → Loki; OTLP → Jaeger; consulta por Grafana/Jaeger con acceso técnico separado.",
+        "El emisor es best-effort: sus fallos no condicionan el commit de negocio. El staging de adquisición también conserva metadatos en PostgreSQL."
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Implementado frente a planificado",
+      "items": [
+        "Vista del código confirmado en 75d4e1b; no certifica un despliegue productivo ni aceptación integral.",
+        "PDF (005), notificaciones/SMTP (008) y despliegue VPS siguen pendientes; se omiten del recorrido activo. Fuentes: docs/implementation-roadmap.md:11–19.",
+        "Se excluyen los cambios locales sin confirmar de costos, interfaz y scripts. El simulador es una fuente sintética; no acredita medidores físicos."
+      ]
+    }
+  ]
+}

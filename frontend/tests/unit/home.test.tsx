@@ -9,7 +9,7 @@ vi.mock('../../src/components/identity/SessionProvider', () => ({
 test('offers login instead of embedding daily measurements in the landing page', () => {
   /** Anonymous static rendering contains no fake or installation-specific energy value. */
   render(<Home />);
-  expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Resumen del edificio');
+  expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Dashboard');
   expect(screen.getByRole('link', { name: 'iniciar sesión' }).getAttribute('href')).toBe('/ingreso/');
   expect(screen.queryByText(/kWh/)).toBeNull();
 });

@@ -21,7 +21,7 @@ const reasons: Record<string, string> = {
   unsupported_historical_rule: "La regla histórica aún no está soportada.",
   unsupported_peak_alignment: "El horario documentado de punta no coincide con bloques completos de quince minutos.",
   tax_rule_unresolved: "Falta resolver la regla tributaria del cargo.",
-  tax_basis_unresolved: "No hay una base tributaria compatible; no se vuelve a aplicar un impuesto incluido.",
+  tax_basis_unresolved: "La base de impuestos no puede determinarse con los conceptos disponibles.",
   cycle_boundaries_unresolved: "Falta confirmar los límites efectivos del ciclo.",
   supply_conditions_missing: "Faltan condiciones o fuentes documentales del suministro.",
   engine_failed: "No se pudo completar el cálculo; quedó registrada una revisión fallida.",

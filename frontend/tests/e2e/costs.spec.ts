@@ -54,10 +54,15 @@ for (const role of ["admin", "operator"]) {
       const cycles = await (await context.request.get("/api/v1/costs/cycles")).json();
       const reference = cycles.items.find((item: { end_at: string }) => item.end_at === "2026-01-01T01:00:00Z");
       await page.goto(`/costos/?calculation=${reference.calculation.id}`);
-      await expect(page.getByText("Costo completo: 100000 CLP", { exact: true })).toBeVisible();
+      await expect(page.locator('.cost-summary>div').first()).toContainText('$100.000');
       await expect(page.getByRole("button", { name: "Confirmar cálculo", exact: true })).toHaveCount(0);
     }
-    await expect(page.locator('section[aria-label="Resultado del cálculo"]').getByRole("cell", { name: "100000 CLP", exact: true })).toBeVisible();
-    await expect(page.locator('section[aria-label="Resultado del cálculo"] [role="graphics-symbol"]')).toHaveAttribute("aria-label", "energy: 100000 CLP");
+    if (role === 'admin') {
+      await expect(page.locator('section[aria-label="Resultado del cálculo"]').getByRole("cell", { name: "100000 CLP", exact: true })).toBeVisible();
+      await expect(page.locator('section[aria-label="Resultado del cálculo"] [role="graphics-symbol"]')).toHaveAttribute("aria-label", "energy: 100000 CLP");
+    } else {
+      await expect(page.locator('.cost-charges tbody').getByRole('cell',{name:'$100.000',exact:true}).first()).toBeVisible();
+      await expect(page.getByRole('img',{name:/Distribución/})).toBeVisible();
+    }
   });
 }

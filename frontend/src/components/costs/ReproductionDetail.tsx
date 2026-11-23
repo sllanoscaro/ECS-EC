@@ -10,6 +10,7 @@ export function ReproductionDetail({ calculation }: { calculation: CalculationDe
     <p>Mes de demanda: {capture.billing_month_ref ?? "No resuelto"} · Política: {capture.billing_month_policy_version ?? "No resuelta"}</p>
     {capture.billing_month_source_ref && <p>Documento del mes: {capture.billing_month_source_ref.document_reference} · Mes declarado: {capture.billing_month_source_ref.billing_month_ref}</p>}
     <p>Los datos capturados se conservan aunque venza el detalle original. Las consultas no cambian precios ni plazos.</p>
+    {capture.supply.measurement_point_differences.map((difference, index) => <p key={index}>Diferencia del punto de medición: {difference}. Sin ajuste implícito.</p>)}
     <ul>{capture.supply.document_refs.map(reference => <li key={reference}>Fuente del suministro: {reference}</li>)}</ul>
     <ul>{capture.profile?.segments.map((segment, index) => <li key={index}>{segment.valid_from} → {segment.valid_to ?? "Vigencia abierta"} · Quantum: {segment.rounding_policy.quantum} CLP · Etapa: {segment.rounding_policy.stage}
       <ul>{segment.source_refs.map(reference => <li key={reference}>{reference}</li>)}</ul>

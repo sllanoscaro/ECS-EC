@@ -13,6 +13,26 @@ from ecs_ec.identity.schemas import ProblemView
 router = APIRouter(prefix='/api/v1/costs', responses={status: {'model': ProblemView} for status in (401,403,404,409,412,422,428,503)})
 
 
+from ecs_ec.costs.schemas import EnergyDistribution, CostsReadiness
+
+
+@router.get('/readiness', response_model=CostsReadiness,
+    dependencies=[Depends(require_action('costs.read')), Depends(require_action('consumption.read'))])
+async def readiness(request: Request):
+    """Return actionable prerequisite status for an empty costs view, without prices or writes."""
+    return await request.app.state.costs.readiness(request.state.principal)
+
+
+@router.get('/calculations/{calculation_id}/distribution', response_model=EnergyDistribution,
+    dependencies=[Depends(require_action('costs.read')), Depends(require_action('consumption.read'))])
+async def energy_distribution(request: Request, calculation_id: UUID):
+    """Read a proportional estimate only; never create a tariff revision, bill or comparison."""
+    try:
+        return await request.app.state.costs.distribution(request.state.principal, calculation_id)
+    except ValueError:
+        raise CostsProblem('distribution_unavailable', 503) from None
+
+
 async def problem_response(request, problem):
     """Expose only trusted codes and a fixed explanation, never SQL, amounts or engine exception details."""
     return JSONResponse(status_code=problem.status, headers={'Cache-Control': 'no-store'}, content=dict(

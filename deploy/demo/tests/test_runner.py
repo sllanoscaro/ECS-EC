@@ -86,3 +86,26 @@ def test_calendar_transport_is_local_only(monkeypatch, tmp_path):
         TransportSettings(**settings)
     monkeypatch.setenv('ENVIRONMENT', 'local')
     assert TransportSettings(**settings).local_calendar
+
+
+def test_measured_general_is_independent_above_partial_bounds_and_preserves_partial_signals():
+    from demo_profile import channels
+    now=datetime(2026,11,4,2,45,tzinfo=UTC)
+    calculated={'categories':[dict(c,has_meter=c['category_id']!='CAT-01') for c in channels()]}
+    measured={'categories':[dict(c,has_meter=True) for c in channels()],'costs_demo':True}
+    before={r.key:r.energy for r in generate_samples(scenario(now,'America/Santiago',calculated))}
+    after=list(generate_samples(scenario(now,'America/Santiago',measured)))
+    assert all(before[r.key]==r.energy for r in after if r.category_id!='CAT-01')
+    totals={r.start:r.energy for r in after if r.category_id=='CAT-01'}
+    for start,total in totals.items():
+        assert total>sum(r.energy for r in after if r.start==start and r.category_id!='CAT-01')
+
+
+def test_source_switch_skips_crossing_intervals_without_backdating_history():
+    from runner import publication_start
+    data=scenario(datetime(2026,11,4,2,45,tzinfo=UTC),'America/Santiago')
+    config={'effective_from':'2026-11-04T02:28:14.146825+00:00'}
+    assert publication_start(data,None,config)==datetime(2026,11,4,2,30,tzinfo=UTC)
+    config['effective_from']='2026-11-04T02:30:00+00:00'
+    assert publication_start(data,None,config)==datetime(2026,11,4,2,30,tzinfo=UTC)
+    assert publication_start(data,datetime(2026,11,4,2,45,tzinfo=UTC),config)==data.end

@@ -35,7 +35,7 @@ async def export_demo_configuration(service, filename):
     from ecs_ec.core.unit_of_work import UnitOfWork
     async with UnitOfWork(service.database.sessions) as uow:
         revision = (await read_revisions(uow, service.consumption.building_id))[-1]
-        payload = json.dumps(dict(revision=revision.revision, timezone=revision.timezone,
+        payload = json.dumps(dict(revision=revision.revision, effective_from=revision.effective_from.isoformat(), timezone=revision.timezone,
             categories=[c.model_dump(mode='json') for c in revision.categories]), sort_keys=True)
     path = Path(filename)
     if path.exists() and path.read_text() == payload:

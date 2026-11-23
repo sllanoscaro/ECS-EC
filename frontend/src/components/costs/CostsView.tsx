@@ -10,6 +10,7 @@ import { FinancialPanel } from "./FinancialPanel";
 import { SupplyEditor } from "./SupplyEditor";
 import { ProfileEditor } from "./ProfileEditor";
 import { CostHistory } from "./CostHistory";
+import { CostsConsultation } from './CostsConsultation';
 
 /** Never mount private IO before current functional permissions are known; unmount on session invalidation. */
 export function CostsView({ administrative = false }: { administrative?: boolean }) {
@@ -49,6 +50,7 @@ function CostsContent({ administrative }: { administrative: boolean }) {
     /** Refresh list metadata after a confirmed mutation; subsequent queries only read the persisted revision. */
     choose(value); setAttempt(current => current + 1);
   }
+  if (!administrative) return <CostsConsultation page={page} selected={selected} busy={busy} error={error} refresh={() => setAttempt(value => value + 1)} choose={choose} />;
   if (busy) return <p role="status">Consultando costos…</p>;
   return <>
     <button onClick={() => { setAttempt(value => value + 1); }}>Actualizar costos</button>

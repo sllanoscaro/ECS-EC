@@ -177,6 +177,24 @@ class Costs:
                 raise CostsProblem('calculation_not_found', 404)
             return await self._calculation_view(uow, row)
 
+    async def distribution(self, principal, identifier):
+        """Estimate only energy shares, using a single read capture without storing or recalculating costs."""
+        self.authorize(principal)
+        self.authorize(principal, 'consumption.read')
+        from ecs_ec.consumption.models import instant
+        from ecs_ec.costs.distribution import project_distribution
+        async with UnitOfWork(self.database.sessions) as uow:
+            await uow.session.execute(text('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY'))
+            row = await uow.session.scalar(select(Calculation).join(BillingCycle).join(Supply).where(
+                Calculation.id == identifier, Supply.building_id == self.building_id))
+            if row is None:
+                raise CostsProblem('calculation_not_found', 404)
+            calculation = await self._calculation_view(uow, row)
+            request = calculation['snapshot']['request']
+            capture = await self.consumption.read_report_snapshot(self.building_id, instant(request['start']),
+                instant(request['end']), 'detail', self.clock.now(), principal, unit_of_work=uow)
+            return project_distribution(calculation, capture)
+
     async def cycles(self, principal, *, start=None, end=None, cutoff_at=None, limit=25, cursor=None):
         """Read actual cycles and latest visible calculations, with a fixed cutoff and deterministic continuation."""
         self.authorize(principal)
@@ -279,8 +297,7 @@ class Costs:
     async def create_comparison(self, principal, command, key):
         """Persist only the explicitly requested immutable calculation/bill pair; corrections and GET never invoke this."""
         from ecs_ec.costs.schemas import ComparisonRequest
-        from ecs_ec.costs.models import Bill, BillRevision, Comparison, ComparisonLine
-        from ecs_ec.costs.comparison import compare
+        from ecs_ec.costs.models import Bill, BillRevision
         command = ComparisonRequest.model_validate(command)
         async def run(uow, actor_ref):
             """Validate both sides against this building, capture aligned values and retain all referenced parents."""
@@ -290,27 +307,46 @@ class Costs:
                 BillRevision.id == command.bill_revision_id, Supply.building_id == self.building_id))
             if calculation is None or bill is None:
                 raise CostsProblem('comparison_resource_not_found', 404)
-            result = compare(await self._calculation_view(uow, calculation), self._bill_view(bill))
-            previous = await uow.session.scalar(select(Comparison).where(Comparison.calculation_id == calculation.id,
-                Comparison.bill_revision_id == bill.id).order_by(Comparison.revision.desc()).limit(1))
-            now = self.clock.now()
-            retained = dict(created_at=now, actor_ref=actor_ref, retain_until=anniversary(now, self.timezone))
-            row = Comparison(id=uuid4(), calculation_id=calculation.id, bill_revision_id=bill.id,
-                revision=previous.revision + 1 if previous else 1, cutoff_at=now, data=result,
-                delta_amount=number(result['delta_amount']) if result['delta_amount'] is not None else None,
-                delta_percent=number(result['delta_percent']) if result['delta_percent'] is not None else None, **retained)
-            uow.session.add(row)
-            await uow.session.flush()
-            for pair in result['pairs']:
-                uow.session.add(ComparisonLine(id=uuid4(), comparison_id=row.id, code=pair['code'], data=pair,
-                    calculated_amount=number(pair['calculated_amount']), billed_amount=number(pair['billed_amount']), **retained))
-            for parent in (calculation, bill, await uow.session.get(InputSnapshot, calculation.snapshot_id)):
-                parent.retain_until = max(parent.retain_until, row.retain_until)
-            from ecs_ec.costs.retention import protect
-            await protect(uow, row, row.retain_until)
-            await self.evidence.append(uow, building_id=self.building_id, row=row, action='costs.comparison.created')
-            return self._comparison_view(row), 201
+            return await self._save_comparison(uow, calculation, bill, actor_ref), 201
         return await self._mutate(principal, 'costs.comparisons.create', 'comparison.create', key, command.model_dump(mode='json'), run)
+
+    async def _save_comparison(self, uow, calculation, bill, actor_ref):
+        """Persist a validated pair inside an authorized caller's building lock, including trusted local provisioning."""
+        from ecs_ec.costs.comparison import compare
+        from ecs_ec.costs.models import Comparison, ComparisonLine
+        result = compare(await self._calculation_view(uow, calculation), self._bill_view(bill))
+        previous = await uow.session.scalar(select(Comparison).where(Comparison.calculation_id == calculation.id,
+            Comparison.bill_revision_id == bill.id).order_by(Comparison.revision.desc()).limit(1))
+        now = self.clock.now()
+        retained = dict(created_at=now, actor_ref=actor_ref, retain_until=anniversary(now, self.timezone))
+        row = Comparison(id=uuid4(), calculation_id=calculation.id, bill_revision_id=bill.id,
+            revision=previous.revision + 1 if previous else 1, cutoff_at=now, data=result,
+            delta_amount=number(result['delta_amount']) if result['delta_amount'] is not None else None,
+            delta_percent=number(result['delta_percent']) if result['delta_percent'] is not None else None, **retained)
+        uow.session.add(row)
+        await uow.session.flush()
+        for pair in result['pairs']:
+            uow.session.add(ComparisonLine(id=uuid4(), comparison_id=row.id, code=pair['code'], data=pair,
+                calculated_amount=number(pair['calculated_amount']), billed_amount=number(pair['billed_amount']), **retained))
+        for parent in (calculation, bill, await uow.session.get(InputSnapshot, calculation.snapshot_id)):
+            parent.retain_until = max(parent.retain_until, row.retain_until)
+        from ecs_ec.costs.retention import protect
+        await protect(uow, row, row.retain_until)
+        await self.evidence.append(uow, building_id=self.building_id, row=row, action='costs.comparison.created')
+        return self._comparison_view(row)
+
+    async def readiness(self, principal):
+        """Explain empty-state prerequisites without exposing administrative prices or creating anything."""
+        self.authorize(principal)
+        self.authorize(principal, 'consumption.read')
+        from ecs_ec.costs.repository import selected_profile
+        async with UnitOfWork(self.database.sessions) as uow:
+            await uow.session.execute(text('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY'))
+            source = await self.consumption.source_status('CAT-01', cutoff_at=self.clock.now(), unit_of_work=uow)
+            supply = await uow.session.scalar(select(Supply).where(Supply.building_id == self.building_id))
+            profile = await selected_profile(uow, supply.id, self.clock.now()) if supply else None
+            return dict(physical_general=source['source_mode'] == 'measured', supply_configured=supply is not None,
+                profile_published=profile is not None)
 
     def _comparison_view(self, row):
         """Copy persisted comparison figures and references, never recompute against the current bill."""

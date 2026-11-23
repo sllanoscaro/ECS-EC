@@ -9,11 +9,12 @@ from pathlib import Path
 from pydantic import TypeAdapter
 from ecs_ec.costs.schemas import CalculationDetail, CalculateRequest, SupplyDetail, SupplyInput, ProfileInput, ProfileDetail, BillInput, BillDetail, ComparisonRequest, ComparisonDetail, CycleDetail, CyclePage, BillPage, ProfilePage, CostsSnapshot
 from generate_consumption_types import wire_type
+from ecs_ec.costs.schemas import EnergyDistribution, CostsReadiness
 
 
 def main():
     """Render all owned definitions deterministically with serialization-mode monetary strings."""
-    models = [CalculationDetail, CalculateRequest, SupplyDetail, SupplyInput, ProfileInput, ProfileDetail, BillInput, BillDetail, ComparisonRequest, ComparisonDetail, CycleDetail, CyclePage, BillPage, ProfilePage, CostsSnapshot]
+    models = [CostsReadiness, EnergyDistribution, CalculationDetail, CalculateRequest, SupplyDetail, SupplyInput, ProfileInput, ProfileDetail, BillInput, BillDetail, ComparisonRequest, ComparisonDetail, CycleDetail, CyclePage, BillPage, ProfilePage, CostsSnapshot]
     definitions = {}
     for model in models:
         schema = model.model_json_schema(mode='serialization', ref_template='#/$defs/{model}')

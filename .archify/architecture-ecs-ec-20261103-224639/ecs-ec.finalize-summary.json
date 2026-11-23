@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/sebastianll/dev/ECS-EC/.archify/architecture-ecs-ec-20261103-224639/candidate.json",
+    "sha256": "8901a76cac6d18ca00f43e2ad8e3a7bd91f4d22815ee8e110d00c055d59a67c7",
+    "bytes": 10279
+  },
+  "artifact": {
+    "path": "/home/sebastianll/dev/ECS-EC/.archify/architecture-ecs-ec-20261103-224639/ecs-ec.html",
+    "sha256": "df90bd83426fc258980ab1ecc343bb9372ae555a8403450781ffae8f7f513a33",
+    "bytes": 858045
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/sebastianll/dev/ECS-EC/.archify/architecture-ecs-ec-20261103-224639/ecs-ec.finalize.json",
+    "summaryReceipt": "/home/sebastianll/dev/ECS-EC/.archify/architecture-ecs-ec-20261103-224639/ecs-ec.finalize-summary.json",
+    "browserCheckReceipt": "/home/sebastianll/dev/ECS-EC/.archify/architecture-ecs-ec-20261103-224639/ecs-ec.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-04T01:48:41.075Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5337,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

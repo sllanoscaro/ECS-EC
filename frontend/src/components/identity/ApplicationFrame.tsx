@@ -1,6 +1,6 @@
 /** Responsive application shell and actual building-time context, populated after hydration. */
 "use client";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Navigation, type NavigationLink } from './Navigation';
 import { Icon } from './Icon';
@@ -27,9 +27,37 @@ export function ApplicationFrame({ children, links }: { children: ReactNode; lin
   const isLogin = pathname?.replace(/\/$/, '') === '/ingreso';
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileViewport, setMobileViewport] = useState(false);
   const [timezone, setTimezone] = useState<string | null>(null);
   const menu = useRef<HTMLButtonElement>(null);
+  const content = useRef<HTMLDivElement>(null);
+  const contentMotion = useRef<Animation | null>(null);
+  const previousLeft = useRef<number | null>(null);
+  /** Reflow to the final width once, then translate the content without resizing its charts each frame. */
+  function toggleSidebar() {
+    const animate = window.matchMedia('(min-width:901px) and (prefers-reduced-motion:no-preference)').matches;
+    previousLeft.current = animate && content.current ? content.current.getBoundingClientRect().left : null;
+    setCollapsed(value => !value);
+  }
+  useLayoutEffect(() => {
+    const left = previousLeft.current;
+    previousLeft.current = null;
+    contentMotion.current?.cancel();
+    if (left === null || !content.current || typeof content.current.animate !== 'function') return;
+    const delta = left - content.current.getBoundingClientRect().left;
+    contentMotion.current = content.current.animate([{ transform: `translateX(${delta}px)` }, { transform: 'translateX(0)' }],
+      { duration:240, easing:'cubic-bezier(0.16,1,0.3,1)' });
+  }, [collapsed]);
+  useEffect(() => () => { contentMotion.current?.cancel(); }, []);
   useEffect(() => { if (status !== 'authenticated') { setTimezone(null); setMobileOpen(false); } }, [status]);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width:900px)');
+    /** Keep a closing mobile panel inert even while its exit transition remains visible. */
+    function updateViewport() { contentMotion.current?.cancel(); previousLeft.current = null; setMobileViewport(media.matches); if (!media.matches) setMobileOpen(false); }
+    updateViewport();
+    media.addEventListener('change', updateViewport);
+    return () => media.removeEventListener('change', updateViewport);
+  }, []);
   /** Restore focus to the mobile disclosure after keyboard dismissal. */
   function closeMenu() { setMobileOpen(false); menu.current?.focus(); }
   // The public login owns a centered canvas at every session state, including hydration.
@@ -37,8 +65,8 @@ export function ApplicationFrame({ children, links }: { children: ReactNode; lin
   return <BuildingTime.Provider value={setTimezone}><div className={`app-frame ${collapsed ? 'shell--collapsed' : ''}`} data-mobile-open={mobileOpen} onKeyDown={event => { if (event.key === 'Escape' && mobileOpen) closeMenu(); }}>
     <a className="skip-link" href="#page-content">Ir al contenido</a>
     <header className="mobile-header"><button ref={menu} type="button" className="icon-button" aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={mobileOpen} aria-controls="app-navigation" onClick={() => setMobileOpen(value => !value)}><Icon name="menu" /></button><span>Electro Conforma</span></header>
-    {mobileOpen && <button className="menu-backdrop" aria-label="Cerrar menú" onClick={closeMenu} tabIndex={-1} />}
-    <aside id="app-navigation"><Navigation links={links} collapsed={collapsed} toggle={() => setCollapsed(value => !value)} close={() => setMobileOpen(false)} /></aside>
-    <div className="page-column"><div id="page-content" tabIndex={-1}>{children}</div><footer className="app-footer"><span>ECS-EC · Electro Conforma</span>{status === 'authenticated' && <FooterClock timezone={timezone} />}</footer></div>
+    <button className="menu-backdrop" aria-label="Cerrar menú" aria-hidden={!mobileOpen} disabled={!mobileOpen} onClick={closeMenu} tabIndex={-1} />
+    <aside id="app-navigation" inert={mobileViewport && !mobileOpen}><Navigation links={links} collapsed={collapsed} toggle={toggleSidebar} close={() => setMobileOpen(false)} /></aside>
+    <div ref={content} className="page-column"><div id="page-content" tabIndex={-1}>{children}</div><footer className="app-footer"><span>ECS-EC · Electro Conforma</span>{status === 'authenticated' && <FooterClock timezone={timezone} />}</footer></div>
   </div></BuildingTime.Provider>;
 }

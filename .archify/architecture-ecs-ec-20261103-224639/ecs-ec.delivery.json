@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "02686319-1837-4c02-b790-e5c0e1e2141b",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/sebastianll/dev/ECS-EC/.archify/architecture-ecs-ec-20261103-224639/candidate.json",
+  "output": "/home/sebastianll/dev/ECS-EC/.archify/architecture-ecs-ec-20261103-224639/ecs-ec.html",
+  "specification": {
+    "sha256": "8901a76cac6d18ca00f43e2ad8e3a7bd91f4d22815ee8e110d00c055d59a67c7",
+    "bytes": 10279
+  },
+  "artifact": {
+    "sha256": "df90bd83426fc258980ab1ecc343bb9372ae555a8403450781ffae8f7f513a33",
+    "bytes": 858045
+  }
+}

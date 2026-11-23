@@ -14,7 +14,7 @@ export async function loginCosts(page: Page, role = "admin") {
   const cycles = await (await page.request.get("/api/v1/costs/cycles")).json();
   const reference = cycles.items.find((item: { start_at: string; end_at: string }) => item.start_at === "2026-01-01T00:00:00Z" && item.end_at === "2026-01-01T01:00:00Z");
   await page.goto((role === "admin" ? "/administracion/costos/" : "/costos/") + `?calculation=${reference.calculation.id}`);
-  await expect(page.getByRole("heading", { name: /Cálculo · Revisión/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: role === 'admin' ? /Cálculo · Revisión/ : 'Desglose del ciclo' })).toBeVisible();
 }
 
 /** Submit a public API mutation using only cookies issued by the real006 login and a new explicit operation key. */

@@ -28,6 +28,40 @@ Kind = Literal['energia', 'transmision', 'servicio_publico', 'fijo', 'demanda_pu
 TaxBasis = Literal['neto', 'impuesto_incluido', 'impuesto_separado']
 
 
+class CategoryEstimate(DomainModel):
+    """One transient energy allocation; missing readings never acquire a fabricated amount."""
+
+    id: Literal['CAT-02', 'CAT-03', 'CAT-04', 'CAT-05', 'CAT-06', 'CAT-07']
+    name: str
+    state: Literal['available', 'incomplete', 'no_meter', 'no_data']
+    energy_kwh: Quantity | None
+    percent: Quantity | None
+    estimated_amount: Money | None
+
+
+class CostsReadiness(DomainModel):
+    """Consultation-safe prerequisite flags; no automatic financial mutations."""
+
+    physical_general: bool
+    supply_configured: bool
+    profile_published: bool
+
+
+class EnergyDistribution(DomainModel):
+    """Read projection, deliberately separate from persisted authoritative financial results."""
+
+    calculation_id: UUID
+    cutoff_at: Instant
+    state: Literal['available', 'unavailable']
+    reason_code: Literal['energy_charge_unavailable', 'general_evidence_changed', 'category_coverage_incomplete',
+        'zero_energy_basis', 'categories_exceed_general'] | None
+    energy_amount: Money | None
+    other_amount: Money | None
+    categories: tuple[CategoryEstimate, ...]
+    unassigned_amount: Money | None
+    unassigned_percent: Quantity | None
+
+
 class RoundingPolicy(DomainModel):
     """Captured precision, actual quantum multiple, rounding mode and stage; no implicit financial defaults."""
 

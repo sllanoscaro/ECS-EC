@@ -69,6 +69,7 @@ async function fixtures(context, role, scenario, unknown) {
     if (path === '/consumption/configuration') return reply(configuration);
     if (/\/consumption\/categories\//.test(path)) return reply(detail(url, scenario));
     if (path === '/costs/supply') return reply(supply);
+    if (path === '/costs/readiness') return reply({physical_general:false,supply_configured:false,profile_published:false});
     if (path === '/costs/profiles') return reply({ ...pageOf([]), latest_version_id: null, selected_published_version_id: null, latest_version: null });
     if (['/costs/cycles', '/costs/history'].includes(path)) return reply(pageOf(scenario === 'empty' ? [] : [cycle]));
     if (path.startsWith('/costs/calculations/')) return reply(calculation);
@@ -118,15 +119,57 @@ async function capture(path, viewport, role, scenario) {
     const response = await page.goto(`${baseURL}${path}`, { waitUntil: 'networkidle' });
     await page.getByRole('heading', { level: 1 }).waitFor();
     if (['/', '/consumption/'].includes(path) && role === 'admin' && scenario === 'populated') {
-      if (viewport.width >= 900) {
+      await page.emulateMedia({reducedMotion:'no-preference'});
+      const sidebar = page.locator('.app-frame aside');
+      /** Flush the changed style, then await only the sidebar's own finite CSS transitions. */
+      async function finishSidebar() {
+        await sidebar.evaluate(async el => {
+          getComputedStyle(el).transform;
+          await Promise.all(el.getAnimations().map(animation => animation.finished.catch(() => {})));
+        });
+      }
+      /** Record the transition event so a busy browser cannot miss a completed short animation. */
+      async function recordSidebarMotion(property) {
+        await sidebar.evaluate((el, property) => {
+          el.dataset.motionSeen = '';
+          el.addEventListener('transitionrun', event => { if (event.target === el && event.propertyName === property) el.dataset.motionSeen = 'yes'; });
+        }, property);
+      }
+      if (viewport.width >= 901) {
+        await recordSidebarMotion('clip-path');
         await page.getByRole('button', {name:'Plegar panel lateral'}).click();
+        await page.waitForFunction(() => document.querySelector('.app-frame aside').dataset.motionSeen === 'yes');
+        await finishSidebar();
+        const visibleWidth = await sidebar.evaluate(el => el.getBoundingClientRect().width - parseFloat(getComputedStyle(el).clipPath.split(' ')[1] ?? '0'));
+        if (Math.abs(visibleWidth - 84) > 1) throw new Error('Collapsed rail width mismatch.');
         await page.locator('nav [aria-current="page"]').click();
+        await finishSidebar();
+        const alignment = await page.locator('.app-frame').evaluate(el => {
+          const aside=el.querySelector('aside');
+          return Math.abs(parseFloat(getComputedStyle(el).paddingLeft) - (aside.getBoundingClientRect().width-parseFloat(getComputedStyle(aside).clipPath.split(' ')[1] ?? '0')));
+        });
+        if (alignment > 1) throw new Error('Content and sidebar no longer align.');
       } else {
         await page.getByRole('button', {name:'Abrir menú'}).click();
+        await finishSidebar();
         await page.locator('nav [aria-current="page"]').waitFor({state:'visible'});
+        await page.screenshot({path:resolve(output, `${slug}-menu-open.png`),fullPage:true});
+        await recordSidebarMotion('transform');
         await page.keyboard.press('Escape');
+        if (!await sidebar.evaluate(el => el.inert)) throw new Error('Closing menu must be inert.');
+        await page.waitForFunction(() => document.querySelector('.app-frame aside').dataset.motionSeen === 'yes');
+        await finishSidebar();
+        if (await sidebar.evaluate(el => getComputedStyle(el).visibility) !== 'hidden') throw new Error('Mobile menu remains visible after closing.');
         await page.getByRole('button', {name:'Abrir menú'}).waitFor();
+        if (!await page.getByRole('button',{name:'Abrir menú'}).evaluate(el => el === document.activeElement)) throw new Error('Menu focus was not restored.');
+        // Reverse an in-flight transition; the newest toggle must always win.
+        await page.getByRole('button',{name:'Abrir menú'}).click();
+        await page.locator('.mobile-header button').click();
+        await finishSidebar();
+        if (!await sidebar.evaluate(el => el.inert)) throw new Error('Interrupted toggle left the menu active.');
       }
+      await page.emulateMedia({reducedMotion:'reduce'});
+      if (await sidebar.evaluate(el => getComputedStyle(el).transitionDuration) !== '0s') throw new Error('Reduced motion still moves the panel.');
       const activeStyle = await page.locator('nav [aria-current="page"]').evaluate(el => ({background:getComputedStyle(el).backgroundColor, color:getComputedStyle(el).color}));
       if (activeStyle.background !== 'rgb(79, 154, 23)' || activeStyle.color !== 'rgb(255, 255, 255)') throw new Error('El enlace activo no conserva los colores aprobados.');
     }

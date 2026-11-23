@@ -47,7 +47,7 @@ test("historical comparison stays historical after recalculation; demand and cur
   expect((await (await currentResponse).json()).temporal_state).toBe("en_curso");
   await expect(result.getByText(/en_curso/)).toBeVisible();
   await page.goto(`/costos/?calculation=${original.id}`);
-  await expect(page.getByText("Costo completo: 100000 CLP", { exact: true })).toBeVisible();
+  await expect(page.locator('.cost-summary>div').first()).toContainText('$100.000');
   const currentProfiles = await (await page.request.get("/api/v1/costs/profiles")).json();
   full.expected_previous_version_id = currentProfiles.latest_version_id; full.required_kinds = ["energia"]; full.segments[0].charges.pop();
   expect((await mutate(page, "profiles", full)).status()).toBe(201);

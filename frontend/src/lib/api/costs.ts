@@ -1,6 +1,6 @@
 /** Same-origin004 client; exact monetary strings and persisted server results are authoritative. */
 import { apiRequest, sessionActivityHeaders } from "./session";
-import type { CalculationDetail, CalculateRequest, SupplyDetail } from "./costs-types";
+import type { CalculationDetail, CalculateRequest, SupplyDetail, EnergyDistribution, CostsReadiness } from "./costs-types";
 export type * from "./costs-types";
 
 import type { CycleDetail, CyclePage, BillPage, ProfilePage } from "./costs-types";
@@ -11,6 +11,10 @@ export type Cycle = CycleDetail;
 export function supplyTag(supply: SupplyDetail) { return `"costs:supply:${supply.id}:${supply.revision}"`; }
 
 export const costsApi = {
+  readiness(signal?: AbortSignal) { return apiRequest<CostsReadiness>('/costs/readiness', {signal}); },
+  distribution(id: string, signal?: AbortSignal) {
+    return apiRequest<EnergyDistribution>(`/costs/calculations/${encodeURIComponent(id)}/distribution`, { signal });
+  },
   /** Read a deterministic cycle page; no query creates calculations or extends evidence retention. */
   cycles(filters: Record<string, string> = {}, signal?: AbortSignal) {
     return apiRequest<CyclePage>(`/costs/cycles?${new URLSearchParams(filters)}`, { signal });

@@ -5,6 +5,8 @@ import { costsApi, financialApi, type BillDetail, type CalculationDetail, type C
 import { BillEditor } from "./BillEditor";
 import { ComparisonActions } from "./ComparisonActions";
 import { ComparisonTable } from "./ComparisonTable";
+import { money, signedMoney } from './presentation';
+import { readableDecimal } from '../../lib/visual';
 
 /** Fetch immutable document references and current-cycle metadata; never create a comparison in an effect. */
 export function FinancialPanel({ calculation, administrative }: { calculation: CalculationDetail; administrative: boolean }) {
@@ -34,7 +36,22 @@ export function FinancialPanel({ calculation, administrative }: { calculation: C
     try { const next = await financialApi.bills(calculation.cycle_id, undefined, more); setBills(old => [...old, ...next.items]); setMore(next.next_cursor); }
     catch { setError(true); }
   }
-  const current = cycle?.calculation?.id === calculation.id ? cycle.comparison : null;
+  const current = cycle?.calculation?.id === calculation.id && cycle.comparison_status === 'available'
+    && cycle.comparison?.calculation_id === calculation.id && cycle.comparison.bill_revision_id === cycle.bill?.bill_revision_id ? cycle.comparison : null;
+  if (!administrative) return <section className="panel cost-financial" aria-labelledby="cost-financial-title"><h2 id="cost-financial-title">Contraste con boleta</h2>
+    {busy ? <p role="status" className="loading-state">Consultando boletas y contraste…</p> : error ? <p role="alert" className="notice notice--error">No se pudieron consultar las boletas.<button onClick={() => setAttempt(old => old + 1)}>Reintentar boletas</button></p> : <>
+      {cycle?.calculation?.id !== calculation.id && <p className="section-description">Está consultando un cálculo histórico. Abra sus contrastes desde el historial de ciclos.</p>}
+      {current ? <>
+        <p className="section-description">Conceptos con bases compatibles · Contraste revisión {current.revision}</p>
+        <dl className="cost-comparison-values"><div><dt>Calculado comparable</dt><dd>{money(current.comparable_calculated)}</dd></div><div><dt>Facturado comparable</dt><dd>{money(current.comparable_billed)}</dd></div>
+          <div><dt>Diferencia</dt><dd>{signedMoney(current.delta_amount)}{current.delta_percent !== null ? ` · ${current.delta_percent.startsWith('-') || /^0(?:\.0+)?$/.test(current.delta_percent) ? '' : '+'}${readableDecimal(current.delta_percent)} %` : ' · Porcentaje no aplicable'}</dd></div></dl>
+        <p className="cost-footnote">El contraste solo incluye conceptos compatibles del mismo ciclo.</p>
+        <p className="cost-payable">Total a pagar del documento <strong>{money(current.total_payable)}</strong></p>
+        <details className="cost-inline-details"><summary>Ver detalle del contraste</summary><div className="table-scroll"><ComparisonTable comparison={current} /></div></details>
+      </> : <p className="empty-state">{!bills.length ? 'Sin boleta registrada.' : cycle?.comparison_status === 'missing_for_selected_revisions' ? 'Contraste pendiente para estas revisiones.' : 'No hay un contraste disponible para esta revisión.'}</p>}
+      {bills.length > 0 && <details className="cost-inline-details"><summary>Boletas y revisiones registradas</summary><ul>{bills.map(bill => <li key={bill.bill_revision_id}>{bill.external_identifier} · Revisión {bill.revision} · Total a pagar: {money(bill.total_payable)}</li>)}</ul>{more && <button onClick={() => { void moreBills(); }}>Más revisiones de boleta</button>}</details>}
+    </>}
+  </section>;
   if (busy) return <p role="status">Consultando boletas y contraste…</p>;
   if (error) return <p role="alert">No se pudieron consultar las boletas.<button onClick={() => { setAttempt(old => old + 1); }}>Reintentar boletas</button></p>;
   return <section aria-label="Boleta y comparación">
