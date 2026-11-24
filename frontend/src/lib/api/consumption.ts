@@ -10,11 +10,11 @@ export type AvailableSource = { source_id: string; source_label: string };
 export const consumptionApi = {
   /** Offer provisioned sources only to the current configuration administrator. */
   sources(signal?: AbortSignal): Promise<AvailableSource[]> {
-    return apiRequest<AvailableSource[]>("/consumption/configuration/sources", { signal });
+    return apiRequest<AvailableSource[]>("/consumption/configuration/sources", { signal, headers: sessionActivityHeaders("interactive") });
   },
   /** Read seven categories and global initial period; never derive either from visible rows. */
   catalog(signal?: AbortSignal): Promise<Catalog> {
-    return apiRequest<Catalog>("/consumption/catalog", { signal });
+    return apiRequest<Catalog>("/consumption/catalog", { signal, headers: sessionActivityHeaders("interactive") });
   },
   /** Fetch one full immutable detail response for both representations; preserve offset/microsecond text. */
   detail(category: CategoryId, period: Period, signal?: AbortSignal): Promise<DetailResult> {
@@ -28,7 +28,7 @@ export const consumptionApi = {
   },
   /** Read administrative configuration; the shared session adapter handles401/403 and no-store. */
   configuration(signal?: AbortSignal): Promise<Configuration> {
-    return apiRequest<Configuration>("/consumption/configuration", { signal });
+    return apiRequest<Configuration>("/consumption/configuration", { signal, headers: sessionActivityHeaders("interactive") });
   },
   /** Submit only writable fields with current CSRF; derived revisions cannot leak through object spreading. */
   configure(input: ConfigurationInput): Promise<Configuration> {

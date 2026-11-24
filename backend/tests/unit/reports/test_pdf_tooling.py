@@ -13,21 +13,26 @@ from backend.tests.support.pdf_assertions import read_a4_document
 
 def document(*, size=A4):
     """Build a tooling-only PDF in memory; this fixture is never an application result."""
-    font = files('ecs_ec.reports').joinpath('fonts/DejaVuSans.ttf')
-    pdfmetrics.registerFont(TTFont('ReportsTooling', str(font)))
+    font = files("ecs_ec.reports").joinpath("fonts/DejaVuSans.ttf")
+    pdfmetrics.registerFont(TTFont("ReportsTooling", str(font)))
     output = BytesIO()
     canvas = Canvas(output, pagesize=size)
-    canvas.setFont('ReportsTooling', 10)
-    canvas.drawString(30, 800, 'Energía · año · medición · kWh')
+    canvas.setFont("ReportsTooling", 10)
+    canvas.drawString(30, 800, "Energía · año · medición · kWh")
     canvas.save()
     return output.getvalue()
 
 
 def test_unicode_toolchain():
     """Installed Python3.14 libraries preserve Spanish text and embed the shipped TTF."""
-    reader = read_a4_document(document(), required_text=('Energía · año · medición · kWh',))
-    fonts = reader.pages[0]['/Resources']['/Font']
-    assert any('/FontFile2' in font.get_object().get('/FontDescriptor', {}) for font in fonts.values())
+    reader = read_a4_document(
+        document(), required_text=("Energía · año · medición · kWh",)
+    )
+    fonts = reader.pages[0]["/Resources"]["/Font"]
+    assert any(
+        "/FontFile2" in font.get_object().get("/FontDescriptor", {})
+        for font in fonts.values()
+    )
 
 
 def test_reader_rejects_wrong_paper():

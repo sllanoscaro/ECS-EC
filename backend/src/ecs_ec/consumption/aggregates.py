@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
+from ecs_ec.consumption.telemetry import progress
 from ecs_ec.consumption.calendar import containing_block, duration_us
 from ecs_ec.consumption.models import AggregateContribution, ConsumptionAggregate
 from ecs_ec.consumption.retention import retention_deadline
@@ -74,6 +75,8 @@ async def contribute(uow, record, now):
         uow.session.add(AggregateContribution(aggregate_id=aggregate.id, record_id=record.id,
             record_revision=record.revision, snapshot=snapshot, incorporated_at=now))
         await uow.session.flush()
+
+    progress('aggregate')
 
 
 def project_block(block, aggregate, segments, cutoff_at, warnings=()):

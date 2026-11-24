@@ -6,7 +6,14 @@ test.skip(!process.env.COSTS_E2E, "Requires the separate renewed synthetic costs
 test("historical comparison stays historical after recalculation; demand and current periods remain explicit", async ({ page }) => {
   await loginCosts(page);
   const cycles = await (await page.request.get("/api/v1/costs/cycles")).json();
-  const original = cycles.items.find((item: { calculation: { complete_total: string | null } | null }) => item.calculation?.complete_total === "100000").calculation;
+  // Retained comparisons provide stable calculation references even after a prior run changed the selected revision.
+  const candidates=cycles.items.flatMap((item:{calculation:{id:string}|null;historical_comparisons:{calculation_id:string}[]})=>[item.calculation?.id,...item.historical_comparisons.map(value=>value.calculation_id)]).filter(Boolean);
+  let original:{id:string;complete_total:string|null}|undefined;
+  for(const id of new Set<string>(candidates)) {
+    const value=await(await page.request.get(`/api/v1/costs/calculations/${id}`)).json();
+    if(value.complete_total==='100000'){original=value;break;}
+  }
+  expect(original).toBeDefined();
   const history = page.getByRole("region", { name: "Historial de costos", exact: true });
   await page.getByLabel("Motivo del recálculo", { exact: true }).fill("synthetic invalidate current pair");
   const recalculatedResponse = page.waitForResponse(r => r.url().endsWith("/costs/calculations") && r.request().method() === "POST");
@@ -22,6 +29,7 @@ test("historical comparison stays historical after recalculation; demand and cur
   full.expected_previous_version_id = profiles.latest_version_id; full.publication_state = "published";
   full.required_kinds = ["energia", "potencia_suministrada"];
   full.segments = [structuredClone(full.segments[0])]; full.segments[0].valid_to = null;
+  full.segments[0].charges=full.segments[0].charges.filter((charge:{code:string})=>charge.code!=="supply-demand");
   full.segments[0].charges.push({ code: "supply-demand", kind: "potencia_suministrada", quantity_unit: "kW", unit_price: "1", tax_basis: "neto", applicability: "always", vigency_strategy: "cycle_once", source_refs: ["synthetic:demand"], tax_codes: [] });
   const published = await mutate(page, "profiles", full);
   expect(published.status()).toBe(201);
@@ -35,7 +43,7 @@ test("historical comparison stays historical after recalculation; demand and cur
   expect(limited.available_subtotal).toBe("100000"); expect(limited.complete_total).toBeNull();
   const result = page.getByRole("region", { name: "Resultado del cálculo", exact: true });
   await expect(result.getByText("Costo completo: no disponible", { exact: true })).toBeVisible();
-  await expect(result.getByText(/Diferencia del punto de medición: synthetic:distinct-meter-point. Sin ajuste implícito./)).toBeVisible();
+  await expect(result.getByText(/Diferencia del punto de medición: synthetic:distinct-meter-point. Sin ajuste implícito./).first()).toBeVisible();
   await result.getByText("Revisar bases de reproducción", { exact: true }).click();
   await expect(result.getByText(/Versión del método: bt43-v1/)).toBeVisible();
   const future = new Date(Date.now() + 86400000).toISOString();
@@ -46,7 +54,7 @@ test("historical comparison stays historical after recalculation; demand and cur
   await page.getByRole("button", { name: "Confirmar cálculo", exact: true }).click();
   expect((await (await currentResponse).json()).temporal_state).toBe("en_curso");
   await expect(result.getByText(/en_curso/)).toBeVisible();
-  await page.goto(`/costos/?calculation=${original.id}`);
+  await page.goto(`/costos/?calculation=${original!.id}`);
   await expect(page.locator('.cost-summary>div').first()).toContainText('$100.000');
   const currentProfiles = await (await page.request.get("/api/v1/costs/profiles")).json();
   full.expected_previous_version_id = currentProfiles.latest_version_id; full.required_kinds = ["energia"]; full.segments[0].charges.pop();

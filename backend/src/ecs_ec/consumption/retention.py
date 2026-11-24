@@ -8,6 +8,7 @@ from ecs_ec.audit.events import Code, PayloadRegistry, SafePayload
 from ecs_ec.audit.services import AuditInput, FunctionalAudit
 from ecs_ec.consumption.models import (AcceptedMeasurement, CalculationContributionReference,
     IncorporatedRecord, IncorporatedTotal, TotalCalculationState, TotalEvaluationRequest)
+from ecs_ec.consumption.telemetry import internal
 from ecs_ec.core.clock import utc
 from ecs_ec.core.retention import anniversary
 from ecs_ec.core.unit_of_work import UnitOfWork
@@ -71,11 +72,13 @@ class WithdrawalPayload(SafePayload):
 class Retention:
     """Trusted internal maintenance boundary; callers explicitly bind process references to building IDs."""
 
-    def __init__(self, database, clock, *, authorized_processes):
+    def __init__(self, database, clock, *, authorized_processes, telemetry=None):
         """Inject real009 resources and trusted composition grants; no public endpoint or automatic purge."""
         self.database, self.clock = database, clock
+        self.telemetry = telemetry
         self.authorized_processes = {key: frozenset(value) for key, value in authorized_processes.items()}
 
+    @internal('consumption.retention', 'commit')
     async def withdraw_detail(self, *, building_id, record_ids, process, reason, preview=False):
         """Check/revalidate all records under context→category→record locks and audit execution atomically.
 

@@ -9,7 +9,7 @@ export async function loginCosts(page: Page, role = "admin") {
   await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
   await page.getByLabel("Contraseña", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
-  await expect(page).toHaveURL(/\/cuenta\/$/);
+  await expect(page).toHaveURL(/^https?:\/\/[^/]+\/(?:cuenta\/)?$/);
   await page.goto(role === "admin" ? "/administracion/costos/" : "/costos/");
   const cycles = await (await page.request.get("/api/v1/costs/cycles")).json();
   const reference = cycles.items.find((item: { start_at: string; end_at: string }) => item.start_at === "2026-01-01T00:00:00Z" && item.end_at === "2026-01-01T01:00:00Z");

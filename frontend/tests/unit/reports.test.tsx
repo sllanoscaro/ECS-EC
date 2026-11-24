@@ -10,10 +10,10 @@ vi.mock("../../src/components/identity/SessionProvider", () => ({
 }));
 afterEach(cleanup);
 
-test("prepares a guarded route without a premature generation action", () => {
+test("mounts calendar selection within the existing session guard", () => {
   /** No private data or active generation operation belongs to the static shell. */
   render(<ReportsPage />);
   expect(screen.getByRole("heading", { name: "Reportes PDF" })).toBeTruthy();
   expect(screen.getByRole("region", { name: "reports.generate" })).toBeTruthy();
-  expect(screen.queryByRole("button")).toBeNull();
+  expect(screen.getByRole("button", {name:"Generar PDF"})).toBeTruthy();
 });

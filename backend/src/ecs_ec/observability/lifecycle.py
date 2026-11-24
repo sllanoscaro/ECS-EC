@@ -62,6 +62,8 @@ class Operation:
     started: float
     span: object = None
     closed: bool = False
+    admission_emitted: bool = False
+    execution_emitted: bool = False
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
 
@@ -151,7 +153,7 @@ class Telemetry:
             self.logs.dropped += 1
             return "dropped"
 
-    def begin(self, operation, source_module, *, context=None, parent=None):
+    def begin(self, operation, source_module, *, context=None, parent=None, links=()):
         """Begin a trusted catalog operation without adopting ambient/public propagation."""
         if not self.policy:
             return None
@@ -162,7 +164,7 @@ class Telemetry:
             context = context or new_context(parent_operation_ref=parent.context.operation_ref if parent else None)
             attributes = {k: v for k, v in context.fields().items() if v is not None}
             attributes.update(source_module=source_module, policy_revision=self.policy.revision)
-            span = self.traces.begin(operation, attributes)
+            span = self.traces.begin(operation, attributes, links=links)
             handle = Operation(operation, source_module, context, self.clock.monotonic(), span)
             self._emit(handle, event="operation.started", stage="start", outcome="in_progress")
             return handle
@@ -180,30 +182,55 @@ class Telemetry:
         self.traces.end(child, outcome, code)
         return self._emit(handle, event="stage.completed", stage=stage, outcome=outcome, code=code, duration_ms=duration_ms)
 
-    def complete(self, handle, *, outcome="success", code="ok", counts=None, event="operation.completed"):
+    def complete(self, handle, *, outcome="success", code="ok", counts=None, event="operation.completed", duration_ms="observed"):
         """Close a transient handle once; logical transition/summary ownership stays with producer.
 
-        Special reception/report terminal semantics are completed in007's US2 task,
-        which requires real producers; this foundational facade accepts ordinary terminals.
+        The producer informs its won durable transition; this emitter never commits,
+        reprocesses or deduplicates business results. Failed execution counts are unknown.
         """
         if not self.policy or handle is None:
             return "disabled"
         if type(handle) is not Operation or type(outcome) is not str or outcome not in {"success", "expected_rejection", "unexpected_error"} or type(code) is not str:
             self.logs.schema_rejected += 1
             return "dropped"
+        permitted = {"report.completed"} if handle.operation=="report.generate" else {"reception.completed","execution.completed"} if handle.operation=="reception.accept" else {"operation.completed"}
+        if event not in permitted or event == "execution.completed" and outcome == "unexpected_error" and counts is not None:
+            return "dropped"
         with handle.lock:
-            if handle.closed or event != "operation.completed":
+            if handle.closed or event=="execution.completed" and handle.execution_emitted:
                 return "dropped"
-            handle.closed = True
+            if event=="execution.completed":
+                handle.execution_emitted=True
+                handle.closed=outcome=="unexpected_error"
+            else:handle.closed=True
         result = self._emit(handle, event=event, stage="complete", outcome=outcome, code=code,
-                            counts=counts, duration_ms=max(0, (self.clock.monotonic() - handle.started) * 1000))
+                            counts=counts, duration_ms=max(0, (self.clock.monotonic() - handle.started) * 1000) if duration_ms == "observed" else duration_ms)
         self.traces.end(handle.span, outcome, code)
         return result
 
-    def continue_operation(self, operation, source_module, context):
+    def admitted(self, handle):
+        """Emit report admission once per live handle after its producer confirms a new durable request."""
+        if not self.policy or handle is None:return "disabled"
+        if type(handle) is not Operation or handle.operation != "report.generate":return "dropped"
+        with handle.lock:
+            if handle.closed or handle.admission_emitted:return "dropped"
+            handle.admission_emitted=True
+        return self._emit(handle,event="report.admitted",stage="commit",outcome="success")
+
+    def release(self, handle, *, outcome="success", code="ok"):
+        """End a transient span without a logical completion when work continues durably elsewhere."""
+        if not self.policy or handle is None:return "disabled"
+        if type(handle) is not Operation:return "dropped"
+        with handle.lock:
+            if handle.closed:return "dropped"
+            handle.closed=True
+        self.traces.end(handle.span,outcome,code)
+        return "released"
+
+    def continue_operation(self, operation, source_module, context, *, link=None):
         """Continue a trusted durable attempt with fresh execution/tracing root; no invented parent."""
         try:
-            return self.begin(operation, source_module, context=recover(context))
+            return self.begin(operation, source_module, context=recover(context), links=(link,) if link is not None else ())
         except Exception:
             return None
 

@@ -98,8 +98,8 @@ async def test_operator_keeps_functional_history_denial(client, account_factory,
 
 
 async def test_pdf_permission_matrix_requires_real005():
-    """Do not credit PDF permissions from missing routes;005's real generation/download is prerequisite."""
-    pytest.skip("005 has only snapshot/ports; no real PDF API provider for SC-001 yet")
+    """007 gateway/PDF matrix remains in step4;005 and006 have separate real provider evidence."""
+    pytest.skip("007:T022 gateway/PDF acceptance remains in step4; real005 provider and006 matrix are available")
 
 
 async def test_private_source_addresses_and_host_ports_cannot_bypass(gateway_root):

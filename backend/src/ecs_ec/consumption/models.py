@@ -363,6 +363,7 @@ class ReceptionAttempt(RetainedRow, Base):
     input_schema_version: Mapped[int] = mapped_column(Integer)
     input_manifest: Mapped[dict] = mapped_column(JSONB)
     input_digest: Mapped[str] = mapped_column(String(64))
+    technical_context: Mapped[dict] = mapped_column(JSONB, default=dict, server_default='{}')
 
 
 class CategoryUpdate(RetainedRow, RevisionRow, Base):

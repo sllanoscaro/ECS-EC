@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from ecs_ec.identity.permissions import ACTIONS, BASIC, READ, ADMIN, allowed
+from ecs_ec.identity.permissions import ACTIONS, BASIC, READ, allowed
 from ecs_ec.identity.schemas import Principal
 
 

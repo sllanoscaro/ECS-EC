@@ -12,6 +12,18 @@ from ecs_ec.acquisition.sftp_server import start_listener
 from ecs_ec.consumption.reception import Reception
 from ecs_ec.consumption.queries import Consumption
 from ecs_ec.consumption.store import MeasurementStore
+from ecs_ec.observability.context import Context
+
+
+def recovery_failure(service):
+    """Observe a failed coordinator poll without inventing publication or attempt ancestry."""
+    try:
+        if service.telemetry:
+            handle = service.telemetry.begin('acquisition.process', 'acquisition', context=Context())
+            service.telemetry.stage(handle, 'observe', outcome='unexpected_error', code='processing_interrupted')
+            service.telemetry.complete(handle, outcome='unexpected_error', code='processing_interrupted')
+    except Exception:
+        pass
 
 
 async def recovery_loop(service, demo_file=None):
@@ -23,7 +35,7 @@ async def recovery_loop(service, demo_file=None):
                 await export_demo_configuration(service, demo_file)
         except asyncio.CancelledError:raise
         except Exception:
-            service.signal(None,stage='observe',outcome='unexpected_error')
+            recovery_failure(service)
         await asyncio.sleep(1)
 
 
@@ -71,7 +83,7 @@ def acquisition_module(clock,settings=None):
                 await abort_receiving(database,clock)
                 processes={'process:acquisition:'+str(row.id):{row.building_id} for row in bindings}
                 reception=Reception(database,clock,authorized_processes=processes,
-                    calendar_processes=processes if app.state.settings.demo_calendar else ())
+                    calendar_processes=processes if app.state.settings.demo_calendar else (), telemetry=getattr(app.state,'telemetry',None))
                 consumption=Consumption(database,clock,bindings[0].building_id,MeasurementStore())
                 service=Acquisition(database,clock,settings,reception,consumption,getattr(app.state,'telemetry',None))
                 app.state.acquisition=service

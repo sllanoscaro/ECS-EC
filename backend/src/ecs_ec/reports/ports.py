@@ -2,7 +2,7 @@
 
 Callers resolve the current006 session before capture and share one REPEATABLE READ
 unit of work across both data ports. No port creates comparisons or measurements.
-The007 telemetry provider is still absent and is not replaced with a no-op here.
+Optional007 telemetry is composed separately; these functional ports never own its transport.
 """
 
 from datetime import datetime
@@ -29,9 +29,17 @@ class IdentityPort(Protocol):
 class ConsumptionPort(Protocol):
     """002 report reader: seven category/detail/grouped outputs, not final PDF rows."""
 
-    async def read_report_snapshot(self, building_id: UUID, start: datetime, end: datetime,
-                                   scale: str, cutoff_at: datetime, principal: Principal,
-                                   *, unit_of_work: UnitOfWork) -> dict:
+    async def read_report_snapshot(
+        self,
+        building_id: UUID,
+        start: datetime,
+        end: datetime,
+        scale: str,
+        cutoff_at: datetime,
+        principal: Principal,
+        *,
+        unit_of_work: UnitOfWork,
+    ) -> dict:
         """Copy producer evidence using hour/day/month/year granularity in the caller's UoW.
 
         Do not pass diario/mensual/anual: those are005 selections, not002 granularities.
@@ -44,8 +52,15 @@ class ConsumptionPort(Protocol):
 class CostsPort(Protocol):
     """004 financial provider; consumes the same snapshot transaction as energy."""
 
-    async def read_snapshot(self, building_id: UUID, start: datetime, end: datetime,
-                            cutoff_at: datetime, principal: Principal,
-                            *, unit_of_work: UnitOfWork) -> CostsSnapshot:
+    async def read_snapshot(
+        self,
+        building_id: UUID,
+        start: datetime,
+        end: datetime,
+        cutoff_at: datetime,
+        principal: Principal,
+        *,
+        unit_of_work: UnitOfWork,
+    ) -> CostsSnapshot:
         """Return effective closed cycles and exact revision pairs without recomputing BT4.3."""
         ...

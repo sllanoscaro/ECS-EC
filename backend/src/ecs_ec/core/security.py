@@ -15,7 +15,7 @@ def require_action(action):
         if identity is None:
             raise IdentityProblem("identity_unavailable", 503)
         request_context(request, identity.settings)
-        principal = await identity.resolve_session(request.cookies.get("ecs_ec_session"), action=action)
+        await identity.resolve_session(request.cookies.get("ecs_ec_session"), action=action)
         if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
             verify_origin(request, identity.settings)
             verify_csrf(identity.settings, "session", request.cookies.get("ecs_ec_session"), request.headers.get("x-csrf-token"))

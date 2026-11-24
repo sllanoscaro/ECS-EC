@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 
-from ecs_ec.identity.models import Account, Session, Preauth, LoginBucket, Guard
+from ecs_ec.identity.models import Account, Session
 from ecs_ec.core.unit_of_work import UnitOfWork
 
 

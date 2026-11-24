@@ -11,7 +11,7 @@ from sqlalchemy import text
 async def identity_db(database):
     """Reset only the dedicated checked _test database; tests own all synthetic evidence here."""
     async with database.engine.begin() as connection:
-        await connection.execute(text("TRUNCATE identity_session, identity_preauth, identity_login_bucket, identity_account, functional_audit, functional_event, functional_coverage"))
+        await connection.execute(text("TRUNCATE identity_session, identity_preauth, identity_login_bucket, identity_account, functional_audit, functional_event, functional_coverage CASCADE"))
     yield database
 
 

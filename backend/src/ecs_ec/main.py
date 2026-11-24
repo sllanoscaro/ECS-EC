@@ -89,6 +89,14 @@ def create_app(
         app.include_router(costs_router)
         identity_service.history_actions = identity_service.history_actions | {
             "costs.supply.changed", "costs.profile.created", "costs.calculation.created", "costs.bill.created", "costs.comparison.created"}
+        from ecs_ec.reports.services import Reports
+        from ecs_ec.reports.api import router as reports_router, problem_response as reports_problem
+        from ecs_ec.reports.repository import ReportsProblem
+        from ecs_ec.reports.worker import reports_module
+        app.state.reports = Reports(database, clock, identity_service, app.state.consumption, app.state.costs)
+        app.add_exception_handler(ReportsProblem, reports_problem)
+        app.include_router(reports_router)
+        modules = modules + (reports_module(),)
         app.state.identity = identity_service
         app.add_middleware(IdentityMiddleware, identity=identity_service)
         app.add_exception_handler(IdentityProblem, problem_response)
@@ -115,6 +123,7 @@ def create_app(
             raise PlatformError()
         return {"status": "ready"}
 
+    app.router.lifespan_context = application_lifespan(database, modules)
     for module in modules:
         if module.router:
             app.include_router(module.router)

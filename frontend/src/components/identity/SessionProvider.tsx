@@ -2,7 +2,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { clearPrivateData, Problem, sessionApi, subscribeSessionFailure, type SessionView } from "../../lib/api/session";
+import { clearPrivateData, Problem, safeReturn, sessionApi, subscribeSessionFailure, type SessionView } from "../../lib/api/session";
 
 type Status = "loading" | "anonymous" | "authenticated" | "error";
 type SessionContext = {
@@ -93,11 +93,11 @@ export function useSession() {
 }
 
 /** Render private content only after a current session and optional current permission are known. */
-export function SessionGuard({ permission, children }: { permission?: string; children: ReactNode }) {
+export function SessionGuard({ permission, children, returnTo }: { permission?: string; children: ReactNode; returnTo?: string }) {
   const { status, session, error } = useSession();
   if (status === "loading") return <p role="status">Comprobando sesión…</p>;
   if (status === "error") return <p role="alert">{error}</p>;
-  if (!session) return <p>Debe <a href="/ingreso/">iniciar sesión</a>.</p>;
+  if (!session) return <p>Debe <a href={returnTo ? `/ingreso/?retorno=${encodeURIComponent(safeReturn(typeof window==='undefined'?returnTo:window.location.pathname+window.location.search))}` : "/ingreso/"}>iniciar sesión</a>.</p>;
   if (session.must_change_password && permission) return <p>Debe <a href="/cuenta/">renovar su contraseña</a>.</p>;
   if (permission && !session.permissions.includes(permission)) return <p role="alert">Acceso denegado.</p>;
   return <section data-private-content>{children}</section>;

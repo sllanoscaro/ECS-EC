@@ -14,6 +14,7 @@ from ecs_ec.consumption.models import (CalculationContributionReference, Categor
 from ecs_ec.consumption.reception import append_update_events
 from ecs_ec.consumption.store import advance_state, lock_history
 from ecs_ec.consumption.totals import TotalCalculator
+from ecs_ec.consumption.telemetry import internal, progress
 from ecs_ec.core.clock import utc
 from ecs_ec.consumption.retention import protect_contributions, retention_deadline
 from ecs_ec.core.unit_of_work import UnitOfWork
@@ -45,11 +46,12 @@ async def _incorporate(uow, candidate, state, update, now, timezone, correlation
 class PendingTotals:
     """Recover requests without candidates and pending incorporation, independent from source re-sends/GET."""
 
-    def __init__(self, database, clock, *, sessions=None, calendar=False):
+    def __init__(self, database, clock, *, sessions=None, calendar=False, telemetry=None):
         """Receive shared009 DB/clock; each run uses fresh READ COMMITTED category transactions."""
         self.database, self.clock = database, clock
         self.sessions = sessions or database.sessions
         self.calendar = calendar
+        self.telemetry = telemetry
         self.calculator = TotalCalculator()
 
     async def run_due(self, building_id=None):
@@ -65,6 +67,7 @@ class PendingTotals:
         if building_id is not None: requested.intersection_update({building_id})
         for selected in sorted(requested, key=str): await self._building(selected)
 
+    @internal('consumption.aggregate', 'aggregate')
     async def _building(self, building_id):
         """Evaluate requests/candidates in one locked transaction; mark processed only with their result."""
         async with UnitOfWork(self.sessions) as uow:
@@ -116,6 +119,8 @@ class PendingTotals:
                         uow.session.add(CalculationContributionReference(candidate_id=diagnostic.id, record_id=part.measurement_id))
                 if candidate.status == 'complete' and (state.next_admissible_at is None or now >= state.next_admissible_at):
                     candidates.append((candidate, diagnostic, previous_revision))
+                elif candidate.status == 'complete':
+                    progress('wait', outcome='expected_rejection', code='too_early')
             if candidates:
                 update = CategoryUpdate(id=uuid4(), attempt_id=None, building_id=building_id, category_id='CAT-01',
                     kind='calculated', evaluated_at=now, new_data_at=now, previous_new_data_at=state.last_new_data_at,
@@ -164,6 +169,8 @@ class PendingTotals:
     @asynccontextmanager
     async def lifespan(self, app):
         """Own and cancel/join the local recovery task through009's existing module lifecycle."""
+        self.telemetry = getattr(app.state, 'telemetry', None)
+        app.state.consumption_reception.telemetry = self.telemetry
         task = asyncio.create_task(self.loop(app), name='consumption-pending-totals')
         try:
             yield

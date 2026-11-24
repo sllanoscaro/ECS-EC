@@ -7,7 +7,7 @@ import math
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from ecs_ec.core.unit_of_work import UnitOfWork

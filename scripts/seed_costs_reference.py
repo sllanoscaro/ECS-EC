@@ -30,21 +30,21 @@ from ecs_ec.core.settings import Settings
 from ecs_ec.core.unit_of_work import UnitOfWork
 
 
-async def seed(password_file, *, without_costs=False):
+async def seed(password_file, *, without_costs=False, clock=None, building_name="Synthetic004 building"):
     """Reject application/production destinations, then create controlled supply/profile and1000 physical kWh."""
     settings = Settings()
     target = make_url(os.environ.get('TEST_DATABASE_URL', ''))
     source = make_url(settings.database_url.get_secret_value())
     if settings.environment == 'production' or target.drivername != 'postgresql+psycopg' or not (target.database or '').endswith('_test') or target.database == source.database:
         raise ValueError('A separate synthetic test database is required')
-    database, clock = Database(target), SystemClock()
+    database, clock = Database(target), clock or SystemClock()
     try:
         async with UnitOfWork(database.sessions) as uow:
             if await uow.session.scalar(select(func.count()).select_from(BuildingRow)):
                 raise ValueError('An empty consumption/costs context is required')
         await seed_identity(password_file)
         async with UnitOfWork(database.sessions) as uow:
-            await bootstrap(uow, building=BuildingContext(id=UUID(int=99), name='Synthetic004 building',
+            await bootstrap(uow, building=BuildingContext(id=UUID(int=99), name=building_name,
                 timezone='America/Santiago', created_at=clock.now()),
                 configuration=installation((1,)).model_copy(update={'effective_from': instant('2025-01-01T00:00:00Z')}),
                 clock=clock, actor_ref='process:costs_fixture')

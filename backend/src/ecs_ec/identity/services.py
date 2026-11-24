@@ -2,7 +2,6 @@
 from ecs_ec.identity.telemetry import observe, operation, stage
 
 
-from dataclasses import replace
 from uuid import uuid4
 
 from sqlalchemy import func, or_, select, tuple_
@@ -14,8 +13,8 @@ from ecs_ec.identity.coordination import ParticipantRegistry
 from ecs_ec.identity.credentials import Credentials, normalize_email
 from ecs_ec.identity.errors import IdentityProblem
 from ecs_ec.identity.models import Account, Guard, Session
-from ecs_ec.identity.permissions import ACTIONS, BASIC, READ, ADMIN, allowed
-from ecs_ec.identity.schemas import AccountPage, AccountView, IdentityMutation, Principal, Recipient
+from ecs_ec.identity.permissions import BASIC, READ, ADMIN, allowed
+from ecs_ec.identity.schemas import AccountPage, IdentityMutation, Principal, Recipient
 from ecs_ec.identity.pagination import decode_cursor, encode_cursor
 from ecs_ec.identity.repository import account_view
 

@@ -94,6 +94,7 @@ class PublicationEvaluation(Evidence,Base):
     state:Mapped[str]=mapped_column(String(30))
     completed_at:Mapped[datetime|None]=mapped_column(DateTime(timezone=True))
     outcome:Mapped[dict|None]=mapped_column(JSONB(none_as_null=True))
+    technical_context:Mapped[dict]=mapped_column(JSONB,default=dict,server_default='{}')
 
 
 class NativeReading(Evidence,Base):

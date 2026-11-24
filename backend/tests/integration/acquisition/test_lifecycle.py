@@ -1,12 +1,12 @@
 """Optional003 startup aborts orphan writes under exclusive leadership and releases resources on exit."""
 from types import SimpleNamespace
-from contextlib import AsyncExitStack
 import pytest
 from sqlalchemy import select
 from ecs_ec.acquisition.lifecycle import acquisition_module
 from ecs_ec.acquisition.staging import Staging
 from ecs_ec.acquisition.models import SftpSessionAttempt
 from ecs_ec.core.unit_of_work import UnitOfWork
+from ecs_ec.core.settings import Settings
 
 pytestmark=pytest.mark.integration
 
@@ -19,7 +19,8 @@ async def test_disabled_and_exclusive_restart(sftp_environment):
     stage=Staging(env['database'],env['clock'],env['settings'],env['binding']);await stage.start()
     # The fixture listener's actual key/auth settings are retained on its validated server configuration.
     settings=env['settings'].model_copy(update={'sftp_enabled':True,'host_key_file':env['private'].parent/'host','auth_file':env['private'].parent/'auth'})
-    app=SimpleNamespace(state=SimpleNamespace(database=env['database']))
+    app=SimpleNamespace(state=SimpleNamespace(database=env['database'],
+        settings=Settings(_env_file=None,environment='test',demo_calendar=False)))
     module=acquisition_module(env['clock'],settings)
     async with module.lifespan(app):
         async with UnitOfWork(env['database'].sessions) as uow:

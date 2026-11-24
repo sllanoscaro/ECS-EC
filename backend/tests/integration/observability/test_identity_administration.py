@@ -1,0 +1,8 @@
+"""007 existing installed006/001 adapters remain real prerequisites of the common terminal extension.
+
+Reuse their acceptance cases, including ordinary authorization and queue/IO failures,
+without introducing a second identity/configuration implementation in007.004's own
+administrative signals remain part of007's broader producer-coverage work.
+"""
+from backend.tests.integration.identity.test_telemetry import test_login_authorization_mutation_recovery_signals,test_mutation_and_authorization_survive_technical_failure,test_unexpected_hash_failure_is_safe_terminal,test_concurrent_recoveries_keep_contexts_separate
+from backend.tests.integration.consumption.test_telemetry import test_detail_terminals_and_sensitive_input_isolation,test_configuration_commit_and_saturated_queue

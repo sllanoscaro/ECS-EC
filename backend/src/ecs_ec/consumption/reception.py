@@ -20,6 +20,8 @@ from ecs_ec.consumption.models import (CategoryId, CategoryUpdate, DomainModel, 
 from ecs_ec.consumption.ports import AttemptLookup, CategoryUpdateResult, ReceptionOutcome
 from ecs_ec.consumption.store import advance_state, classify, incorporate_measurement, lock_history
 from ecs_ec.consumption.validation import MeasurementError, MeasurementValidator, RawMeasurement
+from ecs_ec.observability.context import bind, current, new_context, recover
+from ecs_ec.consumption.telemetry import begin, signal, restored, reception_counts, recording
 from ecs_ec.core.clock import utc
 from ecs_ec.core.retention import anniversary
 from ecs_ec.core.unit_of_work import UnitOfWork
@@ -136,12 +138,13 @@ async def request_total_evaluation(uow, row, update, now, timezone, revisions):
 class Reception:
     """Trusted in-process port; configured process→building capabilities authorize before DB lookup."""
 
-    def __init__(self, database, clock, *, authorized_processes, calendar_processes=()):
+    def __init__(self, database, clock, *, authorized_processes, calendar_processes=(), telemetry=None):
         """Inject009 resources and explicit trusted bindings; never infer permissions from record content."""
         self.database, self.clock = database, clock
         self.authorized_processes = {p: frozenset(ids) for p, ids in authorized_processes.items()}
         self.calendar_processes = frozenset(calendar_processes)
         self.validator = MeasurementValidator()
+        self.telemetry = telemetry
 
     def _authorize(self, process, building_id):
         """Refuse unbound technical callers before distinguishing an attempt's existence."""
@@ -225,47 +228,71 @@ class Reception:
                 if attempt.status == 'completed': return (await self._lookup(uow, attempt_id, building_id, process)).outcome
                 attempt.status = 'processing'
                 attempt.completed_at = None
+                prior = restored(attempt.technical_context)
+                context = recover(prior) if prior.operation_ref else prior
             else:
                 from ecs_ec.consumption.catalog_storage import BuildingRow
                 building = await uow.session.get(BuildingRow, building_id)
                 if building is None: raise ReceptionError('building_context_missing')
                 now = utc(self.clock.now())
+                parent = current()
+                previous = await uow.session.scalar(select(ReceptionAttempt).where(
+                    ReceptionAttempt.building_id == building_id, ReceptionAttempt.process_ref == process,
+                    ReceptionAttempt.publication_ref == publication_ref).order_by(ReceptionAttempt.received_at, ReceptionAttempt.id).limit(1))
+                previous_context = restored(previous.technical_context) if previous else None
+                context = new_context(publication_ref=parent.publication_ref or (previous_context.publication_ref if previous_context else None) or uuid4(),
+                    parent_operation_ref=parent.operation_ref or (previous_context.operation_ref if previous_context else None))
                 uow.session.add(ReceptionAttempt(id=attempt_id, building_id=building_id, publication_ref=publication_ref,
                     process_ref=process, correlation_ref=correlation_ref, received_at=now, status='processing', completed_at=None,
-                    input_schema_version=1, input_manifest=manifest, input_digest=digest, retain_until=anniversary(now, building.timezone)))
+                    technical_context=context.fields(), input_schema_version=1, input_manifest=manifest, input_digest=digest, retain_until=anniversary(now, building.timezone)))
             await uow.commit()
-        try:
-            snapshot = await self._capture(sessions, attempt_id, building_id, process)
-            missing = set(snapshot.outcome.pending_positions)
-            for category in (*CATEGORY_IDS, None):
-                positions = [(i, r) for i, r in enumerate(records) if i in missing
-                    and (r.get('category_id') if r.get('category_id') in CATEGORY_IDS else None) == category]
-                if positions:
-                    if process in self.calendar_processes:
-                        await self._category(attempt_id, building_id, category, positions, correlation_ref, sessions, calendar=True)
-                    else:
-                        await self._category(attempt_id, building_id, category, positions, correlation_ref, sessions)
-            if process in self.calendar_processes:
-                await self._evaluate(building_id, sessions, calendar=True)
-            else:
-                await self._evaluate(building_id, sessions)
-            await self._complete(attempt_id, sessions)
-        except Exception:
-            # Previously committed categories survive. A DB failure may also prevent this
-            # summary write; processing remains recoverable and no success is reported.
+        handle = begin(self.telemetry, 'reception.accept', context)
+        with bind(context), recording(self.telemetry, handle):
+            signal(self.telemetry, handle, stage='authorize')
+            signal(self.telemetry, handle, stage='validate')
             try:
-                async with UnitOfWork(sessions) as uow:
-                    attempt = await uow.session.get(ReceptionAttempt, attempt_id)
-                    attempt.status, attempt.completed_at = 'partial_failure', None
-                    await uow.commit()
-            except Exception: pass
-            raise
-        return (await self._capture(sessions, attempt_id, building_id, process)).outcome
+                snapshot = await self._capture(sessions, attempt_id, building_id, process)
+                missing = set(snapshot.outcome.pending_positions)
+                signal(self.telemetry, handle, stage='deduplicate')
+                for category in (*CATEGORY_IDS, None):
+                    positions = [(i, r) for i, r in enumerate(records) if i in missing
+                        and (r.get('category_id') if r.get('category_id') in CATEGORY_IDS else None) == category]
+                    if positions:
+                        if process in self.calendar_processes:
+                            await self._category(attempt_id, building_id, category, positions, correlation_ref, sessions, calendar=True)
+                        else:
+                            await self._category(attempt_id, building_id, category, positions, correlation_ref, sessions)
+                if process in self.calendar_processes:
+                    await self._evaluate(building_id, sessions, calendar=True)
+                else:
+                    await self._evaluate(building_id, sessions)
+                await self._complete(attempt_id, sessions)
+                outcome = (await self._capture(sessions, attempt_id, building_id, process)).outcome
+                signal(self.telemetry, handle, stage='commit')
+                counts = reception_counts(outcome)
+                if any(r.reason_code == 'too_early' for r in outcome.results):
+                    signal(self.telemetry, handle, stage='wait', outcome='expected_rejection', code='too_early')
+                rejected = not counts['records_accepted'] and bool(counts['records_other_rejected'] or counts['records_invalid'])
+                result, code = ('expected_rejection', 'too_early' if any(r.reason_code == 'too_early' for r in outcome.results) else 'invalid_input') if rejected else ('success', 'ok')
+                signal(self.telemetry, handle, event='execution.completed', outcome=result, code=code)
+                signal(self.telemetry, handle, event='reception.completed', outcome=result, code=code, counts=counts)
+            except Exception:
+                signal(self.telemetry, handle, event='execution.completed', outcome='unexpected_error', code='processing_interrupted', counts=None)
+                # Previously committed categories survive. A DB failure may also prevent this
+                # summary write; processing remains recoverable and no success is reported.
+                try:
+                    async with UnitOfWork(sessions) as uow:
+                        attempt = await uow.session.get(ReceptionAttempt, attempt_id)
+                        attempt.status, attempt.completed_at = 'partial_failure', None
+                        await uow.commit()
+                except Exception: pass
+                raise
+            return outcome
 
     async def _evaluate(self, building_id, sessions, *, calendar=False):
         """Evaluate committed partial work using the same coordinator connection, before final summary."""
         from ecs_ec.consumption.pending_totals import PendingTotals
-        await PendingTotals(self.database, self.clock, sessions=sessions, calendar=calendar).run_due(building_id)
+        await PendingTotals(self.database, self.clock, sessions=sessions, calendar=calendar, telemetry=self.telemetry).run_due(building_id)
 
     async def _complete(self, attempt_id, sessions=None):
         """Finalize summary only after all positions commit; a failed summary can be reconstructed."""

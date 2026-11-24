@@ -18,7 +18,7 @@ pytestmark = pytest.mark.integration
 async def test_bootstrap_restart_shutdown(test_url, tmp_path, clock):
     """Start twice against migrated PostgreSQL and verify module teardown and static/API responses."""
     (tmp_path / "index.html").write_text("<h1>ECS-EC synthetic export</h1>")
-    settings = Settings(database_url=SecretStr(test_url), web_directory=tmp_path, environment="test")
+    settings = Settings(_env_file=None, database_url=SecretStr(test_url), web_directory=tmp_path, environment="test", identity_enabled=False)
     calls = []
 
     @asynccontextmanager

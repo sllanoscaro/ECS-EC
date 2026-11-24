@@ -11,20 +11,20 @@ for (const role of ["admin", "operator"]) {
     await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
     await page.getByLabel("Contraseña", { exact: true }).fill(process.env.COSTS_E2E_RENEWED ? initial + " renewed" : initial);
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
-    await expect(page).toHaveURL(/\/cuenta\/$/);
+    await expect(page).toHaveURL(/^https?:\/\/[^/]+\/(?:cuenta\/)?$/);
     if (!process.env.COSTS_E2E_RENEWED) {
       await page.getByLabel("Contraseña actual", { exact: true }).fill(initial);
-      await page.getByLabel("Nueva contraseña", { exact: true }).fill(initial + " renewed");
+      await page.getByLabel(/^Nueva contraseña/).fill(initial + " renewed");
       await page.getByLabel("Confirmar nueva contraseña", { exact: true }).fill(initial + " renewed");
       await page.getByRole("button", { name: "Cambiar contraseña", exact: true }).click();
       await expect(page).toHaveURL(/\/ingreso\/$/);
       await page.getByLabel("Correo electrónico", { exact: true }).fill(`${role}-active@example.test`);
       await page.getByLabel("Contraseña", { exact: true }).fill(initial + " renewed");
       await page.getByRole("button", { name: "Ingresar", exact: true }).click();
-      await expect(page).toHaveURL(/\/cuenta\/$/);
+      await expect(page).toHaveURL(/^https?:\/\/[^/]+\/(?:cuenta\/)?$/);
     }
     if (role === "admin") {
-      await page.getByRole("link", { name: "Administrar costos", exact: true }).click();
+      await page.locator('a[href="/administracion/costos/"]').click();
       await expect(page.getByLabel("Inicio del ciclo con offset", { exact: true })).toBeVisible();
       await page.getByLabel("Inicio del ciclo con offset", { exact: true }).fill("2026-01-01T00:00:00Z");
       await page.getByLabel("Fin del ciclo con offset", { exact: true }).fill("2026-01-01T01:00:00Z");

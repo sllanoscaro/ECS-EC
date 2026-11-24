@@ -123,6 +123,7 @@ async def configure(request: Request, body: ConfigurationInput):
 
 
 @router.get('/categories/{category_id}/aggregates', response_model=AggregateResponse)
+@observe('consumption.query_aggregates', 'read')
 async def aggregates(request: Request, category_id: str, start: str, end: str, timezone: str, granularity: Granularity):
     """Validate exact offset selection and return the002 capture under the current006 read grant."""
     from ecs_ec.consumption.catalog import CATEGORY_IDS

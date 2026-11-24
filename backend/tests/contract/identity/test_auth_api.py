@@ -1,6 +1,5 @@
 """Five auth routes enforce transport, CSRF, safe response contracts and restricted renewal."""
 
-import pytest
 
 
 async def test_login_session_logout(client, login, account_factory, identity_settings):

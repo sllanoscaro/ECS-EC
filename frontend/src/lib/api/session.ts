@@ -49,17 +49,18 @@ export function sessionActivityHeaders(activity: Activity = "background") {
 }
 
 /** Restrict return destinations to installed relative routes, without encoded origins or unvalidated query. */
-export function safeReturn(value: string | null, routes = ["/costos/", "/administracion/costos/", "/consumption/", "/administracion/consumo/", "/cuenta/", "/administracion/usuarios/", "/administracion/historial/"]) {
+export function safeReturn(value: string | null, routes = ["/reportes/", "/costos/", "/administracion/costos/", "/consumption/", "/administracion/consumo/", "/cuenta/", "/administracion/usuarios/", "/administracion/historial/"]) {
   if (!value || !value.startsWith("/") || value.startsWith("//") || /[\\%\u0000-\u0020]/.test(value)) return "/cuenta/";
   try {
     const url = new URL(value, "https://local.invalid");
+    if (url.pathname === "/reportes/" && routes.includes(url.pathname) && !url.hash && /^\?reporte=[a-f0-9-]{36}$/i.test(url.search)) return url.pathname + url.search;
     if (url.origin !== "https://local.invalid" || url.search || url.hash || !routes.includes(url.pathname)) return "/cuenta/";
     return url.pathname;
   } catch { return "/cuenta/"; }
 }
 
 /** Fetch approved JSON without caching; every API call still authorizes on the server. */
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiRequest<T>(path: string, options: RequestInit = {}, readBody?: (response: Response) => Promise<T>): Promise<T> {
   const epoch = generation;
   const headers = new Headers(options.headers);
   if (!headers.has("X-Session-Activity")) headers.set("X-Session-Activity", "background");
@@ -78,7 +79,9 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   }
   if (epoch !== generation) throw new Problem(401, "session_required", "Debe iniciar sesión de nuevo.");
   if (response.status === 204) return undefined as T;
-  return await response.json() as T;
+  const result = readBody ? await readBody(response) : await response.json() as T;
+  if (epoch !== generation) throw new Problem(401, "session_required", "Debe iniciar sesión de nuevo.");
+  return result;
 }
 
 export const sessionApi = {
