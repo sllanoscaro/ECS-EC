@@ -2,8 +2,11 @@
 
 [Plan](plan.md), [modelo](data-model.md), [señales](contracts/signals.md),
 [emisión](contracts/integrations.md), [acceso/políticas](contracts/technical-access.md).
-Guía de la implementación prevista. Hoy hay diseño; aplicación, comandos auxiliares,
-pruebas y despliegue técnico aún deben implementarse. Ningún escenario se declara ejecutado.
+Guía del alcance completo, con implementación parcial:26/65 tareas completas. El emisor,
+los scripts de preparación/provisión y el stack de acceso técnico tienen
+[evidencia local](validation/acceptance.md). Cobertura integral, métricas ampliadas,
+cuotas/retención real y personas siguen pendientes; los escenarios siguientes no se
+consideran todos ejecutados por disponer de esta guía. Estado revisado2026-11-23.
 
 ## Prerrequisitos y arranque
 

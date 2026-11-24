@@ -1,5 +1,23 @@
 # Aceptación local de spec-002, pendiente de integraciones y personas
 
+## Estado vigente — paso3,2026-11-24
+
+**70/71 tareas completas; solo T068/personas pendiente.** T064/SFTP y T065/emisión real
+completadas. [Instrumentación y recuperación](telemetry.md); regresión compartida672
+backend aprobadas,91 frontend y recorridos reales de identidad/proveedores. No acredita
+usabilidad humana ni aceptación integral. Los cortes siguientes son históricos.
+
+## Continuación vigente — paso1,2026-11-23
+
+**69/71 tareas completas; T065/T068 pendientes.** T064 completada mediante seis casos
+consumidores con generador/publicador003, SFTP y PostgreSQL18 reales: CSV/JSON,
+fragmentos/CLOSE/EOF, identidad y entrada durables antes de002, recuperación antes/después
+del commit y nuevo intento tras too_early. [Comandos, resultados y límites](source-integration.md).
+Las pruebas no acreditan conformidad documental19 ni cadencia real900s del publicador.
+Instrumentación ampliada007 y personas siguen pendientes, sin aceptación integral002.
+
+## Registro local anterior — 2026-11-02
+
 **Actualización:** 2026-11-02. **Base Git:** `b30afe6408f6178b89b0d5483229e284c741d023`. **Estado:**68/71 tareas completas;43 tareas adicionales
 respecto del incremento inicial. T001–T063/T066–T067/T069–T071 completas;
 T064/T065/T068 pendientes. No se modificaron checklists de revisión ni tareas001/004.
@@ -39,7 +57,7 @@ Al finalizar se retiraron contenedor/volumen y archivos temporales de prueba.
 | FR-014/FR-010..014/019, SC-003 |[Estados/tardíos](incomplete-history.md): actualización sincrónica, selección/captura común, cero/hueco/error y fronteras. |
 | FR-015..019, SC-004 |[Conservación](retention.md):13 meses/siete categorías, aniversarios, dependientes y retirada real preservando agregados/reenvíos. |
 | SC-005 |Pendiente de participantes reales: T068. No se acredita con Playwright. |
-| Integraciones nativas |T064 espera adaptador003 real y T065 emisor007. Proveedores para004/005/008 probados; aceptación conjunta pendiente de consumidores. |
+| Integraciones nativas |Revisión documental2026-11-23: adaptador/publicador003 y emisor básico007 disponibles. T064 debe verificar la integración desde002; T065 requiere instrumentación propia y terminales/continuación durable007:T037/T038. Proveedores para004/005/008 probados; aceptación conjunta pendiente de consumidores. |
 | Instalación |Zona/fuentes reales y VPS sin verificar; America/Santiago es fixture. |
 
 Las pruebas nuevas de resumen, consulta, HTTP, consumidores, selector y retirada se

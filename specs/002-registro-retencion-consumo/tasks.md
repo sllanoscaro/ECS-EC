@@ -16,9 +16,11 @@ adquisición a 003 y observabilidad común a 007.
 [data-model.md](data-model.md), [HTTP](contracts/http.md),
 [integraciones](contracts/integrations.md), [UI](contracts/ui.md) y
 [quickstart.md](quickstart.md).
-**Fecha**: 2026-11-01; continuación local 2026-11-02. **Estado**: 68/71 tareas completas;
+**Fecha**: 2026-11-01; continuación local 2026-11-02. **Estado**: 70/71 tareas completas;
 US1–US4 y validación automatizada local realizadas usando fachada/UI001 reales.
-T064 (adaptador003), T065 (emisor007) y T068 (personas) permanecen pendientes.
+Continuación2026-11-23: T064 completada con SFTP003 real; [evidencia](validation/source-integration.md).
+Continuación2026-11-24: T065 completada con emisor007 real y correlación durable;
+[evidencia](validation/telemetry.md). Solo T068 (personas) permanece pendiente.
 No equivale a aceptación integral: [evidencia vigente](validation/acceptance.md).
 Reemplaza el borrador de cinco tareas y conserva su alcance en la matriz de traslado.
 Generar esta lista no acredita implementación, pruebas ejecutadas ni aceptación.
@@ -216,8 +218,8 @@ real; SC-005 y verificaciones externas permanecen pendientes hasta ejecutarse.
 
 ## Phase 7: Cierre y aspectos transversales
 
-- [ ] T064 Con adaptador real 003 disponible, escribir/ejecutar `backend/tests/integration/consumption/test_source_reception.py` para publicación completa, identidades/referencias temporales, fragmentos que forman una actualización y reenvío desde próxima admisible sin perder lecturas pendientes; documentar compatibilidad/faltantes en `specs/002-registro-retencion-consumo/validation/source-integration.md`. No implementar formatos/transporte ni acreditar PAS600/SFTP con fixtures; si falta capacidad externa, conservar esta validación pendiente. Verificar que003 persiste attempt_id/entrada antes de llamar002, recupera con read_attempt/accept el mismo intento tras caída y usa ID nuevo al reenviar tras too_early; no reabrir rechazos confirmados al recuperar.
-- [ ] T065 Con emisor 007 disponible, escribir primero `backend/tests/integration/consumption/test_history_telemetry.py` y después ampliar instrumentación propia 002 en `backend/src/ecs_ec/consumption/telemetry.py`, conectada desde recepción/agregados/retención/pendientes/router; ejecutar para verificar correlación/códigos/esperas/reintentos saneados, sin cuerpos/secretos ni eventos funcionales duplicados. No crear emisor, recolectores, visores ni infraestructura técnica.
+- [X] T064 Con adaptador real 003 disponible, escribir/ejecutar `backend/tests/integration/consumption/test_source_reception.py` para publicación completa, identidades/referencias temporales, fragmentos que forman una actualización y reenvío desde próxima admisible sin perder lecturas pendientes; documentar compatibilidad/faltantes en `specs/002-registro-retencion-consumo/validation/source-integration.md`. No implementar formatos/transporte ni acreditar PAS600/SFTP con fixtures; si falta capacidad externa, conservar esta validación pendiente. Verificar que003 persiste attempt_id/entrada antes de llamar002, recupera con read_attempt/accept el mismo intento tras caída y usa ID nuevo al reenviar tras too_early; no reabrir rechazos confirmados al recuperar.
+- [X] T065 Con emisor 007 disponible, escribir primero `backend/tests/integration/consumption/test_history_telemetry.py` y después ampliar instrumentación propia 002 en `backend/src/ecs_ec/consumption/telemetry.py`, conectada desde recepción/agregados/retención/pendientes/router; ejecutar para verificar correlación/códigos/esperas/reintentos saneados, sin cuerpos/secretos ni eventos funcionales duplicados. No crear emisor, recolectores, visores ni infraestructura técnica.
 - [X] T066 Escribir/ejecutar `backend/tests/integration/consumption/test_history_availability.py` con DB/identidad/auditoría reales: reinicio de app/DB, consumidores 008/SMTP/visores indisponibles, error DB explícito, ausencia de commits/eventos parciales y GET sin efectos. Comprobar permisos/no-store y que ninguna dependencia técnica externa condicione recepción/consulta.
 - [X] T067 Ejecutar comandos aplicables de `specs/002-registro-retencion-consumo/quickstart.md`: pruebas backend/frontend/E2E, build estático y recorridos con >=12 meses/siete categorías; registrar comandos/versiones/tiempos/resultado y pendientes en `specs/002-registro-retencion-consumo/validation/acceptance.md`. Medir sin inventar SLO y distinguir bloqueos externos de fallos propios.
 - [ ] T068 Ejecutar evaluación humana SC-005 y registrar diez tareas representativas de categoría/agrupación/período en `specs/002-registro-retencion-consumo/validation/usability.md`: consumo/período/cobertura reconocidos en ambas vistas sin ayuda y tiempo por tarea; exigir >=9 correctas en <=60 s cada una. Sin participantes/resultados reales, dejar el criterio y la tarea pendientes.

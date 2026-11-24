@@ -6,11 +6,16 @@ description: "Tareas integrales de observabilidad externa; conserva el traslado 
 
 ## Contexto compartido del proyecto (ECS-EC)
 
-**Generado**: 2026-11-02. **Estado**: implementación parcial;26/65 tareas con evidencia.
+**Generado**: 2026-11-02. **Estado**: implementación parcial;28/65 tareas con evidencia.
 [Emisor](validation/emitter.md) y [acceso](validation/access.md) documentan resultados.
 T022 espera PDF005 real; T028/T029 tienen código/guías preparados pero conservan su
 cadena de prerrequisitos pendiente. T030 no acredita matriz completa. No hay aceptación
 integral ni cierre deT065. La generación original sustituyó el borrador parcial de cinco tareas.
+
+**Reanudación del paso2 (2026-11-24)**: capacidad común usada por005 verificada;
+T031/T032 completas. [Registro007](validation/step2.md). T033–T035 conservan cobertura
+parcial; T037/T038 permanecen pendientes por sus prerrequisitos/alcance transversal.
+La integración instalada002/003 se completa en el paso posterior.
 
 **Input**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md),
 [data-model.md](data-model.md), [quickstart.md](quickstart.md),
@@ -132,8 +137,8 @@ Si faltan esas llamadas, registrar bloqueo externo, sin sustituirlas con negocio
 **Pruebas primero**: T031–T036 se escriben tras sus prerrequisitos; las verificaciones con
 proveedores reales se ejecutan cuando sus capacidades estén disponibles.
 
-- [ ] T031 [P] [US2] Escribir `backend/tests/contract/observability/test_instrumentation.py` para `Telemetry.begin/stage/complete/continue/health/shutdown`, registro de operaciones/etapas, severidad/resultado común y terminal único; diferenciar eventos técnicos del bus FunctionalEvent009 y generaciones admitidas/terminadas de005. Exigir que processing/partial_failure no produzcan reception.completed; una lectura sin procesamiento no crea execution.completed y el fallo de ejecución usa counts=null. Prerrequisitos de007: T019.
-- [ ] T032 [P] [US2] Escribir `backend/tests/integration/observability/test_correlation.py` para contexto concurrente, continuación posterior al request, nueva traza tras reinicio con referencia lógica preservada, links solo confiables, dos bindings/textos iguales no mezclados y contexto no disponible explícito; no modificar archivos nativos. Prerrequisitos de007: T019.
+- [X] T031 [P] [US2] Escribir `backend/tests/contract/observability/test_instrumentation.py` para `Telemetry.begin/stage/complete/continue/health/shutdown`, registro de operaciones/etapas, severidad/resultado común y terminal único; diferenciar eventos técnicos del bus FunctionalEvent009 y generaciones admitidas/terminadas de005. Exigir que processing/partial_failure no produzcan reception.completed; una lectura sin procesamiento no crea execution.completed y el fallo de ejecución usa counts=null. Prerrequisitos de007: T019.
+- [X] T032 [P] [US2] Escribir `backend/tests/integration/observability/test_correlation.py` para contexto concurrente, continuación posterior al request, nueva traza tras reinicio con referencia lógica preservada, links solo confiables, dos bindings/textos iguales no mezclados y contexto no disponible explícito; no modificar archivos nativos. Prerrequisitos de007: T019.
 - [ ] T033 [P] [US2] Escribir `backend/tests/integration/observability/test_acquisition.py` consumiendo receptor/adaptador003, validación001 y recepción/agregados/retirada002 reales: SFTP limpio/abortado, archivos ilegibles, válidos/invalidos/duplicados/anticipados, misma publicación/nuevo intento y recuperación del mismo intento; contrastar resultados durables con logs/spans y no añadir CSV/JSON/credenciales técnicas al payload nativo. Añadir caso de un intento que confirma3 registros, falla con2 pendientes y luego los incorpora al recuperar: conservar attempt_ref, cambiar execution_ref y observar dos ejecuciones (fallo/éxito), un terminal lógico y cinco aceptados una vez; releerlo no crea más emisiones. Prerrequisitos de007: T019.
 - [ ] T034 [P] [US2] Escribir `backend/tests/integration/observability/test_costs_reports.py` con004/005 reales: cálculo/contraste/consulta, admisión/captura/espera/render/preflight/publicación/descarga PDF y fallos controlados; distinguir report.admitted/report.completed y rechazo previo, terminal tras commit ganado, recuperación sin reemisión y respuesta funcional sin excepción interna. Prerrequisitos de007: T019.
 - [ ] T035 [P] [US2] Escribir `backend/tests/integration/observability/test_identity_administration.py` con006 y configuraciones001/004 reales: autenticación/autorización/sesiones, lectura de historial y cambios administrativos, incluidos denegados antes del módulo y rollback; comprobar una emisión de operación objetivo y decisión de autorización separada, sin datos personales ni sustitución de FunctionalAudit009. Prerrequisitos de007: T019.

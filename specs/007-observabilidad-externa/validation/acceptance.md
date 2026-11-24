@@ -1,5 +1,11 @@
 # Estado parcial de implementación007
 
+Disponibilidad revisada2026-11-24: receptor/publicador003 y la entrega técnica005
+están disponibles;001/006 conservan evidencia local. La capacidad común de terminales/
+continuación con005 está verificada y T031/T032 se completan:28/65 tareas.
+[Alcance y pendientes007](step2.md); [resultados005](../../005-generar-reportes-pdf/validation/acceptance.md).
+La evidencia siguiente corresponde al2026-11-02 y conserva sus conteos históricos.
+
 Fecha local2026-11-02. **Sin aceptación integral ni cierre de T065.**
 
 T001–T021 y T023–T027 completadas:26/65. Emisor seguro con recursos acotados,
@@ -11,7 +17,7 @@ T030 no cumple toda la matriz de prerrequisitos. US2–US4 y cierre siguen pendi
 [dependencias](dependencies.md) y [prerrequisitos por propietario](prerequisites.md).
 No se modifican checklists de revisión ni tareas de otras funcionalidades.
 
-## Verificación final ejecutada
+## Verificación histórica ejecutada — 2026-11-02
 
 - `uv sync --locked`:66 paquetes resueltos/64 verificados; Python3.14.4/FastAPI0.162.0.
 - `uv run pytest backend/tests -q` con PostgreSQL18 real, dos stacks técnicos aislados,
@@ -35,12 +41,14 @@ no se borraron volúmenes funcionales ni se detuvo/recreó el contenedor Postgre
 La DB exclusiva creada para pruebas es `ecs_observability_test`, distinta de las reales.
 
 
-Limitaciones materiales: emisor básico termina operaciones ordinarias; las semánticas
+Limitaciones de aquel corte: emisor básico termina operaciones ordinarias; las semánticas
 especiales de recepción/PDF y links durables tienen tareas US2 pendientes. Ningún
 productor001–006 se declara instrumentado por existir el emisor. Dashboard inicial
 muestra observaciones/cobertura desconocida; no implementa todavía todo US3. T056
 cuotas persistentes/corte90%, T059 retención24h/GC y T061 personas siguen pendientes.
 
-Para continuar, completar los proveedores003/005 y llamadas de instrumentación en sus
-propietarios; retomar T022 y la cadenaT028–T030 antes de las fases restantes conforme
-al grafo, conservando las tareas pendientes y sin reemplazar dominio por fixtures.
+Para continuar, usar el proveedor003 existente, completar generación005 y las llamadas
+de instrumentación que falten en sus propietarios. Preparar pruebas/puertos comunes US2
+desde fundaciones y coordinar la ampliación del emisor con005; retomar T022 y la cadena
+T028–T030 cuando PDF esté disponible. Conservar los prerrequisitos del grafo y las tareas
+pendientes, sin reemplazar dominio por fixtures. [Orden vigente](../../../docs/implementation-priority-plan-2026-11-03.md).

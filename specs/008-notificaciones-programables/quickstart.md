@@ -1,8 +1,9 @@
 # Quickstart y guía de validación
 
 Esta guía define los comandos y escenarios que deberá ofrecer la implementación.
-Actualmente solo existen especificaciones y artefactos de diseño: los comandos de app,
-migración y pruebas siguientes no son ejecutables todavía. [tasks.md](tasks.md) recoge
+Para notificaciones008 solo existen especificaciones y artefactos de diseño: sus
+comandos, migración y pruebas específicos aún no son ejecutables. La plataforma y
+los proveedores001/002/004/006,003 y el emisor básico007 sí existen. [tasks.md](tasks.md) recoge
 el trabajo propio pendiente; no se afirma una validación funcional ya realizada.
 
 Referencias: [plan](plan.md), [modelo](data-model.md), [API](contracts/openapi.json),
@@ -15,7 +16,9 @@ Preparar la base según [plataforma009](../009-fundaciones-plataforma/quickstart
 identidad según [spec-006](../006-acceso-usuarios-rbac/tasks.md), series según
 [spec-001](../001-visualizar-consumo-categorias/tasks.md)/[spec-002](../002-registro-retencion-consumo/tasks.md)
 y emisores/visores según [spec-007](../007-observabilidad-externa/tasks.md).
-Su planificación pendiente no se ejecuta dentro de notificaciones. Contexto:
+Sus ampliaciones y verificaciones pendientes se realizan en sus propietarios;
+no se implementan desde notificaciones. PDF005 todavía debe entregar su productor real
+para las alertas de fallo PDF. Contexto:
 [arquitectura](../../docs/architecture.md) y [hoja de ruta](../../docs/implementation-roadmap.md).
 
 - Docker Engine con Compose v2, uv con soporte Python 3.14 y Node >=20.9/npm para pruebas

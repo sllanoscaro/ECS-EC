@@ -1,5 +1,9 @@
 # Emisor fundamental: evidencia parcial
 
+**Actualización2026-11-24**: las cifras de esta página son históricas. La ampliación
+común usada por005 está verificada; ver [capacidad disponible y tareas pendientes](step2.md).
+T031/T032 se completan sin aceptar toda la cobertura de productores007.
+
 Fecha local2026-11-02. No acredita US1–US4 ni cobertura de productores.
 
 - Serializador inicial:32 fallos de comportamiento y1 éxito en contrato (no import errors).
@@ -26,6 +30,8 @@ Versiones/digests en [dependencias](dependencies.md). El puerto conceptual `cont
 se escribe `continue_operation` en Python por ser palabra reservada. Configuración y
 límites reales documentados en `backend/src/ecs_ec/observability/README.md`.
 
-Pendientes: integración Compose/mTLS/acceso Programador, cuotas reales, deduplicación
-Loki, retención24h/GC y aislamiento funcional con productores reales; estas pruebas
-unitarias no satisfacen sus tareas. No se modifican checklists de revisión.
+En el corte fundamental anterior quedaban pendientes Compose/mTLS/acceso Programador.
+Su integración local posterior consta en [acceso](access.md); la matriz funcional
+integral aún espera PDF005. Cuotas reales, continuidad/conciliación de Loki, retención24h/GC
+y aislamiento funcional completo siguen pendientes. Estas pruebas unitarias no satisfacen
+sus tareas. Revisión documental2026-11-23, sin nuevas pruebas ni cambios de checklists.

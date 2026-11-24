@@ -1,0 +1,10 @@
+Step3 — 2026-11-24 — isolated PostgreSQL18.3 and synthetic provider data
+Backend full: 672 passed,31 skipped,3 deselected in232.09s; JUnit:step3-backend.xml
+Backend final focused (after last002/003 adjustments):54 passed,3 deselected in74.05s
+Frontend:91 passed,30 files; typecheck and static build passed
+Playwright identity:3 passed in16.2s, fresh database
+Playwright costs:2 passed; bill/profile scenarios:4 passed; financial history:1 passed
+Documentation006:49 Python files; no missing docstrings; Ruff F checks passed
+Alembic:empty upgrade and check passed; two new migrations down/up and check passed
+Destructive downgrade beyond owned migrations rejected by existing004 protection
+No remote CI, liveVPS, human evaluation, physical printing or new900s/restore acceptance

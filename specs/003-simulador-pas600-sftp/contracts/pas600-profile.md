@@ -6,6 +6,11 @@ Normativo para el diseño del simulador/adaptador; no acredita conformidad ejecu
 Referencia externa: [DOCA0172EN-19](https://www.productinfo.schneider-electric.com/ecostruxurepanelserverguide/doca0172-ecostruxure-panel-server-user-guide/English/Panel-Server-User-Guide-DOCA0172EN-19.pdf),
 pp. 126–127 y 274–276. Los nombres de campos son del protocolo del fabricante.
 
+Disponibilidad revisada2026-11-23: el enlace original devuelve404 y no hay una nueva
+copia19 verificable para cotejo independiente. Se conserva la revisión normativa y el
+diferimiento aprobado; ver [registro, límites y criterio de reanudación](../../../tools/pas600_simulator/tests/fixtures/reference/README.md).
+El recorrido SFTP local implementado no sustituye esa conformidad documental.
+
 ## Alcance y descriptor
 
 Un PAS600 Universal publicador, cero a siete medidores configurados, un canal de energía

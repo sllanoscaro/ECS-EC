@@ -99,6 +99,8 @@ Mailpit, relay SMTP y enlaces autenticados de correo se validan en [quickstart](
 ## Resultado
 
 Decisiones técnicas resueltas. Dominio, zona real y credenciales son configuración de
-entorno; los valores de prueba no describen la instalación real. Identidad, series,
-auditoría y resultados PDF/costos se integran con módulos de specs anteriores, todavía
-no implementados. No quedan aclaraciones técnicas pendientes para esta fase de diseño.
+entorno; los valores de prueba no describen la instalación real. Identidad006,
+series001/002, auditoría009 y costos004 ya están implementados localmente; PDF005 tiene
+preparación sin generación funcional.008 debe implementar y verificar sus adaptadores
+reales; el puente de fallos PDF espera al productor005. No quedan aclaraciones técnicas
+pendientes para esta fase de diseño.

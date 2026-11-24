@@ -1,10 +1,11 @@
 # Dependencias reales e incremento de preparación — 2026-11-02
 
-## Disponibilidad actualizada — 2026-11-03
+## Disponibilidad actualizada — 2026-11-24
 
-Inspección estática, sin reejecutar las pruebas históricas siguientes. Los proveedores
-001/002/004/006/009 están disponibles; generación durable, API y descarga005 siguen pendientes.
-El emisor básico007 existe, pero falta el soporte de sus eventos especiales de PDF.
+Productores001/002/004/006/009 disponibles; generación005 y ampliación común007
+integradas y verificadas técnicamente. [Entrega y pendientes](acceptance.md).
+T037/T058/T059 de005 conservan su alcance físico/humano pendiente. La evidencia de
+preparación2026-11-02 que sigue es histórica, no se suma a las nuevas suites.
 
 ## Inventario005:T001 vigente
 
@@ -14,8 +15,8 @@ El emisor básico007 existe, pero falta el soporte de sus eventos especiales de 
 | Identidad | `backend/src/ecs_ec/identity/services.py` (006) | Resolver sesión actual; `require_report_access`, `authorize(..., 'reports.generate', ...)` |
 | Consumo | `backend/src/ecs_ec/consumption/queries.py` (001/002) | `read_report_snapshot` devuelve siete categorías con detail/aggregates/procedencia; granularidad hour/day/month/year |
 | Costos | `backend/src/ecs_ec/costs/services.py`, `snapshots.py`, `schemas.py` (004) | `Costs.read_snapshot` con `unit_of_work`; devuelve `CostsSnapshot`, ciclos y comparación del par exacto |
-| Eventos | `backend/src/ecs_ec/audit/events.py` (009) | `EventWriter.append(uow,event)`, no firma invertida; futuro registro de esquema005 |
-| Emisor común | `backend/src/ecs_ec/observability/{logging,tracing,lifecycle}.py` (007) existentes y registrados desde `main.py` | Disponible para operaciones ordinarias; `Telemetry.complete` admite solo `operation.completed`. Soporte de `report.admitted`/`report.completed` y continuación durable pendiente de007:T037/T038;005:T062/T063 siguen pendientes. |
+| Eventos | `backend/src/ecs_ec/audit/events.py` (009) | `EventWriter.append(uow,event)`, no firma invertida; registro005 de `pdf.failed` en `reports/repository.py`, con pruebas parciales de atomicidad |
+| Emisor común | `backend/src/ecs_ec/observability/{logging,tracing,lifecycle}.py` (007) existentes y registrados desde `main.py` | Operaciones ordinarias y código nuevo de terminales/continuación PDF; 005:T062/T063 verificados; cierre integral007:T037/T038 sujeto a sus prerrequisitos y cobertura por propietario. [Estado007](../../007-observabilidad-externa/validation/step2.md). |
 
 Los [contratos007](../../007-observabilidad-externa/contracts/) y sus
 [tareas](../../007-observabilidad-externa/tasks.md) conservan la propiedad de la capacidad
@@ -59,12 +60,8 @@ salidas. Frontend es privado (`private:true`); no requiere `.npmignore`.
 La imagen ya copia todo `backend/` e instala el lock: incluye fuentes sin carpeta
 pública para futuros binarios. No se ha construido la imagen en esta validación.
 
-## Pendientes
+## Pendientes actuales
 
-T006 en adelante siguen sin completarse (salvo el adaptador parcial descrito): modelos,
-migración, selección/calendario, captura durable, idempotencia, executor, composición,
-preflight funcional, APIs, interfaz y aceptación. No hay productor `pdf.failed` aún.
-La ampliación del emisor007 para eventos PDF y continuación durable sigue siendo
-prerrequisito de005:T062/T063 y aceptación US1, **no** de los trabajos propios
-independientes de005. La existencia del emisor básico no acredita esa capacidad. Las pruebas actuales no acreditan generación funcional de PDF,
-concurrencia integral, revisión visual, personas ni VPS.
+005:T037/T058/T059 (impresión física/personas y componente físico de revisión).
+[Resultados y orden posterior](acceptance.md). La matriz integral007 sigue en su
+propietario; la capacidad común usada por005 ya está implementada y verificada.

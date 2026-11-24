@@ -4,7 +4,9 @@
 [hoja de ruta](../../docs/implementation-roadmap.md), [constitución](../../.specify/memory/constitution.md),
 [spec](spec.md), [tareas trasladadas](tasks.md) y contratos de propietarios. La investigación
 técnica se repartió con un agente de solo lectura y se contrastó con fuentes primarias.
-Sin instalación, ejecución, aceptación o comprobación de compatibilidad del stack.
+Registro de diseño del corte original; sus decisiones no acreditan ejecución por sí
+solas. La instalación y validación local posteriores del emisor/acceso constan en
+[aceptación parcial](validation/acceptance.md); la aceptación integral sigue pendiente.
 
 Las decisiones R7 y acceso local/VPS conservan sus títulos/anclajes para enlaces de008.
 Los cinco trabajos trasladados de007 quedan incorporados al diseño y pendientes en tareas.
@@ -222,7 +224,8 @@ comunes fuera de su propietario produce evidencia falsa; cambiar a otra pila no 
 
 ## Cierre de fase0
 
-Sin incertidumbres de diseño pendientes. Capacidades externas aún sin implementar,
-verificación de versiones y dominios/secretos reales son prerrequisitos de implementación/
-operación, no resultados obtenidos. [Quickstart](quickstart.md) define la evidencia pendiente,
-incluidas personas para SC-008. No se marcaron checklists ni tareas como realizadas.
+En el cierre original de fase0 no quedaron incertidumbres de diseño. Las versiones y
+el emisor/acceso se comprobaron posteriormente según [dependencias](validation/dependencies.md)
+y [aceptación parcial](validation/acceptance.md).003 y001/002/004/006 están disponibles;
+generación005, cobertura integral007, dominios/secretos reales y personas SC-008 conservan
+sus condiciones pendientes. La investigación no sustituye esas pruebas ni aceptación.

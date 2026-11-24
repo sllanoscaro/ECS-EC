@@ -46,7 +46,10 @@ bridges internos sin IPv4 del host y gateway con red de entrada independiente.
 Para emisión de la aplicación, exportar `OBS_ENABLED=true`, compilar imagen y recrear
 `app` con su DB/migraciones reales disponibles. Ese paso no instrumenta automáticamente
 operaciones de dominio: cada propietario debe incorporar sus llamadas. Los módulos
-006/001/002/004 implementados aún esperan esa integración con007.
+001 y006 ya verificaron su instrumentación propia con el emisor básico007.
+002 y004 siguen pendientes de la integración técnica completa; recepción002 requiere
+terminales y continuación durable ampliados de007.003 tiene emisión ordinaria parcial;
+su cobertura ampliada y PDF005 siguen pendientes. Ver [prerrequisitos vigentes](../../specs/007-observabilidad-externa/validation/prerequisites.md).
 
 Fixture interna reproducible de transporte (no cobertura funcional): después de
 construir la imagen de aplicación y configurar un stack **test**, ejecutar en su red:

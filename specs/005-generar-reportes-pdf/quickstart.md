@@ -4,7 +4,17 @@
 [hoja de ruta](../../docs/implementation-roadmap.md). La infraestructura común pertenece
 a [plataforma009](../009-fundaciones-plataforma/plan.md); esta funcionalidad consume sus capacidades.
 
+Estado revisado2026-11-23:5/63 tareas preparatorias completas; dependencias, fuentes,
+puertos, ruta protegida y captura parcial disponibles. Generación, API y descarga siguen
+sin implementar. Los escenarios de esta guía son objetivos pendientes; las pruebas de
+preparación ejecutadas están en [dependencias](validation/dependencies.md).
+
 Esta guía describe la implementación prevista. Hoy existen artefactos de diseño; los comandos de aplicación/pruebas serán ejecutables después de completar [tasks.md](tasks.md). No se afirma generación real, instalación de bibliotecas ni aceptación de personas ya realizada.
+
+
+**Estado2026-11-24**: generación real y entrega técnica verificadas,60/63 tareas.
+[Resultados, comandos y límites](validation/acceptance.md). Impresión física/personas
+siguen pendientes; esta guía no acredita comprobaciones no ejecutadas.
 
 ## Prerrequisitos y arranque
 
@@ -12,7 +22,7 @@ Esta guía describe la implementación prevista. Hoy existen artefactos de dise�
 - Spec-004 implementada y `Costs.read_snapshot` disponible con el contrato [integrations.md](contracts/integrations.md); un stub no acredita las pruebas finales de costos/PDF.
 - Emisor común real de spec-007 en `backend/src/ecs_ec/observability/logging.py` y `tracing.py`, según su [especificación](../007-observabilidad-externa/spec.md) e [investigación trasladada](../007-observabilidad-externa/research.md), para aceptar la instrumentación propia. No requiere completar sus visores/recolectores ni que estos estén disponibles en ejecución.
 - Entorno local de desarrollo de la aplicación: CPython 3.14, uv, Node >=20.9/npm, PostgreSQL 18 y Docker Compose; lockfiles, TTF/licencia y ReportLab/pypdf fijados.
-- Aplicar migración `reports_initial.py` después de las capacidades compartidas, sin volver a crear tablas de identidad/auditoría ni modificar mediciones/costos.
+- Aplicar migración `backend/migrations/versions/reports_005_initial_reports_initial.py` (`reports_005_initial`) después de las capacidades compartidas, sin volver a crear tablas de identidad/auditoría ni modificar mediciones/costos.
 
 Comandos previstos desde la raíz:
 
@@ -29,6 +39,28 @@ npm --prefix frontend exec playwright test tests/e2e/reports.spec.ts
 ```
 
 Las pruebas usan base independiente, cuentas sintéticas y fuentes conocidas. `scripts/seed_report_reference.py` debe rechazar configuración de producción; prepara los casos diarios, mensuales y anuales para revisión manual sin un servicio remoto. No se exige activar el perfil SMTP para generar PDF ni emitir el evento durable.
+
+## Fixtures005 reproducibles
+
+```sh
+TEST_DATABASE_URL="$REPORTS_TEST_DATABASE_URL" uv run --locked python scripts/seed_report_reference.py --password-file /ruta/protegida/password
+# Con configuración006 sintética explícita y una base nueva/vacía:
+TEST_DATABASE_URL="$REPORTS_TEST_DATABASE_URL" uv run --locked python scripts/seed_report_reference.py --password-file /ruta/protegida/password --financial --extremes
+```
+
+No repetir sobre una base ya provisionada: el seed rechaza bases de producción,
+la base configurada de aplicación y contextos no vacíos. La contraseña requiere0600.
+`--financial` necesita configuración006 de pruebas con claves externas/origen permitido;
+renueva solo la cuenta admin sintética con el sufijo documentado ` renewed`, y deja
+al operador con su renovación inicial pendiente. No imprime contraseñas ni claves.
+
+Referencias localesSantiago: día2025-12-31/mes2025-12=1000kWh físicos; marzo2026=30kWh
+mixtos, con10medidos+20calculados(CAT-03/05). `--extremes` añade abril2026 con
+0/0.000001/1000000000000kWh y edificio de120caracteres, aumentando el total anual2026.
+El script contrasta los totales contra002 real antes de terminar. Nombres de categoría
+largos se cubren mediante fixtures puras de composición, sin cambiar el catálogo001.
+`--financial` creaC1/B1/K1 y corrige aB2sin comparar el nuevo par. El seed no genera una
+respuesta PDF pregrabada: las descargas se solicitan después a la aplicación.
 
 ## 1. Selección, resultado y descarga — US1
 

@@ -1,13 +1,18 @@
 # Implementation Plan: Registro temporal y retención del consumo
 
+**Corte vigente2026-11-24, paso3:** 70/71; solo T068/personas pendiente. [Evidencia](validation/telemetry.md).
+Los cortes fechados anteriores se conservan como registro.
+
 **Branch**: `002-registro-retencion-consumo` (identificador devuelto por Spec Kit);
 rama Git actual: `develop`, sin creación de rama.
 **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: `specs/002-registro-retencion-consumo/spec.md` y las cinco tareas del borrador
 trasladado, conservadas en la trazabilidad de [tasks.md](tasks.md).
-**Estado**: diseño revisado y68/71 tareas implementadas/verificadas localmente.
-US1–US4 integradas con001/006 reales. T064/adquisición003, T065/emisor007 y
-T068/personas pendientes; aceptación integral todavía pendiente. [Evidencia y gates](validation/acceptance.md).
+**Estado**: diseño revisado y70/71 tareas implementadas/verificadas localmente.
+US1–US4 integradas con001/006 reales. T064/verificación consumidora con003 completada
+el2026-11-23; [evidencia](validation/source-integration.md).
+T065/instrumentación propia y contexto durable con007 completada2026-11-24;
+T068/personas pendiente; aceptación integral todavía pendiente. [Evidencia y gates](validation/acceptance.md).
 
 ## Contexto compartido del proyecto (ECS-EC)
 

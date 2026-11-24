@@ -3,8 +3,9 @@
 [Modelo](../data-model.md), [HTTP](http.md), [plan](../plan.md),
 [propiedad](../../../docs/implementation-roadmap.md).
 Todos los puertos son llamadas dentro del monolito. Recepción, almacenamiento y
-trabajo CAT-01 están implementados; consultas agrupadas/consumidores e integración
-con fachada001 siguen pendientes. [Estado comprobado](../validation/acceptance.md).
+trabajo CAT-01, consultas agrupadas, proveedores de lectura e integración con fachada001
+están implementados localmente. La aceptación conjunta de consumidores conserva los
+límites de cada propietario. [Estado comprobado](../validation/acceptance.md).
 Los objetos comunes viven en `backend/src/ecs_ec/consumption/ports.py`; los puertos
 no importan implementaciones concretas ni notificaciones.
 
@@ -23,7 +24,7 @@ no importan implementaciones concretas ni notificaciones.
 
 ## Reception.accept — productor interno
 
-Implementación prevista: `backend/src/ecs_ec/consumption/reception.py`.
+Implementación disponible: `backend/src/ecs_ec/consumption/reception.py`.
 Entrada: `attempt_id`, `building_id`, `publication_ref`, proceso de integración autorizado,
 registros con posición estable y referencias nativas, `correlation_ref` generada internamente.
 El adaptador entrega consumos por intervalo, no un contador acumulado sin transformar.

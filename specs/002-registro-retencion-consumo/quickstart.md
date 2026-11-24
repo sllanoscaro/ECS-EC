@@ -1,11 +1,17 @@
 # Quickstart y validación: historial y conservación de consumo
 
+**Corte vigente2026-11-24, paso3:** 70/71; solo T068/personas pendiente. [Evidencia](validation/telemetry.md).
+Los cortes fechados anteriores se conservan como registro.
+
 [Plan](plan.md), [modelo](data-model.md), [HTTP](contracts/http.md),
 [integraciones](contracts/integrations.md), [UI](contracts/ui.md).
 Recepción, almacenamiento, calendario/agregados sincrónicos y recuperación CAT-01
 están implementados y probados localmente: [aceptación parcial](validation/acceptance.md).
 La fachada/UI001, consulta agrupada y retirada están integradas y verificadas localmente.
-La aceptación integral espera003/007/personas; los resultados vigentes están en la evidencia.
+La verificación consumidora003 está completada; [evidencia SFTP](validation/source-integration.md).
+La aceptación integral espera instrumentación propia con la ampliación007 y personas.
+Los resultados vigentes
+están en la evidencia.
 
 ## Prerrequisitos reales
 
@@ -166,8 +172,12 @@ servicios reales; la app no expone un endpoint de fixture. Este recorrido requie
 nuevo al repetir tras una retirada exitosa. Al terminar retirar únicamente contenedor/
 volúmenes y archivos privados que se hayan creado para estas pruebas.
 
-003 todavía debe demostrar publicaciones completas/identidad/reenvío;007 su emisor y
-004/005/008 sus consumidores. Los fixtures no acreditan esas integraciones ni SC-005.
+003 ya registra publicaciones, identidad y reenvío locales con recepción002 real;
+002:T064 ya verificó su contrato consumidor en [source-integration](validation/source-integration.md).
+El emisor básico007 existe;
+002:T065 espera llamadas propias y semántica ampliada007:T037/T038. Costos004 consume
+series reales; PDF005 y notificaciones008 aún deben integrar sus módulos funcionales.
+Los fixtures no acreditan las integraciones pendientes ni SC-005.
 
 ## Escenarios de validación
 

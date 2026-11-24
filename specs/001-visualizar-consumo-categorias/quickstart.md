@@ -2,9 +2,10 @@
 
 [Plan](plan.md), [modelo](data-model.md), [HTTP](contracts/http.md),
 [integraciones](contracts/integrations.md), [arquitectura](../../docs/architecture.md).
-Implementación parcial:48/61 tareas completas; consulta/API y administración web disponibles
-sobre recepción/almacenamiento 002 e identidad 006 reales. [Evidencia vigente y pendientes](validation/increment-2026-11-02.md).
-La aceptación integral de las cuatro historias, servicios externos, personas y VPS sigue pendiente.
+Estado revisado2026-11-23:57/61 tareas completas; consulta/API, administración, períodos/
+estados ampliados y telemetría propia disponibles sobre002/006/007 reales.
+[Evidencia vigente y pendientes](validation/acceptance.md). Receptor003 disponible;
+integración transversal con003/007/008, personas, VPS y aceptación integral pendientes.
 
 ## Comandos disponibles ahora
 
@@ -29,31 +30,35 @@ cadenas exactas; no se altera el contexto global de otras bibliotecas.
 `frontend/src/lib/api/consumption-types.ts` desde `contracts/openapi.json`. Produce tipos
 readonly de transporte; restricciones semánticas/condicionales siguen siendo verificaciones
 del servidor, no supuestas validaciones TypeScript. El cliente `consumption.ts` reutiliza
-sesión/CSRF/no-store 006 y excluye campos derivados del PUT. No hay rutas 001 montadas todavía.
+sesión/CSRF/no-store006 y excluye campos derivados del PUT. Las rutas001 de consulta y
+configuración están montadas con identidad006 en `backend/src/ecs_ec/main.py`.
 
-Para repetir la integración propia con una base **desechable y separada**, se usó este
-contenedor local. La contraseña mostrada es únicamente sintética de pruebas:
+Para repetir la integración propia con una base **desechable y separada**, usar el
+siguiente contenedor local. Los nombres se muestran sin espacios para que los comandos
+sean válidos; esta corrección documental no acredita una nueva ejecución. La contraseña
+mostrada es únicamente sintética de pruebas:
 
 ```sh
-docker run -d --name ecs-consumption-spec 001-test \
-  -e POSTGRES_USER=ecs_test -e POSTGRES_PASSWORD=synthetic-spec 001-only \
+docker run -d --name ecs-consumption-spec001-test \
+  -e POSTGRES_USER=ecs_test -e POSTGRES_PASSWORD=synthetic-spec001-only \
   -e POSTGRES_DB=ecs_consumption_test -p 127.0.0.1:55449:5432 \
   postgres:18.3-bookworm@sha256:80630f83606d8db77d30b3851b16a9f78be2d0d4dda6f7b82a1fdca5ebe3acba
-docker exec ecs-consumption-spec 001-test pg_isready -U ecs_test -d ecs_consumption_test
-export TEST_DATABASE_URL='postgresql+psycopg://ecs_test:synthetic-spec 001-only@127.0.0.1:55449/ecs_consumption_test'
+docker exec ecs-consumption-spec001-test pg_isready -U ecs_test -d ecs_consumption_test
+export TEST_DATABASE_URL='postgresql+psycopg://ecs_test:synthetic-spec001-only@127.0.0.1:55449/ecs_consumption_test'
 uv run --locked pytest --cov=ecs_ec --cov-report=term-missing -q
 ```
 
 Esperar `accepting connections` antes de pytest. El harness exige PostgreSQL, nombre
 terminado en `_test` y una base distinta de la aplicación antes de migrarla. Las pruebas
-de configuración usan DB/auditoría reales y un doble **explícito** de límites 002;
-cinco escenarios de recepción quedan omitidos hasta instalar su proveedor real.
+de configuración usan DB/auditoría reales; las pruebas aisladas pueden usar dobles
+explícitos de límites. El proveedor real002 y sus cinco escenarios de recepción ya
+están integrados: no deben omitirse por la antigua ausencia del proveedor.
 No usar los fixtures ni la limpieza de pruebas sobre datos de una instalación.
 
 Al terminar la reproducción se puede retirar exclusivamente este contenedor desechable:
 
 ```sh
-docker rm -f ecs-consumption-spec 001-test
+docker rm -f ecs-consumption-spec001-test
 ```
 
 ## Provisión controlada de contexto y primera configuración
@@ -232,10 +237,11 @@ cuentas por la UI 006. Para repetir contra la misma base ya renovada, añadir
 borrar volúmenes conserva los datos. Las bases/contenedores desechables se eliminan solo
 al terminar la verificación. No usar este script como bootstrap de una instalación real.
 
-La suite conserva **un xfail estricto** por diagnósticos cruzados no expuestos por 002;
-no equivale a una aceptación completa de períodos. Ver responsable y caso reproducible
-en [el incremento](validation/increment-2026-11-02.md). Instrumentación 007, perfilesSFTP 003,
-SMTP 008, evaluación humana y VPS permanecen gates separados.
+El xfail estricto por diagnósticos cruzados del [incremento anterior](validation/increment-2026-11-02.md)
+quedó resuelto al integrar002 y completar las verificaciones ampliadas001. La
+[aceptación vigente](validation/acceptance.md) registra períodos/estados y telemetría
+propia verificados. Integración transversal SFTP003/visores007/SMTP008, personas y VPS
+permanecen gates separados; la disponibilidad de003 no cierra por sí sola001:T056.
 
 
 ## Verificación ampliada001 (2026-11-03)

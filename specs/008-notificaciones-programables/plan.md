@@ -113,7 +113,9 @@ deploy/observability/grafana/dashboards/notifications.json
 La estructura general y los manifiestos son de [plataforma009](../009-fundaciones-plataforma/plan.md).
 Las migraciones propias se enlazan al head existente y no crean tablas de audit/identity/consumption.
 Notificaciones añade rutas, participante de identidad y servicios internos al registro común;
-el registro ampliable y el frontend base ya deben existir. El código todavía no está implementado.
+el registro ampliable y el frontend base ya existen en plataforma009. El código propio
+de notificaciones todavía no está implementado (0/92 tareas); identidad006, consumo001/002,
+costos004 y emisor básico007 están disponibles, generación005 sigue pendiente.
 
 ## Phase 0: Research
 

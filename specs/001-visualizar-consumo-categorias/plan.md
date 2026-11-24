@@ -4,9 +4,10 @@
 
 **Rama Git real**: `develop`; este flujo no crea ni cambia ramas.
 **Input**: `specs/001-visualizar-consumo-categorias/spec.md` y el alcance trasladado, integrado en [tasks.md](tasks.md).
-**Estado**: planificación completa; implementación parcial de 48/61 tareas verificada
-localmente el 2026-11-02. Recepción real 002, consulta web y administración integradas;
-aceptación integral pendiente. [Evidencia vigente](validation/increment-2026-11-02.md).
+**Estado revisado2026-11-23**: 57/61 tareas completas, con evidencia local del2026-11-03.
+Recepción real002, consulta web, administración, períodos/estados ampliados e instrumentación
+propia007 verificados; integración transversal003/007/008, personas, VPS y aceptación
+integral pendientes. [Evidencia vigente](validation/acceptance.md).
 **Aclaraciones aplicadas**: I1, U1 y A1 aprobadas expresamente el 2026-11-01; modelo,
 contratos, ejemplos y tareas sincronizados, sin acreditar implementación ni cerrar aceptación.
 
@@ -194,7 +195,7 @@ sigue siendo un prerrequisito operativo antes de conectarla.
 | --- | --- | --- |
 | Scaffold, DB/UoW, reloj, eventos, build y operación | [009](../009-fundaciones-plataforma/plan.md) | `core/`, `audit/`, `main.py`, manifiestos; pendientes reales, no creados en 001. |
 | Sesión, CSRF, permiso de consulta/configuración y shell administrativo | [006](../006-acceso-usuarios-rbac/spec.md) | `identity/` y UI de acceso; dobles solo para pruebas aisladas. |
-| Aceptación, almacenamiento, bloqueo, límites históricos de reconfiguración, límite temporal e incorporación calculada | [002](../002-registro-retencion-consumo/spec.md) y [puerto acordado](contracts/integrations.md) | `consumption/reception.py`, proveedor `MeasurementStore.read_reconfiguration_bounds`, almacenamiento y migraciones de mediciones; diseño propio aún requerido, sin implementar esos proveedores desde 001. |
+| Aceptación, almacenamiento, bloqueo, límites históricos de reconfiguración, límite temporal e incorporación calculada | [002](../002-registro-retencion-consumo/spec.md) y [puerto acordado](contracts/integrations.md) | `consumption/reception.py`, proveedor `MeasurementStore.read_reconfiguration_bounds`, almacenamiento y migraciones disponibles e integrados localmente; implementación y propiedad en002. |
 | Agregados/cobertura, retención y ventanas de consumidores | [002](../002-registro-retencion-consumo/spec.md) | `consumption/aggregates.py`, `retention.py`; no implementarlos desde esta spec. |
 | Archivos nativos, entrega completa y SFTP | [003](../003-simulador-pas600-sftp/spec.md) | Adaptador de recepción por definir por 003; fixtures llaman al puerto real sin acreditar SFTP. |
 | Emisor técnico y visores | [007](../007-observabilidad-externa/spec.md) | `observability/`; instrumentar el módulo al existir el emisor, sin bloquear consultas por visores caídos. |

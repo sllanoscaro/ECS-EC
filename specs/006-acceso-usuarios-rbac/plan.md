@@ -1,5 +1,8 @@
 # Implementation Plan: Autenticación y permisos por perfil
 
+**Corte vigente2026-11-24, paso3:** 84/87; T085/T086/T087 pendientes. [Evidencia](validation/regression.md).
+Los cortes fechados anteriores se conservan como registro.
+
 ## Contexto compartido del proyecto (ECS-EC)
 
 Este diseño aplica [AGENTS.md](../../AGENTS.md), la

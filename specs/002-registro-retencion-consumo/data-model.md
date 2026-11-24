@@ -298,3 +298,13 @@ exclusiones, estados de recepción y máximos históricos. El agregado protegido
 su valor/cobertura/revisión por la retirada; una incorporación tardía suma solo aportes
 nuevos y extiende su plazo. El detalle retirado se identifica como tal, sin prometer
 que aún existe ni degradar la cobertura histórica del agregado.
+
+
+## Contexto técnico durable — paso3,2026-11-24
+
+`ReceptionAttempt.technical_context` es JSONB no nulo, por defecto objeto vacío para datos
+históricos. Contiene solo referencias UUID opacas y estado de contexto007; no forma
+parte de mediciones/manifiestos nativos, claves de deduplicación ni resultados funcionales.
+La migración propietaria `consumption_002_context` lo agrega sin reconstruir parentescos antiguos.
+Recuperar conserva identidad lógica y crea otra ejecución; leer un resultado completado
+no admite otra operación. [Evidencia y límites](validation/telemetry.md).

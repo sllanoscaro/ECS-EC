@@ -7,7 +7,8 @@ description: "Tareas integrales de spec-001: consumo eléctrico por categorías"
 **Fecha**: 2026-11-01. **Continuación**: 2026-11-03,57/61 tareas completas.
 **Estado**: ampliaciones locales de recepción/configuración, períodos/estados y telemetría
 propia verificadas sobre002/006/007 reales. [Aceptación vigente](validation/acceptance.md).
-Pendientes: T056 por proveedores003/008 ausentes; T059/personas, T060/VPS y T061/cierre
+Pendientes: T056 por integración transversal003/007/008 aún no verificada y correo008
+sin implementar (el receptor003 ya existe); T059/personas, T060/VPS y T061/cierre
 integral. Las verificaciones humanas/VPS se difieren por instrucción del usuario.
 Los proveedores de diagnósticos cruzados y retirada002 ya están disponibles y probados.
 **Aclaraciones integradas**: I1/U1/A1 aprobadas; se conservan IDs, historias y marcas pendientes.

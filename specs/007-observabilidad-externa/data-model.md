@@ -126,7 +126,8 @@ indica el último resultado observado, acompañado por su antigüedad; estar sin
 envíos no demuestra por sí solo una caída. Los contadores existentes de descartes y
 profundidad de colas se conservan; `collector_dropped_total` corresponde solo a Alloy/logs.
 Los campos genéricos `collector_status` y `last_collector_success` se sustituyen en este
-diseño v1 todavía sin implementar; no se requiere migración de registros funcionales.
+diseño v1, ya implementado en el emisor básico según [su evidencia](validation/emitter.md);
+la conciliación completa de cobertura US3 sigue pendiente. No se requiere migración de registros funcionales.
 
 | Estado | Criterio y presentación |
 | --- | --- |

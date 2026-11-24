@@ -77,7 +77,8 @@ El script reproducible es `scripts/observability/emit_reference.py`.
 - T028/T029: Compose/configuración/procedimientos están preparados y ejecutados en test,
   pero se mantienen tareas pendientes por la cadena de prerrequisitosT022.
 - T030 permanece pendiente: suites disponibles pasaron, matriz completa todavía no.
-- US2–US4: recepción/adaptador003, generación005 e instrumentación propia001–006;
+- US2–US4: verificar cobertura del receptor003 disponible, completar generación005 y
+  la instrumentación faltante (001/006 ya tienen evidencia propia con emisor básico);
   terminales especiales/correlación completa, catálogo/paneles de cobertura, cuotas reales,
   privacidad/aislamiento funcional integral, TTL24h/GC y personas siguen pendientes.
 - No aceptación de VPS ni SC-008. Ninguna fixture o documento sustituye esos resultados.

@@ -1,6 +1,7 @@
 # Investigación: Simulador PAS600 y recepción SFTP
 
-Fecha: 2026-11-01. Diseño, sin implementación ni pruebas ejecutadas.
+Fecha de diseño: 2026-11-01. Este registro no acredita pruebas por sí solo; implementación
+y evidencia local posteriores constan en [aceptación](validation/acceptance.md).
 [Spec](spec.md), [plan](plan.md), [arquitectura](../../docs/architecture.md),
 [hoja de ruta](../../docs/implementation-roadmap.md).
 
@@ -8,7 +9,9 @@ Fecha: 2026-11-01. Diseño, sin implementación ni pruebas ejecutadas.
 
 - **S1**: [Schneider Electric, DOCA0172EN-19](https://www.productinfo.schneider-electric.com/ecostruxurepanelserverguide/doca0172-ecostruxure-panel-server-user-guide/English/Panel-Server-User-Guide-DOCA0172EN-19.pdf),
   publicación SFTP pp. 118–120, formatos pp. 126–127, apéndice D pp. 274–276 y
-  apéndice E p. 277. Se consultó la revisión fijada, no se sustituyó por la actual.
+  apéndice E p. 277. El registro de planificación consigna esa revisión; la implementación
+  no dispone aún de una copia19 verificable para cotejo independiente. El enlace original
+  devuelve404 y no se sustituye por la revisión actual. [Procedencia, límites y decisión](../../tools/pas600_simulator/tests/fixtures/reference/README.md).
 - **S2**: [ficha A9MEM3150](https://iportal.se.com/Contents/docs/SQD-A9MEM3150_DATASHEET.PDF),
   2020-03-20: energía activa y comunicación Modbus RTU/RS485.
 - **S3**: [AsyncSSH, documentación oficial](https://asyncssh.readthedocs.io/en/latest/),

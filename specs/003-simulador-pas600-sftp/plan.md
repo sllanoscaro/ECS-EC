@@ -1,5 +1,8 @@
 # Implementation Plan: Simulador PAS600 con publicación SFTP
 
+**Corte vigente2026-11-24, paso3:** 70/76; referencia19/otra persona/aceptación pendientes. [Evidencia](validation/telemetry.md).
+Los cortes fechados anteriores se conservan como registro.
+
 **Branch**: `003-simulador-pas600-sftp` (identificador devuelto por Spec Kit);
 rama Git actual `develop`, sin creación de rama.
 **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
@@ -193,9 +196,10 @@ requiere su descriptor/topología con procedencia.
 
 La [disponibilidad vigente](validation/prerequisites.md) sustituye los bloqueos históricos
 por consultas/cobertura ausentes.003:T003 permanece diferida; los contratos locales
-permiten continuar desarrollo sin acreditar conformidad documental. El próximo bloque
-es003:T023–T048, seguido de recepción de anomalías, US4 y transversal. Correlación durable
-completa007, reproducción por otra persona y aceptación integral conservan sus gates.
+permiten continuar sin acreditar conformidad documental.003:T023–T048, recepción de
+anomalías y las capacidades de US4 ya tienen implementación y evidencia local. Quedan
+T003/T008/T009/T021 por referencia19, T070 por otra persona, T072 por cobertura técnica
+ampliada007 y T076 por aceptación integral. [Criterio para retomar la referencia](../../tools/pas600_simulator/tests/fixtures/reference/README.md).
 
 Secuencia de diseño: descriptores/fixtures independientes y contratos → generador/serializadores
 sin red US1 → receptor con staging/sellado, transporte/cadencia y adaptación integrada

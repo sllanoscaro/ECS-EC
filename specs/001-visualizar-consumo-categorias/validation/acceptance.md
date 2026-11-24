@@ -3,7 +3,9 @@
 ## Continuación vigente — 2026-11-03
 
 **57/61 tareas completas.** Completadas001:T018/T038/T041/T043/T044/T045/T052/T053/T054.
-No hay aceptación integral: T056 espera receptor/adaptador003 y correo008 reales;
+No hay aceptación integral: T056 espera ejecutar la integración con003/007 y correo008
+real. Revisión documental2026-11-23: el receptor/adaptador003 ya está disponible;008
+sigue sin implementar. La prueba consumidora001:T056 conserva su estado pendiente;
 T059/personas y T060/VPS se difieren por instrucción del usuario; T061 depende de esos
 resultados. No se modificaron checklists ni tareas ajenas. requirements16/16, sin hooks
 registrados antes/después (`.specify/extensions.yml` ausente). Selección explícita001.

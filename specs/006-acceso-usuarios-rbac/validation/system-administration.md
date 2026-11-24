@@ -1,23 +1,25 @@
-# Administración disponible y límites pendientes — 2026-11-03
+# Administración y auditoría reales — 2026-11-24
 
-006:T075 completada: rutas administrativas001 y004 usan las dependencias explícitas de
-`backend/src/ecs_ec/core/security.py`, además del middleware previo al cuerpo. Los enlaces
-actuales de la composición web llevan a configuración de fuentes001 y costos004, filtrados
-por permisos actuales. No se añadieron formularios ni ajustes para los mínimos obligatorios002.
+006:T068/T076 ejecutadas con001/002/004/005 disponibles. La matriz y los cambios se
+prueban mediante HTTP real y PostgreSQL18.3 en `test_system_administration.py`.
+Los recorridos de [navegador](administration-ui.md) complementan sus verificaciones.
 
-La dependencia no renueva actividad por admitir una mutación: el servicio propietario
-la renueva cuando confirma éxito. `test_invalid_mutation_does_not_extend_activity` verifica
-que un cuerpo inválido al minuto29 no modifica actividad/vencimiento. GET interactivo
-sigue siendo una acción explícita distinta de un sondeo.
+- Administrador conserva lecturas y mantiene configuración001, suministro, calendarios
+  BT4.3, boletas y recálculo004. Operador es rechazado incluso en GET administrativo.
+- Asignar una fuente a dos categorías se rechaza sin nueva revisión ni persistencia parcial.
+  Entradas inválidas y conflictos conservan el último estado válido.
+- Recepción002 admite inicialmente, rechaza un intervalo nuevo a899s y admite al900.
+  Retention002 rechaza retirada antes de su aniversario de12meses calendario. Estos
+  mínimos no se exponen como ajustes ni mediante una nueva API de mantenimiento.
+- Denegaciones GET/POST/PUT por sesión ausente/inválida, perfil, CSRF u origen generan
+  exactamente una fila por operation_ref. El actor procede de la sesión vigente o es
+  unauthenticated; su protección es al menos12meses calendario.
+- Fallar EventWriter después de escribir el primer evento y la auditoría001 revierte
+  configuración, eventos y auditoría permitida juntos. Un destino de auditoría que falla
+  devuelve503 saneado, sin afirmar que la denegación quedó persistida.
 
-`test_system_administration.py` prepara suministro/perfil/consumo reales y prueba ausencia
-  de sesión, Operador denegado incluso GET de configuración y cuerpos inválidos, rechazo
-  de fuente duplicada sin revisión ni persistencia parcial, y retirada protegida mediante
-Retention002 real. `test_read_integrations.py` contrasta todas las filas de tablas propias
-001/002/004 antes/después de consultas; no solo compara contadores.
-
-006:T068/T076 siguen pendientes: estos ensayos son parciales respecto de su gate G2/PDF,
-matriz integral, restricciones completas y evidencia final de auditoría. Los contratos
-existentes de004 y001 forman parte de la regresión, pero no sustituyen PDF005 ni una
-aceptación integral de US4. No hay skips ni dobles usados como aprobación en las nuevas
-pruebas.006:T078 sigue pendiente de sus prerrequisitos y del recorrido ampliado integral.
+Se corrigió006/history:004 guarda `recorded`/`failed`; la proyección y los filtros006
+los presentan como `allowed`/`rejected`. Se preservan acción, actor y resultado originales
+009. Pruebas con cálculo, boleta y fallo de motor004 reales comprueban la normalización,
+los filtros y ausencia de detalles internos. SC-006 tiene evidencia local; permanecen
+personas, VPS y aceptación integral006:T085–T087.

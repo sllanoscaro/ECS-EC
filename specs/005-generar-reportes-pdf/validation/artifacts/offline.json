@@ -1,0 +1,20 @@
+[
+  {
+    "file": "anual.pdf",
+    "bytes": 24151,
+    "sha256": "42902677f458576e02d716338e776d777695a4990bd7a622e523d6ca41831964",
+    "pages": 1
+  },
+  {
+    "file": "diario.pdf",
+    "bytes": 24146,
+    "sha256": "60b055c8e01fe7ab57438b5fc6047d6c9d54b0d19f308409d0538087251ac183",
+    "pages": 1
+  },
+  {
+    "file": "mensual.pdf",
+    "bytes": 24275,
+    "sha256": "a11bd613f2f6f85f87c83b9814d4dd57de4346cef52521bcfdf95f9f18d33136",
+    "pages": 1
+  }
+]

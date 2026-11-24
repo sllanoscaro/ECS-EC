@@ -4,7 +4,7 @@ Puertos dentro del monolito. Dependencias de datos/eventos no dependen de `notif
 
 ## Captura coherente
 
-`Reports.capture(selection, building_id, principal, cutoff_at, unit_of_work)` abre o usa una única transacción REPEATABLE READ. Los puertos siguientes comparten esa sesión; filtros de revisiones/recepciones impiden incorporar datos posteriores a `cutoff_at`. Se copia el resultado inmutable, se confirma y se libera la transacción antes de renderizar.
+`Reports.admit` y `capture_snapshot` en `backend/src/ecs_ec/reports/services.py` y `backend/src/ecs_ec/reports/snapshots.py` abren/usan una única transacción REPEATABLE READ. Los puertos siguientes comparten esa sesión; filtros de revisiones/recepciones impiden incorporar datos posteriores a `cutoff_at`. Se copia el resultado inmutable, se confirma y se libera la transacción antes de renderizar.
 
 | Puerto | Salida necesaria |
 | --- | --- |
@@ -41,11 +41,11 @@ La emisión usa las colas acotadas y la política de pérdidas del emisor común
 
 ## Generación y preflight
 
-`Reports.render(snapshot, template_version)` produce en memoria bytes PDF y manifiesto de composición. `Reports.preflight(bytes,manifest)` comprueba parseo independiente, una página 210×297 mm con tolerancia técnica <=0,1 mm, todo texto >=10 pt, seis secciones obligatorias y cajas dentro de márgenes sin intersecciones incompatibles.
+`backend/src/ecs_ec/reports/renderer.py:render(snapshot, report_id, issued_at)` produce en memoria bytes PDF y manifiesto de composición. `backend/src/ecs_ec/reports/preflight.py:preflight(bytes,manifest)` comprueba parseo independiente, una página 210×297 mm con tolerancia técnica <=0,1 mm, todo texto >=10 pt, seis secciones obligatorias y cajas dentro de márgenes sin intersecciones incompatibles.
 
 La tolerancia de dimensiones responde a representación en puntos, no permite otro formato. Cada cifra compara contra snapshot, las fuentes se incrustan y todas las advertencias esenciales permanecen en la misma página. Un conjunto que no cabe produce fallo funcional, nunca texto menor, anexos o descarga truncada.
 
-`Reports.publish(result,binary,unit_of_work)` verifica hash/longitud, publica `generado` y binario juntos. Guardar BYTEA evita éxito confirmado con objeto externo ausente. Trabajos iniciados por un proceso interrumpido se reconcilian como fallo único; no se entrega su buffer parcial.
+La publicación de `backend/src/ecs_ec/reports/worker.py:Worker.run_one` verifica hash/longitud, publica `generado` y binario juntos. Guardar BYTEA evita éxito confirmado con objeto externo ausente. Trabajos iniciados por un proceso interrumpido se reconcilian como fallo único; no se entrega su buffer parcial.
 
 ## Resultado fallido y evento `pdf.failed`
 
@@ -68,3 +68,16 @@ Resultado fallido y evento se guardan en la misma transacción. Tras error de un
 Motivos funcionales de diseño: `captura_no_disponible`, `composicion_no_admisible`, `validacion_documento_fallida`, `generacion_interrumpida`, `generacion_no_completada`. El detalle técnico se sanea según observabilidad y no viaja en el evento. Un reporte válido sin datos no es un fallo. Descarga repetida, consulta de estado y rechazo previo por permisos/selección no crean eventos de fallo del generador.
 
 Consumir/reintentar el mismo evento no crea otro resultado de PDF. La spec-008 conecta este contrato cuando exista el productor real; su ausencia no impide probar generación, persistencia y evento aquí.
+
+
+## Entrega técnica verificada — 2026-11-24
+
+[Resultados, comandos y límites](../validation/acceptance.md). El supervisor005 se
+registra desde `backend/src/ecs_ec/main.py` en el ciclo común009 y toma liderazgo PostgreSQL; hay dos
+plazas iniciales. No se crea un servicio desplegado de PDF ni se depende de008/SMTP.
+Los permisos se revalidan al admitir; lectura/descarga resuelven la sesión actual.
+
+El snapshot conserva el DTO financiero íntegro. El hash **funcional** excluye solo
+los metadatos operativos `retain_until` del grafo financiero, además de identidad de
+reporte/emisión/contexto técnico que ya viven fuera de esa captura. Extender protección
+no cambia ningún valor, par, revisión o estado funcional. Las lecturas no extienden plazos.

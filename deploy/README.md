@@ -1,7 +1,8 @@
 # Operación común
 
 La plataforma es una imagen con un proceso Uvicorn y PostgreSQL 18 externo.
-Identidad, SMTP y observabilidad se incorporan desde sus funcionalidades propietarias.
+Identidad006 y observabilidad007 básica ya están incorporadas desde sus propietarios;
+SMTP008 sigue pendiente.
 
 Consumo 001 entrega contexto/fuentes, configuración versionada, reglas puras y consulta
 web de detalle sobre recepción/almacenamiento 002 real. Para migración `cb63a76198be`, bootstrap
@@ -14,7 +15,9 @@ Historial 002 aporta ahora recepción/almacenamiento internos, agregados sincró
 recuperación CAT-01 en el lifespan común. Migración `47457bdabdfa` y procedimientos de
 próxima aceptación, reenvío/recuperación y reconciliación de calendario están en su
 [quickstart](../specs/002-registro-retencion-consumo/quickstart.md).
-La fachada/UI de 001 está integrada; consulta agrupada y retirada interna de 002 siguen pendientes; consultar la
+La fachada/UI001, consulta agrupada y retirada protegida002 están integradas y verificadas
+localmente; la integración consumidora003 también está verificada. Faltan instrumentación
+ampliada007 y personas. Consultar la
 [aceptación parcial](../specs/002-registro-retencion-consumo/validation/acceptance.md).
 Los procesos de recepción requieren bindings confiables por edificio, vacíos por defecto.
 Respaldo/restauración incluyen estas tablas junto con el resto de PostgreSQL; no restaurar
@@ -24,7 +27,7 @@ La consulta está en `/consumption/` y la configuración de fuentes en
 `/administracion/consumo/`, con permisos/sesión/CSRF de 006. `IDENTITY_BUILDING_ID`
 debe coincidir con el contexto provisionado. No habilitar una configuración que suponga
 historia vacía si falla el proveedor 002. Los límites de diagnósticos cruzados y gates
-restantes se describen en [la evidencia 001](../specs/001-visualizar-consumo-categorias/validation/increment-2026-11-02.md).
+restantes se describen en [la evidencia vigente001](../specs/001-visualizar-consumo-categorias/validation/acceptance.md).
 
 ## Configuración local y construcción
 
@@ -201,18 +204,18 @@ No ejecutar downgrade destructivo de costos; restaurar respaldo verificado ante 
 `cost.failed` se registra atómicamente en009; su productor no espera a008/SMTP. La captura
 interna para005 está documentada en [contrato004](../specs/004-costos-tarifa-bt43/contracts/integrations.md).
 
-## Preparación de reportes PDF (005)
+## Reportes PDF (005)
 
-ReportLab/pypdf y fuente Unicode están incluidos en el paquete Python. La ruta
-`/reportes/` prepara el acceso con sesión; generación y descarga siguen pendientes.
-El adaptador de captura usa consumo001/002 y `Costs.read_snapshot` real de004
-en una UoW REPEATABLE READ. No requiere SMTP. El emisor007 falta para aceptar
-la instrumentación. No se exponen binarios privados como archivos estáticos.
+Generación real de una páginaA4 mediante ReportLab, captura inmutable002/004,
+preflight>=10pt, persistencia BYTEA/hash, supervisor con dos plazas, API y descarga
+protegidas e interfaz `/reportes/`. Funciona sin008/SMTP ni visores técnicos activos.
 
-Instalar con `uv sync --locked`; ejecutar
-`uv run --locked pytest backend/tests/unit/reports -q`. La integración requiere
-PostgreSQL de pruebas independiente (`TEST_DATABASE_URL`, sufijo `_test`).
-Ver [evidencia y límites](../specs/005-generar-reportes-pdf/validation/dependencies.md).
+**60/63 tareas verificadas técnicamente**. Quedan impresión física y evaluación con
+personas (T037/T058/T059); no hay aceptación integral ni despliegue VPS acreditado.
+[Resultados, comandos y cobertura](../specs/005-generar-reportes-pdf/validation/acceptance.md).
+Las fixtures requieren PostgreSQL independiente `_test` y datos sintéticos. Nunca usar
+la base de la aplicación para las limpiezas de pruebas. Los binarios no son archivos
+públicos de la exportación estática.
 
 ## Observabilidad opcional (007)
 
@@ -269,3 +272,26 @@ reintentos sin depender del backend. Evidencia y limitaciones en
 [aceptación003](../specs/003-simulador-pas600-sftp/validation/acceptance.md).
 No se ejecutó VPS ni se certifica firmware físico: antes de habilitarlo comprobar IDs,
 topología y la convención de sesión con captura real.
+
+
+## Instrumentación instalada002/003 — paso3,2026-11-24
+
+El mismo lifespan inyecta el emisor007 en recepción002, pendientes/agregados y
+adquisición003. Las migraciones `consumption_002_context` y `acquisition_003_context`
+requieren el procedimiento009 normal antes de iniciar la aplicación; agregan columnas
+JSONB técnicas fuera de manifiestos/mediciones, sin nuevos servicios ni secretos requeridos.
+Registros antiguos sin contexto se reconocen como unavailable y no inventan parentesco.
+
+Recepción emite execution.completed por ejecución efectiva y reception.completed solo
+tras su transición durable a completed. Fallo parcial: counts=null, sin terminal lógico;
+recuperación: mismo intento, otra ejecución, resumen completo original. Acquisición
+observa transferencia/sellado, parseo/deltas, espera, publicación y recuperación con
+códigos fijos y UUID opacos persistidos. Reenvíos confiables comparten publicación y
+crean otro intento. Lectura/replay completado no ejecuta procesamiento nuevo.
+
+El fallo/saturación del destino no revierte commits de negocio ni auditoría009. Una
+interrupción después del commit puede perder señal: los logs no reemplazan evidencia
+funcional. No se emiten CSV/JSON nativo, nombres de archivo, valores, credenciales ni
+texto de excepciones. [Evidencia002](../specs/002-registro-retencion-consumo/validation/telemetry.md),
+[evidencia003](../specs/003-simulador-pas600-sftp/validation/telemetry.md).
+La cobertura/visores/cuotas/retención007 siguen en el paso4 y SMTP008 en su propietario.

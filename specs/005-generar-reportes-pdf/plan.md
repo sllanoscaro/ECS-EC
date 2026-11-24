@@ -6,7 +6,11 @@ a [plataforma009](../009-fundaciones-plataforma/plan.md); esta funcionalidad con
 
 **Branch/contexto**: `005-generar-reportes-pdf` | **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: Spec-005 y decisión U1 de construir el productor real en su propia funcionalidad; el puente de integración de spec-008 solo conecta sus eventos.
-**Note**: Diseño previo a implementación; no acredita generación ni pruebas funcionales ejecutadas. La edición documental no modifica la selección persistida de funcionalidad.
+**Estado revisado2026-11-24**:60/63 tareas con evidencia técnica de generación real,
+persistencia, API/UI, preflight, recuperación e instrumentación propia con007.
+[Entrega técnica](validation/acceptance.md). T037/T058/T059 permanecen pendientes en
+su alcance físico/humano. [Registro de la interrupción anterior](validation/implementation-checkpoint-2026-11-23.md).
+La selección persistida continúa en003 y los checklists de revisión se conservan.
 
 ## Summary
 
@@ -98,7 +102,7 @@ frontend/tests/{unit,e2e}/
 ### Dependencias reales y entregables U1
 
 - Prerrequisitos: capacidades reales de `core`, identidad/sesiones spec-006, consumo/calidad specs-001/002 y `audit`/EventWriter. Resolverlas por capacidad con plataforma009 y specs-001/002/006, sin depender del planificador, consumidor o SMTP de spec-008. No crear un ciclo 005 → consumidor008 → 005.
-- La instrumentación de reports consume el emisor común de [spec-007](../007-observabilidad-externa/spec.md), previsto en `backend/src/ecs_ec/observability/logging.py` y `tracing.py`; su [investigación trasladada](../007-observabilidad-externa/research.md) conserva la decisión Loguru/OTel y métricas LogQL. El emisor real es prerrequisito de esta integración y del checkpoint US1; registrar su ausencia en la spec propietaria sin implementarlo dentro de PDF. Los visores y recolectores pueden estar caídos sin impedir generación, descarga ni confirmaciones funcionales; no se requiere completar toda spec-007.
+- La instrumentación de reports consume el emisor común de [spec-007](../007-observabilidad-externa/spec.md), disponible en `backend/src/ecs_ec/observability/logging.py` y `tracing.py`; su [investigación trasladada](../007-observabilidad-externa/research.md) conserva la decisión Loguru/OTel y métricas LogQL. El emisor básico aún necesita terminales `report.admitted`/`report.completed` y continuación durable de007:T037/T038 para aceptar esta integración y el checkpoint US1. Registrar el faltante en su propietaria sin implementarlo dentro de PDF. Los visores y recolectores pueden estar caídos sin impedir generación, descarga ni confirmaciones funcionales; no se requiere completar toda spec-007.
 - Spec-004 entrega `Costs.read_snapshot(building_id,start,end,cutoff_at,principal)` con ciclos cerrados por fin efectivo, revisiones vigentes, desglose/moneda/base, limitaciones y pares comparables. [Contrato productor](../004-costos-tarifa-bt43/contracts/integrations.md). Se ejecuta en la misma unidad de trabajo de la captura energética.
 - Esta spec entrega generación real, resultado/binario persistido y evento independiente `pdf.failed`, según [integrations.md](contracts/integrations.md). Los dobles solo acreditan pruebas aisladas; aceptación integral exige productores reales.
 - [http.md](contracts/http.md), [ui.md](contracts/ui.md) y [quickstart.md](quickstart.md) definen acceso y validación, sin exigir notificaciones instaladas.

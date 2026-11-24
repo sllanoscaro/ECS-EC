@@ -1,5 +1,11 @@
 # Estado de implementación003
 
+## Continuación2026-11-24
+
+**70/76 completas; seis pendientes.** T072 completada en el paso3; [evidencia](telemetry.md).
+Solo quedan T003/T008/T009/T021, T070 y T076. La cobertura007 transversal corresponde al
+paso4 y no impide cerrar la instrumentación propia003. El corte siguiente es histórico.
+
 2026-11-03: **69/76 tareas completas;7 pendientes**.41 tareas completadas en este
 incremento. Las marcas representan tareas verificadas, no aceptación integral ni esfuerzo.
 

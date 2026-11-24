@@ -8,7 +8,7 @@
 **Audience / Timing**: Revisión por pares antes de implementar, según la opción predeterminada aceptada.
 **Additional must-haves**: No se solicitaron criterios adicionales.
 
-**Note**: Checklist generado mediante `$speckit-checklist` a partir de la especificación, el plan, los contratos pertinentes y la constitución del proyecto. No existe `tasks.md` en esta fase.
+**Note**: Checklist generado mediante `$speckit-checklist` a partir de la especificación, el plan, los contratos pertinentes y la constitución del proyecto, antes de generar tareas. Actualmente existe [tasks.md](../tasks.md) con92 tareas pendientes; esta actualización de contexto no reevalúa ni modifica los marcadores de revisión.
 **Review Ownership**: Este checklist pertenece a quien revisa la calidad de los requisitos. Solo esa persona determina cuándo corresponde marcar un criterio como satisfecho.
 **Marker Semantics**: `[x]` significa que el criterio de calidad de requisitos fue revisado y satisfecho; no significa que la implementación esté completa. Todos los ítems se generan pendientes de evaluación.
 

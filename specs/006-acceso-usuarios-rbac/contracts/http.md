@@ -159,3 +159,12 @@ con la cookie válida, sin efectos de actividad; si falta/no es válida usar una
 El rechazo se audita en UoW propia después de rollback. Si DB impide auditar, responder
 503 sin atribuir evidencia durable; no guardar secretos como sustituto en logs. Un error
 HTTPS temprano tampoco ejecuta cambios ni refleja un actor declarado por el cliente.
+
+
+### Proyección de resultados de los productores — paso3
+
+El historial006 conserva su vocabulario `allowed|denied|rejected`: evidencia004 con
+resultado original `recorded` se presenta/filtra como `allowed`, y `failed` como
+`rejected`. Las filas009 no se alteran. Filtros, cursor y proyección usan la misma
+correspondencia, limitada a acciones registradas del productor; no se deduce éxito
+por el método HTTP. [Verificación real](../validation/system-administration.md).

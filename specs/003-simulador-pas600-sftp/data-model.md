@@ -167,3 +167,13 @@ solo una publicación en escritura por publicador. Rechazar antes de exceder cuo
 causa `resource_limit`, abortando el lote, sin afirmar entrega completa. No son máximos
 físicos del PAS600 ni SLO. La generación histórica local no tiene esas cuotas de red;
 para publicar se divide en ciclos separados respetando cadencia y límite configurado.
+
+
+## Contexto técnico durable — paso3,2026-11-24
+
+`PublicationEvaluation.technical_context` es JSONB no nulo, por defecto objeto vacío para datos
+históricos. Contiene solo referencias UUID opacas y estado de contexto007; no forma
+parte de mediciones/manifiestos nativos, claves de deduplicación ni resultados funcionales.
+La migración propietaria `acquisition_003_context` lo agrega sin reconstruir parentescos antiguos.
+Recuperar conserva identidad lógica y crea otra ejecución; leer un resultado completado
+no admite otra operación. [Evidencia y límites](validation/telemetry.md).

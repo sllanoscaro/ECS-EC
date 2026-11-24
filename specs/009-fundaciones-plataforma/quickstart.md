@@ -1,6 +1,8 @@
 # Quickstart: Validación de plataforma común
 
-Implementación sin cuentas, SMTP ni visores. [Plan](plan.md), [tareas](tasks.md),
+Guía de la base009, cuya validación no requiere cuentas, SMTP ni visores. El proyecto
+ya incorpora identidad006 y observabilidad007 básica; sus procedimientos pertenecen a
+esas funcionalidades. [Plan](plan.md), [tareas](tasks.md),
 [arquitectura](../../docs/architecture.md), [operación](../../deploy/README.md).
 
 Desde la raíz, con Docker Compose, uv 0.11.8 y Node >=20.9 (probado: 24.22.0):

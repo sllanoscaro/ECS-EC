@@ -1,5 +1,13 @@
 # Aceptación local003 — incremento2026-11-03
 
+## Estado vigente — paso3,2026-11-24
+
+**70/76 completas; seis pendientes.** T072 verificada con contexto durable, señales
+seguras, emisor real y fallo de destino. [Evidencia](telemetry.md).
+T003/T008/T009/T021 (referencia19), T070 (otra persona) y T076 (aceptación integral)
+conservan sus condiciones. Los ensayos largos900s/restauración de los cortes originales
+no se repitieron en este paso. Los apartados siguientes conservan su corte2026-11-03.
+
 **Estado: implementación local comprobada; aceptación integral pendiente.**
 69/76 tareas completas (41 adicionales). No se certifican referencia documental19,
 firmware físico, VPS o reproducción por otra persona. Se preservaron las actualizaciones

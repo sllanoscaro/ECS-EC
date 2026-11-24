@@ -1,5 +1,8 @@
 # Quickstart: validación local PAS600/SFTP
 
+**Corte vigente2026-11-24, paso3:** 70/76; referencia19/otra persona/aceptación pendientes. [Evidencia](validation/telemetry.md).
+Los cortes fechados anteriores se conservan como registro.
+
 [Plan](plan.md), [modelo](data-model.md), [CLI](contracts/cli.md),
 [perfil](contracts/pas600-profile.md), [recepción](contracts/sftp-reception.md).
 **Estado2026-11-03:** implementados validate/generate/test-connection/publish/resend/
@@ -240,5 +243,5 @@ Las suites rápidas excluyen real_time/restore por defecto. [Resultados US2](val
 
 No hace falta PDF005, SMTP008, VPS ni hardware para esos ensayos locales. No marcan
 las verificaciones pendientes de otras specs. T003/T008/T009/T021 siguen abiertas por
-referencia19 diferida; T070 por persona independiente; T072 por alcance técnico007;
+referencia19 diferida; T070 por persona independiente; T072 completada en paso3;
 T076 por aceptación integral. Los checklists de calidad no se modifican.

@@ -3,15 +3,21 @@
 **Branch de contexto Spec Kit**: `007-observabilidad-externa` | **Date**: 2026-11-02 | **Spec**: [spec.md](spec.md)
 
 **Rama Git real**: `develop`; setup resuelve el identificador de funcionalidad, sin crear
-ni cambiar una rama Git. **Estado**: fases 0/1 de diseño; implementación y aceptación pendientes.
+ni cambiar una rama Git. **Estado revisado2026-11-23**: diseño y revisión de consistencia
+completados;28/65 tareas completas. Emisor básico y acceso técnico verificados localmente;
+cobertura, métricas, políticas y aceptación integral pendientes. [Evidencia](validation/acceptance.md).
+
+**Actualización2026-11-24**: la capacidad común de terminales/continuación usada por005
+está verificada; T031/T032 se completan. T033–T035 y el cierre transversal T037/T038
+conservan sus prerrequisitos y verificaciones pendientes. [Detalle de capacidad y límites](validation/step2.md).
 
 ## Contexto compartido del proyecto (ECS-EC)
 
 Aplican [arquitectura](../../docs/architecture.md), [hoja de ruta](../../docs/implementation-roadmap.md),
 [AGENTS.md](../../AGENTS.md) y [constitución 1.0.0](../../.specify/memory/constitution.md).
 Se leyó el borrador de tareas y se conservó su trabajo y procedencia. El archivo actual
-de [tareas integrales](tasks.md) cubre las cuatro historias; revisión de consistencia,
-implementación y aceptación siguen pendientes.
+de [tareas integrales](tasks.md) cubre las cuatro historias; revisión de consistencia
+completada según la hoja de ruta. La implementación es parcial y la aceptación sigue pendiente.
 
 ## Summary
 
@@ -112,7 +118,9 @@ specs/007-observabilidad-externa/
 
 ### Source Code (repository root, this feature)
 
-Rutas previstas; todavía no existen implementaciones de aplicación:
+Estructura objetivo: el emisor, scripts y stack técnico básicos ya existen. Las pruebas
+de cobertura/aislamiento y capacidades ampliadas pendientes se identifican en [tasks.md](tasks.md);
+la presencia de una ruta no acredita completar toda su tarea.
 
 ```text
 backend/src/ecs_ec/observability/

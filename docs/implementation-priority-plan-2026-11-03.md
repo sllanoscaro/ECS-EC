@@ -1,178 +1,166 @@
 # Revisión y plan de implementación priorizado
 
-Fecha: 2026-11-03. Base inspeccionada: `30eca06`, árbol limpio al iniciar.
-Referencias: [arquitectura](architecture.md), [roadmap](implementation-roadmap.md)
+Creado: 2026-11-03. Actualizado: 2026-11-24 por inspección documental y de código.
+El nombre del archivo conserva la fecha original para mantener los enlaces existentes.
+Referencias: [arquitectura](architecture.md), [hoja de ruta](implementation-roadmap.md)
 y [constitución](../.specify/memory/constitution.md).
 
-Este documento propone el orden de trabajo entre funcionalidades. No reemplaza los
-planes, contratos ni tareas de cada spec, ni marca aceptación. Se contrastaron los nueve
-`tasks.md`, evidencias de validación y código de composición/proveedores. Los porcentajes
-cuentan tareas marcadas; no estiman esfuerzo, cobertura funcional ni aceptación integral.
+Este documento coordina el orden de trabajo. No reemplaza planes, contratos ni tareas
+de cada spec. Los porcentajes cuentan casillas; no estiman esfuerzo ni aceptación.
+La actualización documental inicial no ejecutó suites. La continuación del paso1
+añade pruebas reales y completa tres tareas; conserva los marcadores de checklists.
+El paso3 está completado en su alcance técnico; once tareas cerradas con pruebas reales.
+El paso2 se reanudó:005 tiene entrega técnica verificada60/63 y007 completa T031/T032.
+[Resultados y pendientes](../specs/005-generar-reportes-pdf/validation/acceptance.md).
+El [registro de interrupción005](../specs/005-generar-reportes-pdf/validation/implementation-checkpoint-2026-11-23.md)
+conserva el corte anterior. No se acreditan impresión física, personas ni todo007.
 
 ## Estado observado
 
-| Spec | Completas / total | Avance | Pendientes y condición de cierre |
+| Spec | Completas / total | Avance | Pendientes |
 | --- | ---: | ---: | --- |
-| [004 Costos](../specs/004-costos-tarifa-bt43/tasks.md) | 66/67 | 98,5 % | Una: T064, evaluación humana SC-006. Cálculo/API/UI y evidencia automatizada local disponibles; tarifas y suministro de referencia son sintéticos. |
-| [002 Historial](../specs/002-registro-retencion-consumo/tasks.md) | 68/71 | 95,8 % | Tres: T064 integración real003, T065 instrumentación con007 y T068 evaluación humana. Recepción, agrupaciones, conservación y UI implementadas localmente. |
-| [009 Plataforma](../specs/009-fundaciones-plataforma/tasks.md) | 22/23 | 95,7 % | Una: T022, validación VPS real, diferida expresamente por el usuario. Plataforma local disponible. |
-| [006 Acceso](../specs/006-acceso-usuarios-rbac/tasks.md) | 69/87 | 79,3 % | Dieciocho: integraciones funcionales, PDF/SFTP, instrumentación, regresión y aceptación humana/VPS. Identidad propia implementada localmente. |
-| [001 Consumo](../specs/001-visualizar-consumo-categorias/tasks.md) | 48/61 | 78,7 % | Trece: ampliaciones de integración/estados/períodos, telemetría, integración003/008, personas/VPS y cierre. Catálogo/configuración/detalle/API/UI disponibles. |
-| [007 Observabilidad](../specs/007-observabilidad-externa/tasks.md) | 26/65 | 40,0 % | Treinta y nueve: matriz completa de acceso, semántica/correlación/cobertura, métricas, cuotas/retención real y aceptación. Emisor básico y acceso técnico parcial disponibles. |
-| [003 PAS600/SFTP](../specs/003-simulador-pas600-sftp/tasks.md) | 28/76 | 36,8 % | Cuarenta y ocho: conformidad independiente, transporte/receptor/adaptación, reproducibilidad integrada y aceptación. Generación local implementada; no existe `backend/src/ecs_ec/acquisition/`. |
-| [005 PDF](../specs/005-generar-reportes-pdf/tasks.md) | 5/63 | 7,9 % | Cincuenta y ocho: generación durable, render/preflight, API/UI e integración. Hay puertos, fuentes y adaptador parcial de captura; no existe generación/descarga funcional. |
-| [008 Notificaciones](../specs/008-notificaciones-programables/tasks.md) | 0/92 | 0 % | Implementación pendiente. Plan y tareas disponibles; módulo funcional aún ausente. |
+| [001 Consumo](../specs/001-visualizar-consumo-categorias/tasks.md) | 57/61 | 93,4 % | 4: integración transversal003/007/008, personas, VPS y aceptación integral. Períodos/estados ampliados y telemetría propia ya verificados localmente. |
+| [002 Historial](../specs/002-registro-retencion-consumo/tasks.md) | 70/71 | 98,6 % | 1: T068 personas. T064/SFTP y T065/instrumentación durable verificadas. |
+| [003 PAS600/SFTP](../specs/003-simulador-pas600-sftp/tasks.md) | 70/76 | 92,1 % | 6: T003/T008/T009/T021 referencia independiente19, T070 otra persona y T076 aceptación. T072 instrumentación propia verificada. Receptor/publicador y recorrido local reales disponibles. |
+| [004 Costos](../specs/004-costos-tarifa-bt43/tasks.md) | 66/67 | 98,5 % | 1: T064 evaluación humana. Tarifas y suministro reales siguen por configurar; los casos probados son sintéticos. |
+| [005 PDF](../specs/005-generar-reportes-pdf/tasks.md) | 60/63 | 95,2 % | 3:T037/T058/T059 (impresión física/personas y revisión enlazada). Productor/API/UI, eventos, A4/preflight, fuentes reales, instrumentación propia y apertura offline verificados. |
+| [006 Acceso](../specs/006-acceso-usuarios-rbac/tasks.md) | 84/87 | 96,6 % | 3: T085 personas, T086 VPS y T087 aceptación integral. Matrices/PDF, actividad, administración y regresión verificadas. T069/T077 de separación SFTP verificadas. |
+| [007 Observabilidad](../specs/007-observabilidad-externa/tasks.md) | 28/65 | 43,1 % | 37: acceso integral, terminales/correlación/cobertura, métricas, cuotas, retención real y aceptación. Emisor/acceso local y capacidad común para005 disponibles; T031/T032 verificadas, cierre transversal pendiente. |
+| [008 Notificaciones](../specs/008-notificaciones-programables/tasks.md) | 0/92 | 0 % | 92: módulo completo; plan/tareas disponibles, sin implementación. |
+| [009 Plataforma](../specs/009-fundaciones-plataforma/tasks.md) | 22/23 | 95,7 % | 1: T022 VPS real, diferida expresamente. Plataforma local disponible. |
+| **Total** | **457/605** | **75,5 %** | **148**;005/007/008 concentran132 pendientes. |
 
-La evidencia histórica incluye regresiones PostgreSQL y navegador en
+Evidencia por propietario: [001](../specs/001-visualizar-consumo-categorias/validation/acceptance.md),
 [002](../specs/002-registro-retencion-consumo/validation/acceptance.md),
-[004](../specs/004-costos-tarifa-bt43/validation/acceptance.md) y
-[007](../specs/007-observabilidad-externa/validation/acceptance.md).
-Sus cifras corresponden a distintos cortes y no deben sumarse como pruebas actuales.
+[003](../specs/003-simulador-pas600-sftp/validation/acceptance.md),
+[004](../specs/004-costos-tarifa-bt43/validation/acceptance.md),
+[005](../specs/005-generar-reportes-pdf/validation/dependencies.md),
+[006](../specs/006-acceso-usuarios-rbac/validation/acceptance.md),
+[007](../specs/007-observabilidad-externa/validation/acceptance.md) y
+[009](../specs/009-fundaciones-plataforma/validation/acceptance.md).
+Son resultados de distintos cortes; no se suman ni se presentan como ejecución actual.
 
 ## Hallazgos que afectan el orden
 
-1. El roadmap describe005 como pendiente de implementación, pero sus tareas ya registran
-   cinco preparatorias completas. Sigue pendiente el producto PDF, no todo su setup.
-2. Los registros de prerrequisitos de003 y005 todavía declaran ausentes proveedores que
-   ahora existen: consultas/cobertura001/002 y emisor007. La evidencia anterior de001
-   también conserva bloqueos de diagnósticos/retirada ya entregados por002. Corresponde
-   renovar la comprobación y ejecutar los casos pendientes, sin marcar tareas por inspección.
-3. Existe `Telemetry` en `backend/src/ecs_ec/observability/lifecycle.py`, registrado en
-   `backend/src/ecs_ec/main.py`. Sin embargo, `complete` admite únicamente
-   `operation.completed`: descarta los eventos especiales de recepción/PDF. El soporte
-   requerido por002/005 aún necesita trabajo de007, con contratos y pruebas propios.
-4. La aceptación de acceso007 espera PDF005; a su vez005 exige instrumentación real007
-   antes del checkpoint US1. Si se exige cerrar toda US1 de007 antes de ampliar su emisor,
-   aparece un bloqueo de secuencia. El grafo de007 permite preparar pruebas/puertos comunes
-   de US2 desde fundaciones. Hay que concretar ese incremento por capacidad y reflejar
-   sus prerrequisitos en el plan/tareas antes de ejecutarlo; no saltar las dependencias
-   actuales de007:T037/T038 ni exigir aceptación completa de los consumidores para diseñar
-   el emisor. Las pruebas integradas finales sí requieren productores reales.
-5. Los archivos de pruebas de períodos/estados001 y las rutas/guías técnicas007 ya existen
-   parcialmente. Su existencia no basta para cerrar sus tareas ampliadas.
+1. **003 ya proporciona receptor y publicador:** `backend/src/ecs_ec/acquisition/` y
+`tools/pas600_simulator/`, con recepción001/002, recuperación, contraste y restauración
+local.002:T064 y006:T069/T077 se completaron en el paso1 con evidencia consumidora
+propia; la existencia del proveedor003 por sí sola no acreditaba esas tareas.
+
+2. **Ampliaciones ya completadas:**001:T018/T038/T041/T043/T044/T045/T052/T053/T054 y006:T042/T075/T082/T083
+ya están completas. No se programan otra vez como trabajo de implementación pendiente.
+
+3. El emisor007 está registrado en `main.py`. Durante el paso2 se añadió código de
+terminales especiales y continuación durable; queda sin cierre y con regresión final
+pendiente. [Estado de la ampliación007](../specs/007-observabilidad-externa/validation/step2.md).
+002:T065/003:T072 integran esa capacidad y están verificadas en sus propietarios;
+la cobertura transversal007 permanece en el paso4.
+
+4. El acceso integral007 espera PDF005 y la aceptación US1 de005 exige instrumentación
+real007. La coordinación debe hacerse por capacidad: desarrollar las fundaciones/PDF
+independientes y preparar las pruebas comunes007 desde sus fundaciones; concretar la
+secuencia de007:T031–T035/T037/T038 antes de ampliar el emisor, respetando sus
+prerrequisitos. No exigir cerrar toda007 ni aceptar005 para comenzar el otro módulo.
+Las verificaciones integradas finales sí requieren productores reales.
 
 ## Secuencia propuesta
 
-### 1. Preparar cierres y actualizar las dependencias verificadas
+### 1. Verificar las integraciones SFTP consumidoras disponibles
 
-- Revalidar los gates obsoletos indicados arriba y actualizar los registros vigentes,
-  conservando la evidencia histórica. Mantener propietarios y trazabilidad del traslado.
-- Programar004:T064 con personas representativas: diez tareas, al menos nueve sin ayuda
-  en un máximo de dos minutos cada una. Registrar resultados y corregir obstáculos antes
-  de cerrar. Es la spec con menor trabajo restante; no necesita005/008 para esta evaluación.
-- Mantener009:T022 pendiente mientras no exista VPS, conforme al diferimiento registrado.
-  No dedicar implementación adicional de infraestructura local a simular este cierre.
+**Verificaciones técnicas completadas el2026-11-23:**002:T064 y006:T069/T077 sobre
+receptor/publicador003 reales. [Evidencia002](../specs/002-registro-retencion-consumo/validation/source-integration.md)
+y [evidencia006](../specs/006-acceso-usuarios-rbac/validation/technical-separation.md).
+Se preparó el [protocolo de diez tareas004](../specs/004-costos-tarifa-bt43/validation/usability.md);
+su ejecución sigue pendiente de participantes.009:T022 permanece diferida hasta VPS real.
 
-Salida: gates actuales y protocolo de cierre004 listos;004 solo llega a67/67 si la
-evaluación se ejecuta y cumple. Este plan no acredita uso de tarifas reales.
+### 2. Desarrollar PDF005 y la ampliación común007 coordinadamente
 
-### 2. Terminar las ampliaciones disponibles de001 y avanzar006
+**Entrega técnica disponible; aceptación integral pendiente.**005 pasó a60/63 tareas:
+627 pruebas backend/31 omisiones técnicas,65 de la suite propia/coordinación,91 frontend,
+E2E de las tres escalas y fallos, imagen, migraciones y apertura sin red. Los conteos
+se solapan y sus alcances figuran en [aceptación005](../specs/005-generar-reportes-pdf/validation/acceptance.md).
 
-- En001, abordar T018 y T038/T041/T043/T044 con proveedores002 actuales: carreras,
-  retirada permitida, diagnósticos cruzados, contención exacta y horas repetidas/DST.
-- Completar001:T045/T052/T053: estados, llegada tardía, CAT-01 calculada y recorridos
-  ampliados de navegador, comparando tabla/gráfico con datos conocidos.
-- En006, avanzar T042 y T068/T075/T076 sobre consultas/configuración/costos reales.
-  Completar los segmentos disponibles de T046/T048; conservar pendientes las tareas que
-  también requieren PDF. No declarar terminadas T049/T050/T078 sin todos sus gates.
-- Preparar las sesiones humanas de002:T068 y001:T059 con sus criterios propios;002 exige
-  al menos nueve de diez tareas sin ayuda en un máximo de60 segundos cada una.
+La capacidad común de terminales/continuación007 usada por005 está implementada y
+probada; T031/T032 se completaron. T033–T035 y el cierre transversal T037/T038 siguen
+sujetos a sus matrices/prerrequisitos completos, como indica [el registro007](../specs/007-observabilidad-externa/validation/step2.md).
+No se exige completar visores007 ni008/SMTP para usar el productor.
 
-Salida: menos trabajo local pendiente en001/006 y pruebas reales sobre módulos disponibles;
-sin esperar SFTP/PDF para todo el incremento y sin cerrar tareas multiproveedor parcialmente.
+Quedan005:T037/T058/T059 en su alcance físico/humano. Se pueden preparar las
+integraciones del paso3 con el PDF real disponible; eso no cierra esas validaciones
+ni sustituye la cobertura transversal007 del paso4.
 
-### 3. Entregar desde007 la capacidad común que falta
+### 3. Completar acceso006 y la instrumentación de recepción
 
-- Preparar007:T031/T032 y las pruebas aplicables de productores; concretar el alcance y
-  secuencia de T037/T038 para terminales de recepción/PDF y continuación durable. Resolver
-  primero los prerrequisitos del plan mencionados en los hallazgos.
-- Cada propietario añade su instrumentación:002:T065,001:T054 y006:T082/T083.
-  Recepción debe distinguir fallo parcial recuperable de terminal confirmado; ningún
-  log sustituye el resultado/evento transaccional.
-- Verificar correlación, saneamiento, conteos y continuidad funcional con transporte
-  caído/colas saturadas. No exigir visores activos para commits funcionales.
-- Ejecutar006:T084 cuando sus prerrequisitos estén cumplidos y registrar regresión.
+**Completado2026-11-24:**006:T043/T046/T048–T050/T068/T076/T078/T084,
+002:T065 y003:T072. [Regresión/evidencias](../specs/006-acceso-usuarios-rbac/validation/regression.md):
+672 backend,91 frontend, matrices/UI reales; contexto durable y terminales de recepción
+separan ejecución parcial, recuperación y cierre lógico. El historial006 ya incluye los
+resultados originales004 mediante una proyección coherente de sus filtros.
 
-Salida:002 puede alcanzar70/71 si T065 y la evaluación humana T068 se completan;
-solo quedaría su integración003. El emisor básico existente por sí solo no permite esa marca.
+Quedan006:T085/T086/T087 (personas/VPS/aceptación),002:T068 (personas) y los seis
+gates documentales/humanos/integrales003. Continuar con el paso4; no acreditar esos
+criterios ni las tareas transversales007 por el cierre técnico de este paso.
 
-### 4. Implementar003 hasta disponer de recepción SFTP real
+### 4. Completar observabilidad007 sobre productores reales
 
-- Revalidar las referencias independientes CSV/JSON.003:T003 sigue diferida por decisión
-  del usuario: registrar el límite y mantener pendiente conformidad/aceptación que dependa
-  de ella. Avanzar únicamente trabajo independiente; no producir el oráculo con el writer.
-- Seguir US2 en su orden: almacenamiento/bindings, staging y cierre limpio, listener,
-  lectores/mapeo/contadores, transporte/journal, procesamiento durable y recuperación,
-  lifecycle/Compose y pruebas reales. No tratar estas48 tareas como un desbloqueo pequeño.
-- El adaptador debe persistir entrada e intento antes de llamar002, recuperar el mismo
-  intento y usar otro al reenviar después de rechazo por cadencia.
-- Con el proveedor real disponible, ejecutar002:T064; si T065/T068 ya están satisfechas,
-  cerrar002 en71/71. Ejecutar006:T069/T077 y la cobertura de adquisición007 que corresponda.
+Cerrar007:T022 y su cadena T028–T030, verificando el código/configuración ya preparado.
+Continuar cobertura/correlación US2, métricas/cobertura US3 y políticas, cuotas, retención
+y aislamiento US4. Reservar ventana real para TTL24h/GC y comprobación posterior;
+una configuración o reloj controlado no acredita esa retención.
 
-Salida: cierre posible de002 y eliminación del bloqueo técnico SFTP para006/007/001.
-Sin resolver la referencia diferida, no prometer aceptación documental integral003.
+### 5. Implementar notificaciones008
 
-### 5. Completar005 y cerrar las integraciones restantes de006
+Fundaciones y coordinación006 → US1 reglas → US2 programación/correo/recuperación →
+US3 urgencias → US4 historial/reenvíos/conservación → instrumentación/aceptación.
+La coordinación de identidad008:T014 y sus pruebas preceden al primer envío.
+US1/US2 y urgencias de consumo pueden avanzar con sus proveedores ya disponibles,
+en paralelo con trabajo independiente005/007. El puente `pdf.failed` requiere005 real;
+no se crea ese productor desde008 ni se exige aceptación integral005 para todo008.
 
-- Continuar desde005:T006 con modelos/migración, captura durable REPEATABLE READ,
-  idempotencia y supervisor; el adaptador parcial actual no sustituye estas tareas.
-- Implementar las historias completas: generación/descarga real, siete categorías en
-  una página A4, costos/contraste y calidad/procedencia. Integrar005:T061–T063 con007 real
-  antes del checkpoint US1, incluido `pdf.failed` atómico e interrupciones recuperadas.
-- Con generación/descarga reales, cerrar las verificaciones PDF de006:T043/T046/T048/
-  T049/T050 y las dependientes T078; completar007:T022 y su cadena T028–T030 mediante
-  verificación de lo ya preparado, sin reconstruir innecesariamente Compose/gateway.
+### 6. Verificar integraciones transversales y cerrar validación local
 
-Salida: PDF funcional e integraciones locales de acceso verificadas.006 conserva personas,
-VPS y consolidación hasta que existan sus evidencias.
+Con003/007/008 reales, ejecutar001:T056 con SFTP, visores y Mailpit. Completar las
+suites, recorridos, matrices y documentación finales de cada propietario, manteniendo
+abiertos los criterios humanos/externos pendientes. Los archivos compartidos se editan
+secuencialmente, aunque existan tareas independientes con marcador `[P]`.
 
-### 6. Completar007 y después008
+### 7. Completar personas, VPS y aceptación integral
 
-- Retomar cobertura real, métricas, aislamiento, cuotas y retención de007. Reservar
-  una ventana para su prueba real de TTL24h y verificación posterior; no equivale a
-  probar solo configuración o reloj controlado.
-- Implementar008 por US1 configuración → US2 calendario/despacho/recuperación → US3
-  urgencias → US4 historial/reenvío/conservación. Coordinación006 precede al primer envío.
-  Configuración, correo periódico y urgencias de consumo no exigen cierre integral005;
-  las alertas `pdf.failed` sí necesitan el productor real. Se pospone008 aquí para
-  concentrar el esfuerzo en las specs avanzadas y sus desbloqueos.
-- Con003/007/008 disponibles, ejecutar001:T056 con SFTP, visores y Mailpit reales.
+Ejecutar evaluaciones humanas001:T059,002:T068,003:T070,004:T064,005:T058,
+006:T085,007:T061 y008:T090 con los protocolos y prerrequisitos de cada una.
+Pueden organizarse antes cuando sus capacidades estén listas; no se sustituyen por E2E.
+Con VPS real, verificar009:T022 y después HTTPS/permisos/descargas de001/006,
+aislamiento técnico007 y SMTP/enlaces008 según sus contratos. Consolidar aceptación
+de cada spec solo al reunir su evidencia; un despliegue común no acepta los módulos.
 
-Salida: integraciones locales transversales completas, pendientes solo los criterios
-humanos/externos que no hayan sido ejecutados y sus consolidaciones correspondientes.
+## Referencia PAS600: aclarar el alcance ahora y mantener diferido el cotejo
 
-### 7. Cierre humano y VPS cuando estén disponibles
+No hay ambigüedad sobre la revisión exigida:003:T003 fija DOCA0172EN-19,
+procedencia/hash y revisión visual independiente. El impedimento es obtener y revisar
+esa fuente; el usuario autorizó continuar con contratos locales. La búsqueda acotada
+actual no obtuvo una copia19 verificable. Ver [registro de referencias y decisión](../tools/pas600_simulator/tests/fixtures/reference/README.md).
 
-Completar las evaluaciones humanas restantes respetando el protocolo de cada spec.
-Cuando se provea VPS real, ejecutar009:T022 primero y después las verificaciones de
-cada propietario: HTTPS/permisos/descargas, aislamiento técnico007 y SMTP/enlaces008.
-Registrar criterios cumplidos y fallidos individualmente; el despliegue común no acredita
-automáticamente aceptación de los módulos.
+Se mantiene diferido el cotejo T003/T008/T009/T021 y su aceptación asociada; no bloquea
+las integraciones sintéticas disponibles ni cambia el perfil normativo. Retomarlo al
+obtener la revisión19 y antes de cerrar conformidad/aceptación integral003. Si se propone
+adoptar otra revisión, tramitar entonces una aclaración de alcance con comparación de
+contratos, ejemplos y pruebas; no sustituir19 silenciosamente ni afirmar compatibilidad
+física sin descriptor/topología y evidencia del firmware.
 
-## Reglas de ejecución y seguimiento
+## Reglas de seguimiento y comprobación documental
 
-- Prioridad por dos criterios: proximidad al cierre y capacidad para desbloquear una spec
-  avanzada.004 tiene el primer cierre humano;003 sube antes de005/008 para cerrar002.
- 009 permanece prioritaria para cierre cuando exista VPS, sin bloquear trabajo local.
-- Ejecutar una spec explícitamente seleccionada por incremento. La selección persistida
-  observada es007; esta revisión no la cambia. Inspecciones ajenas usan
-  `SPECIFY_FEATURE_DIRECTORY` y `SPECIFY_FEATURE_NO_PERSIST=1` con scripts oficiales.
-- Mantener tareas y checklists originales sin cambios hasta ejecutar trabajo real.
-  Secuenciar escrituras de composición, manifiestos, Compose y archivos compartidos.
-- Para cada incremento: pruebas de contrato/integración PostgreSQL cuando corresponda,
-  pruebas UI afectadas, typecheck/build si cambia frontend y evidencia en la spec dueña.
-- Actualizar roadmap y aceptación después de verificar, separando implementación local,
-  integración, personas y VPS. No comprometer fechas basadas en porcentajes de tareas:
-  no representan duración y faltan disponibilidad humana y configuración externa.
-
-## Comprobaciones de esta revisión
-
-- `.venv/bin/pytest backend/tests/unit/costs backend/tests/unit/consumption -q`:
-  **98 pruebas aprobadas en3,37s** sobre el checkout actual.
-- La ejecución general de `backend/tests/unit` se interrumpió tras dejar de mostrar
-  progreso; no se contabiliza como aprobada ni se atribuye una causa sin diagnóstico.
-- Enlaces Markdown del documento comprobados contra archivos existentes; comprobación
-  de espacios realizada. No se reejecutaron integración PostgreSQL, navegador, build,
-  infraestructura, sesiones humanas ni VPS durante esta revisión.
-- Único archivo añadido: este plan. Tareas, checklists, roadmap original, código y
-  selección persistida de Spec Kit se mantienen sin cambios.
+- La selección activa se consulta en `.specify/feature.json`; al revisar se conserva003.
+  Para inspeccionar otra spec usar `SPECIFY_FEATURE_DIRECTORY` y
+  `SPECIFY_FEATURE_NO_PERSIST=1` con scripts oficiales. No persistir otra selección
+  como efecto de actualizar documentación.
+- Cada tarea permanece en su propietario y sus IDs son locales. El paso1 verifica
+  únicamente002:T064 y006:T069/T077; no cambia checklists ni acepta specs completas.
+- Los registros históricos conservan sus resultados y condiciones originales. Los
+  avisos de estado vigente remiten a la evidencia posterior y distinguen disponibilidad
+  de proveedores de aceptación consumidora.
+- Las98 pruebas unitarias de costos/consumo registradas en la revisión original del
+  2026-11-03 fueron un resultado de ese corte, no de esta actualización. No se reutiliza
+  esa cifra como validación actual ni se declara aprobada su ejecución general interrumpida.
+- La continuación del paso1 ejecuta integración PostgreSQL/SFTP y contratos de consumo,
+  identidad y adquisición. No reejecuta navegador, build, TTL, personas ni VPS. Resultados
+  y comandos en la evidencia enlazada; también se comprueban recuentos/enlaces/espacios.

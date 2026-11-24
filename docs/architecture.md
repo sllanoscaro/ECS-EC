@@ -1,18 +1,34 @@
 # Arquitectura compartida de ECS-EC
 
-Estado: plataforma spec-009 e identidad006 implementadas localmente;006 también verifica consultas001/002/004, autorización administrativa e instrumentación propia007. Integraciones completas PDF/SFTP, personas y VPS pendientes. Este documento centraliza decisiones ya presentes
+Estado revisado el 2026-11-24: plataforma009, identidad006, consumo001/002, costos004 y
+recepción PAS600/SFTP003 implementados localmente según sus evidencias.006 verifica
+consultas001/002/004, autorización administrativa e instrumentación propia007; sus
+pruebas consumidoras de aislamiento SFTP quedaron verificadas en006:T069/T077;
+La integración PDF de006 sigue pendiente. [Evidencia006](../specs/006-acceso-usuarios-rbac/validation/technical-separation.md). PDF005 tiene entrega técnica verificada de generación/persistencia/API/interfaz:60/63tareas.
+[Resultados y pendientes físicos/humanos](../specs/005-generar-reportes-pdf/validation/acceptance.md).
+008 sigue sin implementar. Integraciones finales, personas y
+VPS pendientes. Este documento centraliza decisiones ya presentes
 en la planificación de notificaciones; su traslado no acredita instalación, pruebas ni
 despliegue. La [hoja de ruta](implementation-roadmap.md) asigna propietarios y etapas.
 La constitución local `.specify/memory/constitution.md` conserva su precedencia.
 
 Consumo 001 tiene catálogo/configuración, reglas puras y consulta web de detalle integrados
 con la incorporación durable y almacenamiento 002. 002 también integra agrupaciones web, diagnósticos cruzados y retirada protegida con
-validación automatizada local. 001 también verifica localmente períodos/estados ampliados e instrumentación propia
+validación automatizada local;002:T064 verifica además la integración consumidora con
+SFTP003 real. [Evidencia002](../specs/002-registro-retencion-consumo/validation/source-integration.md). 001 también verifica localmente períodos/estados ampliados e instrumentación propia
 con el emisor007. La aceptación integral con dependencias externas y personas sigue pendiente.
 [Estado de 002](../specs/002-registro-retencion-consumo/validation/acceptance.md).
 [Aceptación parcial](../specs/001-visualizar-consumo-categorias/validation/acceptance.md).
 
-007 tiene emisor básico y acceso técnico externo verificados localmente; cobertura
+003 dispone de generador/transporte independientes, receptor en el monolito y recepción
+real001/002 con recuperación y restauración local verificadas. La referencia PAS600
+DOCA0172EN-19, reproducción por otra persona y aceptación integral siguen pendientes.
+La instrumentación propia002/003 y la integración PDF006 se completaron en el paso3;
+[evidencia](../specs/006-acceso-usuarios-rbac/validation/regression.md). [Estado003](../specs/003-simulador-pas600-sftp/validation/implementation-status.md).
+
+007 tiene emisor básico y acceso técnico externo verificados localmente. La
+[ampliación común con005](../specs/007-observabilidad-externa/validation/step2.md) está
+verificada para005, con cierre transversal007 pendiente; cobertura
 completa001–006, políticas/cuotas/retención real, personas y VPS siguen pendientes.
 [Estado parcial007](../specs/007-observabilidad-externa/validation/acceptance.md).
 

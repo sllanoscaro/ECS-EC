@@ -1,6 +1,27 @@
 # Aceptación parcial de spec-006
 
-## Estado vigente — continuación2026-11-03
+## Estado vigente — paso3,2026-11-24
+
+**84/87 completas; T085/T086/T087 pendientes.** Integración real de lectura/PDF,
+actividad/limpieza, matrices de ambos perfiles, mantenimiento/auditoría y regresión
+verificadas. Se corrigió la proyección de resultados004 en el historial006.
+[Matriz](operator-matrix.md), [UI](operator-ui.md), [administración](system-administration.md),
+[UI administrativa](administration-ui.md) y [regresión](regression.md).
+No se acreditan personas, VPS ni aceptación integral. Los cortes siguientes son históricos.
+
+## Estado vigente — paso1,2026-11-23
+
+**75/87 tareas completas;12 pendientes.** T069/T077 completadas con receptor/publicador003
+reales y siete casos de separación: publicación sin cuenta/sesión006, contraseña/cookie
+de ambos perfiles rechazadas por SSH y credenciales SFTP/Programador rechazadas por
+las APIs funcionales. [Evidencia y comandos](technical-separation.md).
+No cambia autenticación de producción ni se acepta el gateway007 desde006.
+
+Permanecen pendientes T043/T046/T048/T049/T050/T068/T076/T078/T084/T085/T086/T087:
+PDF real, vistas/matrices completas, regresión integral, personas, VPS y consolidación.
+Las cifras y condiciones siguientes corresponden a sus cortes anteriores.
+
+## Registro anterior — continuación2026-11-03
 
 **73/87 tareas completas;14 pendientes.** Completadas006:T042/T075/T082/T083 con
 consultas reales001/002/004, dependencias administrativas e instrumentación propia007.
@@ -34,7 +55,9 @@ La regresión detectó una prueba001 que contaba señales de todos los módulos;
 el filtro de productor sin suprimir señales de identidad. Repetición final428/428.
 
 Permanecen pendientes006:T043/T046/T048/T049/T050/T068/T069/T076/T077/T078/T084/T085/T086/T087.
-PDF005 y SFTP003 deben entregar sus proveedores reales en sus propias specs. También
+Revisión documental2026-11-23: PDF005 aún debe entregar generación/descarga;
+SFTP003 ya tiene receptor/publicador y evidencia local, pero006:T069/T077 debe
+verificar su aislamiento desde006. También
 faltan la integración completa de vistas/actividad, matrices y evidencias asociadas,
 personas, VPS y consolidación. No se implementan otros módulos desde006 ni se usa la
 preparación PDF existente como generación/descarga funcional. T084 tiene regresión local

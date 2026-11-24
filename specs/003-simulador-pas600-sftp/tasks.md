@@ -1,7 +1,8 @@
 # Tasks: Simulador PAS600 con publicación SFTP
 
 **Fecha**: 2026-11-01. **Funcionalidad**: `003-simulador-pas600-sftp`.
-**Avance**:69/76 tareas completas;7 pendientes. [Estado vigente y continuidad](validation/implementation-status.md).
+**Avance**:70/76 tareas completas;6 pendientes.
+T072 completada2026-11-24: [instrumentación y recuperación](validation/telemetry.md). [Estado vigente y continuidad](validation/implementation-status.md).
 **Estado**: recorrido local implementado con SFTP real, recepción001/002, recuperación,
 exportación/contraste y restauración. Referencia19 diferida por el usuario; conformidad,
 reproducción por otra persona, ampliación técnica007 y aceptación integral pendientes.
@@ -174,7 +175,7 @@ inicializar el monolito/core, identity o consumption corresponde a sus propietar
 **Prueba independiente / checkpoint**: No quedan requisitos sin tarea/evidencia; pruebas/documentación coherentes, secretos excluidos, restauración de adquisición comprobada y limitaciones de hardware/VPS explícitas.
 
 - [X] T071 Conectar `FunctionalAudit`009 en `backend/src/ecs_ec/acquisition/service.py` y `backend/src/ecs_ec/acquisition/store.py`, con pruebas en `backend/tests/integration/acquisition/test_audit.py`: resultado/estado003 y auditoría en misma UoW, actor/correlación internos y cargas saneadas; 002 conserva propiedad de reception.completed/consumption.accepted. Probar falloDB sin falsa durabilidad ni evento de éxito y ausencia de dependencia de008/SMTP; no crear tipos comunes de FunctionalEvent no registrados.
-- [ ] T072 Instrumentar adquisición/parseo/deltas/errores/esperas/reintentos/recuperación mediante el emisor real007 en `backend/src/ecs_ec/acquisition/lifecycle.py` y `backend/src/ecs_ec/acquisition/service.py`; documentar señales en `deploy/README.md` y verificar fallo del destino sin revertir commits ni bloquear consumo. Consumir su capacidad cuando exista; si falta registrar dependencia pendiente en validation/prerequisites.md, sin implementar observabilidad007 ni usar logs como evidencia funcional.
+- [X] T072 Instrumentar adquisición/parseo/deltas/errores/esperas/reintentos/recuperación mediante el emisor real007 en `backend/src/ecs_ec/acquisition/lifecycle.py` y `backend/src/ecs_ec/acquisition/service.py`; documentar señales en `deploy/README.md` y verificar fallo del destino sin revertir commits ni bloquear consumo. Consumir su capacidad cuando exista; si falta registrar dependencia pendiente en validation/prerequisites.md, sin implementar observabilidad007 ni usar logs como evidencia funcional.
 - [X] T073 Ampliar procedimientos del propietario009 para volumen/metadatos de adquisición en `deploy/README.md` y ejecutar restauración local aislada registrándola en `specs/003-simulador-pas600-sftp/validation/restore.md`: recuperar manifiestos/bytes/resultados/pares protegidos, detectar archivo faltante y conservar sesiones abortadas/pendientes con cuotas. No reescribir backup/restore común en003, ni purgar originales o completar lotes por heurística.
 - [X] T074 Revisar documentación de cada archivo/función/método/clase/componente propio en `tools/pas600_simulator/src/pas600_simulator/` y `backend/src/ecs_ec/acquisition/`, junto a pruebas/migración; registrar resultado en `specs/003-simulador-pas600-sftp/validation/documentation.md`. Cubrir propósito/entradas/salidas/errores/efectos, fórmulas/conversiones/calendario/supuestos y procedencia/regeneración de cualquier código generado, conforme a constituciónIII; corregir documentación en el mismo cambio de comportamiento.
 - [X] T075 Verificar redacción de secretos/aislamiento y límites del despliegue en `backend/tests/integration/acquisition/test_isolation.py` y `specs/003-simulador-pas600-sftp/validation/deployment.md`: password/clave/known_hosts, host key persistida, bindings/edificios/directorios aislados, sin shell/forwarding y sin derechos humanos derivados. Documentar destino VPS configurable y gate para hardware: IDs/topología reales y captura que demuestre la convención de sesión antes de habilitar; no exigir hardware para aceptación local ni certificarlo desde ejemplos sintéticos.
@@ -392,7 +393,7 @@ complementan con las suites de aislamiento, anomalías, lifecycle, totales y run
 | T008/T009 | Pruebas locales CSV/JSON pasan; falta contraste documental independiente revisado. |
 | T021 | Generación y runtime --no-dev comprobados; conformidad19 pendiente. CAT-01 integrada está comprobada en US2. |
 | T070 | Automatización de reproducción/contraste/parada pasa; falta otra persona. |
-| T072 | Etapas ordinarias con emisor007 real y fallo de destino comprobadas; quedan continuación durable/semántica ampliada007 y cobertura técnica integral. |
+| T072 | Completa2026-11-24: instrumentación propia, continuación durable, parentesco002 y fallo del adaptador verificados; cobertura transversal007 conserva su propietario. |
 | T076 | Matriz/evidencia local consolidadas; cierre integral espera gates anteriores y recorridos de aceptación aún no ejecutados. |
 
 No se marcan checklists de calidad ni tareas de otras specs. VPS y firmware físico

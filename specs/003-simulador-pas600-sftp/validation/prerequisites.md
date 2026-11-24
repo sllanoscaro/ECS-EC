@@ -10,7 +10,7 @@ La situación anterior (acquisition ausente) queda superada por esta integració
 | 002 | Reception.accept/read_attempt reales: ID/entrada congelados, pérdida de respuesta, recuperación concurrente, duplicate/too_early y reenvío nuevo. Total calculado11 de4+7 y medido20 por SFTP real. |
 | 001/002 consulta | read_report_snapshot con UoW/corte del exportador. Captura concurrente demuestra aislamiento REPEATABLE READ; detalle y agregados reales,2700s/75%. No usa detail en transacción separada. |
 | 006 | Lecturas protegidas/permisos conservados en regresión. Identidad SFTP técnica separada, sin cookies o autorización humana. Las verificaciones integrales pendientes006 pertenecen a006. |
-| 007 | Emisor real consumido para operation.completed de acquisition.receive/acquisition.process y etapas ordinarias; fallo de adapter no altera commit. Semántica ampliada/continuación durable completas siguen en007:T037/T038; T072 permanece parcial. |
+| 007 | Emisor real y capacidad común disponibles; T072 completa con referencias durables, recuperación, códigos seguros y fallo de destino. [Evidencia003](telemetry.md). La cobertura transversal007 permanece pendiente. |
 
 No son prerrequisitos del recorrido sintético local PDF005, correo008, VPS ni hardware.
 T003 sigue diferida explícitamente por el usuario: permite desarrollo con contratos locales,

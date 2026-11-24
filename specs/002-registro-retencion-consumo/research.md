@@ -1,7 +1,9 @@
 # Investigación: Registro temporal y retención de consumo
 
 **Fecha**: 2026-11-01. [Plan](plan.md), [spec](spec.md), [arquitectura](../../docs/architecture.md).
-Fase 0: decisiones de diseño resueltas; instalación y aceptación todavía pendientes.
+Registro de fase0: decisiones de diseño resueltas. La instalación e implementación local
+posteriores constan en [aceptación](validation/acceptance.md); integración003,
+instrumentación ampliada007 y personas siguen pendientes.
 Se investigaron recepción/concurrencia y calendario/conservación mediante agentes de
 investigación de solo lectura, conforme a la habilidad de planificación.
 

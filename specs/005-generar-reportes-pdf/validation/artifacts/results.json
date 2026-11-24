@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-24",
+  "backend_regression": {
+    "tests": "658",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "31",
+    "time": "202.062",
+    "passed": 627
+  },
+  "owned_005_007": {
+    "tests": "65",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "time": "39.639",
+    "passed": 65
+  },
+  "frontend": {
+    "files": 30,
+    "tests": 91,
+    "passed": 91
+  },
+  "playwright": {
+    "tests": 1,
+    "passed": 1,
+    "scales": 3,
+    "desktop_width": 1440,
+    "mobile_width": 390
+  },
+  "image": "sha256:3931b2b9619eaa3558ffbc16ecc37df7b352e201b64e37bd524039edb1262b30",
+  "next_version": "16.4.5",
+  "offline": [
+    {
+      "file": "anual.pdf",
+      "bytes": 24151,
+      "sha256": "42902677f458576e02d716338e776d777695a4990bd7a622e523d6ca41831964",
+      "pages": 1
+    },
+    {
+      "file": "diario.pdf",
+      "bytes": 24146,
+      "sha256": "60b055c8e01fe7ab57438b5fc6047d6c9d54b0d19f308409d0538087251ac183",
+      "pages": 1
+    },
+    {
+      "file": "mensual.pdf",
+      "bytes": 24275,
+      "sha256": "a11bd613f2f6f85f87c83b9814d4dd57de4346cef52521bcfdf95f9f18d33136",
+      "pages": 1
+    }
+  ],
+  "additional_calculated_general": {
+    "passed": 1,
+    "seconds": 2.68,
+    "scope": "004 real over calculated CAT-01: complete_total remains null"
+  }
+}

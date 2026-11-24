@@ -1,6 +1,11 @@
 # Quickstart y validación: Identidad y permisos
 
+**Corte vigente2026-11-24, paso3:** 84/87; T085/T086/T087 pendientes. [Evidencia](validation/regression.md).
+Los cortes fechados anteriores se conservan como registro.
+
 Guía de identidad implementada sobre [plataforma009](../../docs/platform.md).
+006:T069/T077 verificadas el2026-11-23 con SFTP003 real;
+[separación técnica/funcional y reproducción](validation/technical-separation.md).
 La evidencia ejecutada se registra en `validation/`. Las integraciones con los módulos
 de negocio, la aceptación con personas y la VPS requieren sus capacidades reales.
 
