@@ -3,6 +3,8 @@
 from collections import deque
 from copy import deepcopy
 from pathlib import Path
+from datetime import datetime
+import json
 import threading
 import time
 from uuid import uuid4
@@ -19,26 +21,54 @@ class LogEmitter:
     in-flight write is not claimed delivered. Reduced limits exist only for internal tests.
     """
 
-    def __init__(self, directory: Path, *, clock=None, autostart=True, file_bytes=16*1024*1024,
-                 files=8, ttl_seconds=168*3600, writer=None):
+    def __init__(
+        self,
+        directory: Path,
+        *,
+        clock=None,
+        autostart=True,
+        file_bytes=16 * 1024 * 1024,
+        files=8,
+        ttl_seconds=168 * 3600,
+        writer=None,
+    ):
         """Prepare memory resources without touching disk; optional worker owns all IO/errors."""
-        if not 1 <= files <= 8 or not 1024 <= file_bytes <= 16*1024*1024 or ttl_seconds <= 0:
+        if (
+            not 1 <= files <= 8
+            or not 1024 <= file_bytes <= 16 * 1024 * 1024
+            or ttl_seconds <= 0
+        ):
             raise ValueError("Invalid spool limits")
         self.directory, self.clock = Path(directory), clock or SystemClock()
         self.file_bytes, self.files, self.ttl = file_bytes, files, ttl_seconds
         self._data, self._control = deque(), None
-        self._lock, self._wake, self._stop = threading.Lock(), threading.Event(), threading.Event()
+        self._lock, self._wake, self._stop = (
+            threading.Lock(),
+            threading.Event(),
+            threading.Event(),
+        )
         self._closed = False
         self._inflight = False
         self.sequence = self.dropped = self.schema_rejected = self.spool_dropped = 0
         self.boot_id = str(uuid4())
         self._index = 0
+        self._segment_times = {}
         self._writer = writer or self._write
         # Never serialize a Loguru record, extra map, exception or arbitrary message.
         logger.remove()
         self._logger = deepcopy(logger)
-        self._sink = self._logger.add(self._sink_write, format="{message}", diagnose=False, backtrace=False, catch=False)
-        self._thread = threading.Thread(target=self._run, name="telemetry-log-spool", daemon=True) if autostart else None
+        self._sink = self._logger.add(
+            self._sink_write,
+            format="{message}",
+            diagnose=False,
+            backtrace=False,
+            catch=False,
+        )
+        self._thread = (
+            threading.Thread(target=self._run, name="telemetry-log-spool", daemon=True)
+            if autostart
+            else None
+        )
         if self._thread:
             self._thread.start()
 
@@ -101,19 +131,53 @@ class LogEmitter:
                 self._inflight = False
         return True
 
+    def segment_time(self, path):
+        """Recover the earliest segment time after restart; append traffic cannot renew its retention.
+
+        The oldest original event and preserved mtime bound the segment. Expiring a
+        mixed segment can conservatively lose younger signals, which are counted.
+        The bounded first-line read never loads a business file or arbitrary record.
+        """
+        if path.is_symlink():
+            raise OSError("unsafe_technical_spool")
+        stat = path.stat()
+        cached = self._segment_times.get(path)
+        if cached is not None and cached[0] == stat.st_ino:
+            oldest = min(cached[1], stat.st_mtime)
+        else:
+            oldest = stat.st_mtime
+            try:
+                with path.open("rb") as stream:
+                    first = stream.readline(16385)
+                if len(first) <= 16384:
+                    timestamp = json.loads(first)["timestamp"]
+                    oldest = min(oldest, datetime.fromisoformat(timestamp).timestamp())
+            except ValueError, KeyError, TypeError:
+                pass
+        self._segment_times[path] = (stat.st_ino, oldest)
+        return oldest
+
     def expire(self):
-        """Remove only matching technical files older than policy TTL using the injected UTC clock."""
+        """Remove only own segments at their oldest event's TTL; never renew age by appending new traffic."""
         cutoff = self.clock.now().timestamp() - self.ttl
         for path in self.directory.glob("events-*.jsonl"):
-            if path.stat().st_mtime < cutoff:
+            if self.segment_time(path) <= cutoff:
                 self.spool_dropped += len(path.read_bytes().splitlines())
                 path.unlink()
+                self._segment_times.pop(path, None)
 
     def _write(self, data):
         """Append within8x16MiB/TTL bounds; count rotation loss and preserve admitted byte identity."""
         import os
+
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.expire()
+        usage = os.statvfs(self.directory)
+        if (
+            usage.f_blocks
+            and (usage.f_blocks - usage.f_bavail) * 10 >= usage.f_blocks * 9
+        ):
+            raise OSError("technical_spool_capacity")
         path = self.directory / f"events-{self._index}.jsonl"
         if path.exists() and path.stat().st_size + len(data) + 1 > self.file_bytes:
             self._index = (self._index + 1) % self.files
@@ -121,13 +185,25 @@ class LogEmitter:
             if path.exists():
                 self.spool_dropped += len(path.read_bytes().splitlines())
                 path.unlink()
+                self._segment_times.pop(path, None)
         if len(data) + 1 > self.file_bytes:
             self.spool_dropped += 1
             return
+        written = min(
+            self.clock.now().timestamp(),
+            datetime.fromisoformat(json.loads(data)["timestamp"]).timestamp(),
+        )
+        if written <= self.clock.now().timestamp() - self.ttl:
+            self.spool_dropped += 1
+            return
+        oldest = min(written, self.segment_time(path)) if path.exists() else written
+        if path.is_symlink():
+            raise OSError("unsafe_technical_spool")
         with path.open("ab") as stream:
             stream.write(data + b"\n")
         path.chmod(0o600)
-        os.utime(path, (self.clock.now().timestamp(), self.clock.now().timestamp()))
+        os.utime(path, (oldest, oldest))
+        self._segment_times[path] = (path.stat().st_ino, oldest)
 
     def _run(self):
         """Drain serially outside admission lock, waking for data/control or periodic expiry."""
@@ -154,7 +230,9 @@ class LogEmitter:
         if self._thread:
             self._thread.join(max(0, deadline - time.monotonic()))
         with self._lock:
-            self.dropped += len(self._data) + (self._control is not None) + self._inflight
+            self.dropped += (
+                len(self._data) + (self._control is not None) + self._inflight
+            )
             self._data.clear()
             self._control = None
         # Do not wait on Loguru's sink lock if an OS write is stuck. A stopped daemon

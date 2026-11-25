@@ -1,0 +1,179 @@
+{
+  "uid": "ecs-notifications",
+  "title": "ECS-EC — notificaciones: operaciones e intentos",
+  "editable": false,
+  "schemaVersion": 41,
+  "version": 1,
+  "timezone": "utc",
+  "refresh": "15s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "tags": [
+    "008",
+    "007"
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Política y cobertura esperadas",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Operaciones lógicas por función con conciliación de eventos únicos y cobertura007. Sin continuidad o ante replay no conciliable: N/D. Cada intento SMTP tiene su propia referencia; aceptación local no implica buzón o lectura. Los registros de intento de la tabla no son un total de notificaciones únicas."
+      }
+    },
+    {
+      "id": 10,
+      "type": "ecsec-coverage-panel",
+      "title": "Continuidad, métricas y diagnóstico · UTC",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 24,
+        "h": 20
+      },
+      "options": {
+        "revision": "007-v1",
+        "traceRatio": 1.0
+      }
+    },
+    {
+      "id": 20,
+      "type": "logs",
+      "title": "Registros de intentos SMTP · referencias opacas, aceptación y rechazos",
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "ecs-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"ecs-ec\",environment=\"$environment\",operation=\"notification.smtp\"} | json terminal=\"event\" | terminal=\"notification.delivery.attempt.completed\" | __error__=\"\""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ],
+  "timepicker": {
+    "refresh_intervals": [
+      "15s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "1m",
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Entorno",
+        "type": "custom",
+        "query": "local,test,vps",
+        "current": {
+          "text": "local",
+          "value": "local"
+        },
+        "includeAll": false,
+        "allValue": null,
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "operation",
+        "label": "Operación",
+        "type": "custom",
+        "query": "notification.configure,notification.query,notification.plan,notification.evaluate,notification.dispatch,notification.smtp",
+        "current": {
+          "text": "notification.evaluate",
+          "value": "notification.evaluate"
+        },
+        "includeAll": false,
+        "allValue": null,
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "outcome",
+        "label": "Resultado",
+        "type": "custom",
+        "query": "success,expected_rejection,unexpected_error",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "severity",
+        "label": "Severidad",
+        "type": "custom",
+        "query": "DEBUG,INFO,WARNING,ERROR",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "operation_ref",
+        "label": "Operación/publicación opaca",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": false,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  }
+}

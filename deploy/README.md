@@ -1,8 +1,9 @@
 # Operación común
 
 La plataforma es una imagen con un proceso Uvicorn y PostgreSQL 18 externo.
-Identidad006 y observabilidad007 básica ya están incorporadas desde sus propietarios;
-SMTP008 sigue pendiente.
+Identidad006 y observabilidad007 están incorporadas desde sus propietarios;
+SMTP008 y urgencias/historial están verificados con Mailpit local; relay de producción
+y enlaces externos008:T091 siguen pendientes.
 
 Consumo 001 entrega contexto/fuentes, configuración versionada, reglas puras y consulta
 web de detalle sobre recepción/almacenamiento 002 real. Para migración `cb63a76198be`, bootstrap
@@ -16,8 +17,7 @@ recuperación CAT-01 en el lifespan común. Migración `47457bdabdfa` y procedim
 próxima aceptación, reenvío/recuperación y reconciliación de calendario están en su
 [quickstart](../specs/002-registro-retencion-consumo/quickstart.md).
 La fachada/UI001, consulta agrupada y retirada protegida002 están integradas y verificadas
-localmente; la integración consumidora003 también está verificada. Faltan instrumentación
-ampliada007 y personas. Consultar la
+localmente; la integración consumidora003 también está verificada. La instrumentación ampliada007 está verificada; faltan personas. Consultar la
 [aceptación parcial](../specs/002-registro-retencion-consumo/validation/acceptance.md).
 Los procesos de recepción requieren bindings confiables por edificio, vacíos por defecto.
 Respaldo/restauración incluyen estas tablas junto con el resto de PostgreSQL; no restaurar
@@ -172,7 +172,8 @@ COMMIT;
 Comparar primero el snapshot según 009; después aplicar la invalidación técnica. Revisar
 la antigüedad de credenciales del snapshot y recuperar/restablecer cuentas según operación
 autorizada. Nunca borrar auditoría/cuentas ni limpiar esperas activas para resolver claves
-perdidas. Las comprobaciones reales de VPS y proveedores de negocio siguen pendientes.
+perdidas. Las comprobaciones reales de VPS/personas siguen pendientes; los proveedores locales
+de negocio se verifican en la regresión del paso4.
 
 ## Historial de consumo002
 
@@ -222,8 +223,9 @@ públicos de la exportación estática.
 [Stack, señales y limitaciones](observability/README.md) y
 [frontera Programador, TLS/mTLS y revocación](technical-gateway/README.md).
 El emisor no condiciona readiness, permisos, DB ni commits. El perfil técnico está
-separado de SMTP008 y de identidad006. Cobertura de negocio, cuotas, retención real,
-aceptación humana y VPS continúan pendientes según evidencia007.
+separado de SMTP008 y de identidad006. Cobertura001–006, métricas/continuidad y cuotas
+físicas/corte90% están verificadas localmente en el [paso4](../specs/007-observabilidad-externa/validation/step4.md).
+Retención24h/GC, recorrido final, aceptación humana y VPS continúan pendientes.
 
 ## Adquisición PAS600/SFTP (003)
 
@@ -267,7 +269,7 @@ los respaldos completos que también contienen identidad/auditoría.
 
 El emisor007 recibe operaciones ordinarias acquisition.receive/acquisition.process y
 etapas authenticate/transfer/seal/claim/parse/validate/receive/publish; sus fallos no revierten commits. No certifica entrega al visor
-ni continuación durable007, que sigue pendiente. El journal externo conserva esperas/
+por sí solo; continuación durable/cobertura transversal se verifican en el paso4. El journal externo conserva esperas/
 reintentos sin depender del backend. Evidencia y limitaciones en
 [aceptación003](../specs/003-simulador-pas600-sftp/validation/acceptance.md).
 No se ejecutó VPS ni se certifica firmware físico: antes de habilitarlo comprobar IDs,
@@ -294,4 +296,42 @@ interrupción después del commit puede perder señal: los logs no reemplazan ev
 funcional. No se emiten CSV/JSON nativo, nombres de archivo, valores, credenciales ni
 texto de excepciones. [Evidencia002](../specs/002-registro-retencion-consumo/validation/telemetry.md),
 [evidencia003](../specs/003-simulador-pas600-sftp/validation/telemetry.md).
-La cobertura/visores/cuotas/retención007 siguen en el paso4 y SMTP008 en su propietario.
+Cobertura/visores/cuotas007 se verifican en el paso4; TTL real/GC sigue pendiente y SMTP008 permanece en su propietario.
+
+## Notificaciones008: programación, urgencias e historial local
+
+La [guía008](../specs/008-notificaciones-programables/quickstart.md) y su
+[evidencia periódica](../specs/008-notificaciones-programables/validation/us2.md)
+describen el incremento verificado. Urgencias y reenvíos tienen [evidencia local](../specs/008-notificaciones-programables/validation/us4.md); usabilidad y relay externo siguen pendientes. Mailpit pertenece al perfil opcional `mail`, con
+imagen/digest fijados y puertos solo loopback; no participa en readiness.
+
+`NOTIFICATION_ENABLED=false` es el valor inicial. Al habilitarlo, el monolito ejecuta
+ciclos de hasta5s y un máximo de cuatro plazas SMTP. No hay worker desplegado por
+separado. Un error de configuración opcional desactiva correo y conserva el acceso
+funcional; un fallo de almacenamiento deja el trabajo durable pendiente o incierto.
+
+En local usar `MAIL_TRANSPORT=local_prueba`, `SMTP_HOST=mailpit`, `SMTP_PORT=1025`
+y `MAIL_FROM=ecs@example.test`. Éxito significa aceptación por el capturador.
+`APP_PUBLIC_BASE_URL` vacío hereda `PUBLIC_URL`; un valor explícito debe apuntar al
+origen funcional autenticado. Enlaces del correo no eluden sesión ni permisos.
+
+Producción requiere `MAIL_TRANSPORT=smtp_produccion`, remitente autorizado, dominio
+HTTPS real, `SMTP_PORT=587`, `SMTP_STARTTLS=true` y usuario/contraseña externos.
+El adaptador exige verificación estándar de certificado y hostname, sin downgrade.
+Timeout de socket10s y presupuesto total30s; una llamada de envío activa conserva
+su plaza hasta finalizar. No se guardan respuestas SMTP ni credenciales en historial.
+La configuración/certificado del relay real y los enlaces desde otra red siguen
+pendientes de008:T091; una prueba local no los acredita.
+
+Solo no aceptación temporal confirmada permite hasta tres intentos, con esperas de
+uno y cinco minutos desde el fin del anterior. DATA aceptado sigue aceptado aunque
+QUIT falle. Una confirmación perdida o un proceso interrumpido queda indeterminado
+y no se reintenta automáticamente. Message-ID estable no garantiza deduplicación
+externa. Tras reinicio se consolidan únicamente periódicos nunca intentados,
+conservando miembros, períodos y huecos; los intentos previos no se incorporan de nuevo.
+
+`/notificaciones/` muestra historial autorizado; el Operador solo ve su propia cuenta
+y todo contenido aún permitido. `/notificaciones/reglas/` requiere administración.
+La ventana inicial vacía informa conteo no disponible; cero conocido con historia
+íntegra permite «Sin novedades». La retención técnica007 no reemplaza los12 meses
+calendario de evidencia funcional. [Pendientes008](../specs/008-notificaciones-programables/tasks.md).

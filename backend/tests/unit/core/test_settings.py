@@ -20,7 +20,10 @@ from ecs_ec.core.timezones import iana_zone
 def test_invalid_configuration(changes):
     """Reject invalid backend, timezone, public origin and synthetic production credentials."""
     with pytest.raises(ValidationError):
-        Settings(_env_file=None, **changes)
+        # BaseSettings still reads exported values with _env_file=None. Keep this
+        # default-credential test independent from the explicit integration DB URL.
+        defaults={'database_url':'postgresql+psycopg://ecs_local:synthetic-local-only@localhost:5432/ecs_local'}
+        Settings(_env_file=None, **(defaults|changes))
 
 
 def test_test_database_gate_reads_dotenv(tmp_path, monkeypatch):

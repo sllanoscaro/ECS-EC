@@ -17,6 +17,8 @@ from ecs_ec.costs import models as costs_models  # noqa: F401 --004 owns financi
 
 from ecs_ec.acquisition import models as acquisition_models  # noqa: F401 --003 native evidence.
 
+from ecs_ec.notifications import models as notification_models  # noqa: F401 --008 owns its metadata.
+
 target_metadata = Base.metadata
 
 

@@ -3,31 +3,50 @@
 import pytest
 
 
-async def test_tls_basic_and_revocation_next_keepalive_request(gateway_client, gateway_provision):
+async def test_tls_basic_and_revocation_next_keepalive_request(
+    gateway_client, gateway_provision
+):
     """Revoke the mounted htpasswd file without reload; same client/cookies cannot query again."""
     response = await gateway_client.get("/grafana/api/frontend/settings")
     assert response.status_code == 200
     assert (await gateway_client.get("/jaeger/api/v3/services")).status_code == 200
     gateway_provision("revoke")
-    assert (await gateway_client.get("/grafana/api/frontend/settings")).status_code == 401
+    assert (
+        await gateway_client.get("/grafana/api/frontend/settings")
+    ).status_code == 401
     assert (await gateway_client.get("/jaeger/api/v3/services")).status_code == 401
     gateway_provision("grant")
 
 
 async def test_only_technical_basic_never_grants_functional_account(client):
     """Existing real006 endpoints reject technical credentials and role declarations without a session."""
-    for path in ("/api/v1/auth/session", "/api/v1/identity/accounts", "/api/v1/identity/administration-history"):
-        response = await client.get(path, auth=("prog-test-01", "Synthetic technical password 007"),
-                                    headers={"X-Role": "programador", "X-WEBAUTH-USER": "prog-test-01"})
+    for path in (
+        "/api/v1/auth/session",
+        "/api/v1/identity/accounts",
+        "/api/v1/identity/administration-history",
+    ):
+        response = await client.get(
+            path,
+            auth=("prog-test-01", "Synthetic technical password 007"),
+            headers={"X-Role": "programador", "X-WEBAUTH-USER": "prog-test-01"},
+        )
         assert response.status_code in {401, 403}
 
 
-async def test_functional_session_never_grants_technical_access(client, account_factory, login, gateway_client):
+async def test_functional_session_never_grants_technical_access(
+    client, account_factory, login, gateway_client
+):
     """Actual006 administrator cookies confer no Basic authorization to the technical listener."""
     admin = await account_factory(role="administrador_tecnico")
     assert (await login(admin.email)).status_code == 200
-    assert (await client.get("/api/v1/identity/administration-history")).status_code == 200
-    response = await gateway_client.get("/grafana/", auth=None, headers={"Cookie": "; ".join(f"{k}={v}" for k, v in client.cookies.items())})
+    assert (
+        await client.get("/api/v1/identity/administration-history")
+    ).status_code == 200
+    response = await gateway_client.get(
+        "/grafana/",
+        auth=None,
+        headers={"Cookie": "; ".join(f"{k}={v}" for k, v in client.cookies.items())},
+    )
     assert response.status_code == 401
 
 
@@ -37,23 +56,39 @@ async def test_other_environment_never_accepts_test_basic(gateway_client):
     import ssl
     from pathlib import Path
     import httpx
+
     other = os.environ.get("OBS_TEST_OTHER_ROOT")
     if not other:
-        pytest.skip("Second isolated stack/CA required for cross-environment acceptance")
+        pytest.skip(
+            "Second isolated stack/CA required for cross-environment acceptance"
+        )
     tls = ssl.create_default_context(cafile=str(Path(other) / "ca.crt"))
-    async with httpx.AsyncClient(verify=tls, trust_env=False, base_url="https://localhost:3445") as client:
-        response = await client.get("/jaeger/api/v3/services", auth=("prog-test-01", "Synthetic technical password 007"),
-                                    headers={"X-WEBAUTH-USER": "prog-test-01", "X-Environment": "test"})
+    async with httpx.AsyncClient(
+        verify=tls, trust_env=False, base_url="https://localhost:3445"
+    ) as client:
+        response = await client.get(
+            "/jaeger/api/v3/services",
+            auth=("prog-test-01", "Synthetic technical password 007"),
+            headers={"X-WEBAUTH-USER": "prog-test-01", "X-Environment": "test"},
+        )
         assert response.status_code == 401
-        assert (await client.get("/jaeger/api/v3/services", auth=("prog-other-01", "Synthetic other environment 007"))).status_code == 200
+        assert (
+            await client.get(
+                "/jaeger/api/v3/services",
+                auth=("prog-other-01", "Synthetic other environment 007"),
+            )
+        ).status_code == 200
 
 
-def test_process_mtls_identities_have_no_human_query_scope(gateway_root):
+def test_process_mtls_identities_have_no_human_query_scope(
+    gateway_root, gateway_project, gateway_image
+):
     """Real private listeners separate app/Alloy/health certificates and never accept Basic as mTLS."""
     import json
     import os
     import subprocess
-    code = '''
+
+    code = """
 import ssl,httpx,json
 out={}
 for identity in ['app','alloy','health']:
@@ -68,12 +103,23 @@ ctx=ssl.create_default_context(cafile='/tls/app/ca.crt')
 with httpx.Client(verify=ctx,trust_env=False,timeout=8) as client:
  out['basic_ingest']=client.post('https://technical-gateway:8444/v1/traces',auth=('prog-test-01','Synthetic technical password 007')).status_code
 print(json.dumps(out))
-'''
-    command = ["docker", "run", "--rm", "-i", "--user", str(os.getuid()), "--network", "ecs007-validation_technical_ingest"]
+"""
+    command = [
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "--user",
+        str(os.getuid()),
+        "--network",
+        gateway_project + "_technical_ingest",
+    ]
     for name in ("app", "alloy", "health"):
         command += ["-v", f"{gateway_root}/clients/{name}:/tls/{name}:ro"]
-    command += ["ecs007-validation-app:local", "/app/.venv/bin/python", "-"]
-    result = subprocess.run(command, input=code, text=True, capture_output=True, timeout=40, check=True)
+    command += [gateway_image, "/app/.venv/bin/python", "-"]
+    result = subprocess.run(
+        command, input=code, text=True, capture_output=True, timeout=40, check=True
+    )
     statuses = json.loads(result.stdout)
     assert statuses["app_trace"] == 200
     assert statuses["health_health"] == 200
@@ -87,22 +133,101 @@ print(json.dumps(out))
     assert statuses["health_trace"] == 403
 
 
-async def test_operator_keeps_functional_history_denial(client, account_factory, login, gateway_client):
+async def test_operator_keeps_functional_history_denial(
+    client, account_factory, login, gateway_client
+):
     """Actual006 operator can have a session while both administrative history and technical reads deny."""
     account = await account_factory(role="operador")
     assert (await login(account.email)).status_code == 200
-    assert (await client.get("/api/v1/identity/administration-history")).status_code == 403
-    response = await gateway_client.get("/logs/loki/api/v1/labels", auth=None,
-                                        headers={"Cookie": "; ".join(f"{k}={v}" for k, v in client.cookies.items())})
+    assert (
+        await client.get("/api/v1/identity/administration-history")
+    ).status_code == 403
+    response = await gateway_client.get(
+        "/logs/loki/api/v1/labels",
+        auth=None,
+        headers={"Cookie": "; ".join(f"{k}={v}" for k, v in client.cookies.items())},
+    )
     assert response.status_code == 401
 
 
-async def test_pdf_permission_matrix_requires_real005():
-    """007 gateway/PDF matrix remains in step4;005 and006 have separate real provider evidence."""
-    pytest.skip("007:T022 gateway/PDF acceptance remains in step4; real005 provider and006 matrix are available")
+@pytest.mark.parametrize("role", [None, "operador", "administrador_tecnico"])
+async def test_real_functional_pdf_matrix(
+    costs_client,
+    costs_environment,
+    account_factory,
+    session_factory,
+    identity_settings,
+    gateway_client,
+    role,
+):
+    """Real005 bytes/status/admission require006; technical Basic never grants business scope.
+
+    Both functional profiles can generate/read PDF with CSRF, while cookies and
+    declared roles cannot cross the separate technical boundary. No404 is evidence.
+    """
+    from backend.tests.contract.costs.test_calculations_api import authenticate
+    from backend.tests.contract.reports.test_reports_api import terminal
+
+    client = costs_client
+    technical = {"X-Role": "programador", "X-WEBAUTH-USER": "prog-test-01"}
+    if role is None:
+        for method, path in [
+            ("POST", "/api/v1/reports"),
+            ("GET", "/api/v1/reports"),
+            ("GET", "/api/v1/identity/administration-history"),
+            ("GET", "/api/v1/identity/accounts"),
+        ]:
+            response = await client.request(
+                method,
+                path,
+                json={"scale": "anual", "year": 2024} if method == "POST" else None,
+                auth=("prog-test-01", "Synthetic technical password 007"),
+                headers=technical,
+            )
+            assert response.status_code in {401, 403}, (path, response.status_code)
+            assert not response.content.startswith(b"%PDF-")
+        return
+    headers = await authenticate(
+        client, account_factory, session_factory, identity_settings, role
+    )
+    assert (
+        await client.post(
+            "/api/v1/reports",
+            json={"scale": "anual", "year": 2024},
+            headers={"Origin": identity_settings.origin},
+        )
+    ).status_code == 403
+    admission = await client.post(
+        "/api/v1/reports", json={"scale": "anual", "year": 2024}, headers=headers
+    )
+    assert admission.status_code == 202, admission.text
+    result = await terminal(client, admission.json()["id"])
+    assert result["state"] == "generado"
+    assert (await client.get(result["download_path"])).content.startswith(b"%PDF-")
+    assert (
+        await client.get("/api/v1/identity/administration-history")
+    ).status_code == (200 if role == "administrador_tecnico" else 403)
+    cookie = "; ".join(f"{k}={v}" for k, v in client.cookies.items())
+    for path in ("/grafana/", "/logs/loki/api/v1/labels", "/jaeger/api/v3/services"):
+        assert (
+            await gateway_client.get(
+                path, auth=None, headers={"Cookie": cookie, **technical}
+            )
+        ).status_code == 401
+    # Revoking only technical access cannot revoke a separately authorized functional session.
+    assert (
+        await client.post("/api/v1/auth/logout", headers=headers)
+    ).status_code == 204
+    denied = await client.get(
+        result["download_path"],
+        auth=("prog-test-01", "Synthetic technical password 007"),
+    )
+    assert denied.status_code == 401 and not denied.content.startswith(b"%PDF-")
 
 
-async def test_private_source_addresses_and_host_ports_cannot_bypass(gateway_root):
+async def test_private_source_addresses_and_host_ports_cannot_bypass(
+    gateway_root, gateway_project
+):
     """Actual source IPs have no host route; only the Basic listener publishes a loopback host port.
 
     Internal Docker bridges inhibit IPv4 gateway assignment as well as NAT/port
@@ -113,30 +238,53 @@ async def test_private_source_addresses_and_host_ports_cannot_bypass(gateway_roo
     import json
     import subprocess
     import httpx
-    sources = {"loki": (3100, "technical_store"), "jaeger": (16686, "technical_store"),
-               "grafana": (3000, "technical_store"), "alloy": (12345, "technical_ingest")}
+
+    sources = {
+        "loki": (3100, "technical_store"),
+        "jaeger": (16686, "technical_store"),
+        "grafana": (3000, "technical_store"),
+        "alloy": (12345, "technical_ingest"),
+    }
     async with httpx.AsyncClient(trust_env=False, timeout=1) as client:
+
         async def check(service, port, network):
             """Require absence of both published ports and direct source responses from the host."""
-            details = json.loads(subprocess.check_output(["docker", "inspect", f"ecs007-validation-{service}-1"]))[0]
+            details = json.loads(
+                subprocess.check_output(
+                    ["docker", "inspect", f"{gateway_project}-{service}-1"]
+                )
+            )[0]
             assert details["State"]["Running"]
             assert not details["HostConfig"].get("PortBindings")
-            address = details["NetworkSettings"]["Networks"]["ecs007-validation_" + network]["IPAddress"]
+            address = details["NetworkSettings"]["Networks"][
+                gateway_project + "_" + network
+            ]["IPAddress"]
             with pytest.raises(httpx.TransportError):
                 await client.get(f"http://{address}:{port}/")
-        await asyncio.gather(*(check(name, *values) for name, values in sources.items()))
-    details = json.loads(subprocess.check_output(["docker", "inspect", "ecs007-validation-technical-gateway-1"]))[0]
+
+        await asyncio.gather(
+            *(check(name, *values) for name, values in sources.items())
+        )
+    details = json.loads(
+        subprocess.check_output(
+            ["docker", "inspect", f"{gateway_project}-technical-gateway-1"]
+        )
+    )[0]
     assert set(details["HostConfig"]["PortBindings"]) == {"8443/tcp"}
     assert details["HostConfig"]["PortBindings"]["8443/tcp"][0]["HostIp"] == "127.0.0.1"
 
 
-async def test_missing_authorization_file_denies_without_fallback(gateway_client, gateway_root):
+async def test_missing_authorization_file_denies_without_fallback(
+    gateway_client, gateway_root
+):
     """Removing the mounted file immediately denies even valid Basic/cookie without reloading."""
     authorized = gateway_root / "credentials/authorized"
     temporary = gateway_root / "credentials/.authorization-test-backup"
     authorized.rename(temporary)
     try:
-        response = await gateway_client.get("/jaeger/api/v3/services", headers={"Cookie": "grafana_session=previous"})
+        response = await gateway_client.get(
+            "/jaeger/api/v3/services", headers={"Cookie": "grafana_session=previous"}
+        )
         assert response.status_code in {401, 403, 500}
     finally:
         temporary.rename(authorized)

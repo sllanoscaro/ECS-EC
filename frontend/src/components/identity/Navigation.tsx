@@ -12,7 +12,7 @@ export function Navigation({ links = [], collapsed = false, toggle, close }: { l
   const [error, setError] = useState('');
   const allowed = session && !session.must_change_password ? links.filter(link => session.permissions.includes(link.permission)) : [];
   /** Resolve consistent decorative icons from installed paths. */
-  function icon(href: string) { return href === '/' ? 'dashboard' : href.includes('usuarios') ? 'users' : href.includes('historial') ? 'history' : href.includes('administracion') ? 'settings' : href.includes('consumption') ? 'consumption' : href.includes('reportes') ? 'report' : 'costs'; }
+  function icon(href: string) { return href === '/' ? 'dashboard' : href.includes('notificaciones') ? 'mail' : href.includes('usuarios') ? 'users' : href.includes('historial') ? 'history' : href.includes('administracion') ? 'settings' : href.includes('consumption') ? 'consumption' : href.includes('reportes') ? 'report' : 'costs'; }
   /** Expand the desktop icon rail on its first activation; open the destination from the expanded panel. */
   function activate(event: MouseEvent<HTMLAnchorElement>) {
     if (collapsed && toggle && window.matchMedia('(min-width:901px)').matches) {
@@ -29,7 +29,7 @@ export function Navigation({ links = [], collapsed = false, toggle, close }: { l
     <p className="brand-caption">ECS-EC · Monitoreo eléctrico</p>
     {status === 'loading' ? <p role="status">Comprobando sesión…</p> : !session ? <a className="nav-item" href="/ingreso/"><Icon name="account" /><span>Ingresar</span></a> : <>
       {['Monitoreo', 'Administración'].map(group => {
-        const entries = allowed.filter(link => link.href.startsWith('/administracion') === (group === 'Administración'));
+        const entries = allowed.filter(link => (link.href.startsWith('/administracion')||link.href==='/notificaciones/reglas/') === (group === 'Administración'));
         return entries.length ? <div className="nav-group" key={group}><p className="nav-group-label">{group}</p>{entries.map(link => <a key={link.href} href={link.href} title={link.label} onClick={activate} className={`nav-item ${pathname?.replace(/\/$/, '') === link.href.replace(/\/$/, '') ? 'is-active' : ''}`} aria-current={pathname?.replace(/\/$/, '') === link.href.replace(/\/$/, '') ? 'page' : undefined}><Icon name={icon(link.href)} /><span>{link.label}</span></a>)}</div> : null;
       })}
       <div className="sidebar-account"><a className={`nav-item account-link ${pathname?.replace(/\/$/, '') === '/cuenta' ? 'is-active' : ''}`} href="/cuenta/" aria-label="Mi cuenta" title={session.account?.email} aria-current={pathname?.replace(/\/$/, '') === '/cuenta' ? 'page' : undefined} onClick={activate}><Icon name="account" /><span className="account-details"><strong>{session.account?.email}</strong><small>{session.account?.role === 'operador' ? 'Operador' : 'Administrador técnico'}</small></span></a><button type="button" className="logout-button" aria-label="Salir" title="Cerrar sesión" onClick={leave}><Icon name="logout" /></button></div>

@@ -42,14 +42,15 @@ test("functional navigation retains006 permissions without a technical viewer", 
     await page.getByLabel("Correo electrónico", { exact: true }).fill(`obs-${role}@example.test`);
     await page.getByLabel("Contraseña", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Ingresar", exact: true }).click();
-    await expect(page).toHaveURL(/\/cuenta\/$/);
+    await expect(page).toHaveURL(/^https?:\/\/[^/]+\/(?:cuenta\/)?$/);
+    await page.goto("/cuenta/");
     await expect(page.getByRole("link", { name: /observabilidad|grafana|jaeger/i })).toHaveCount(0);
     if (role === "admin") {
-      await page.getByRole("link", { name: "Historial", exact: true }).click();
+      await page.locator('a[href="/administracion/historial/"]').click();
       await expect(page.getByRole("heading", { name: "Historial administrativo", exact: true })).toBeVisible();
       expect((await context.request.get("/api/v1/identity/administration-history")).status()).toBe(200);
     } else {
-      await expect(page.getByRole("link", { name: "Historial", exact: true })).toHaveCount(0);
+      await expect(page.locator('a[href="/administracion/historial/"]')).toHaveCount(0);
     }
     const cookie = (await context.cookies()).map(c => `${c.name}=${c.value}`).join("; ");
     const response = await context.request.get((process.env.OBS_E2E_URL ?? "https://localhost:3444") + "/grafana/", { headers: { Cookie: cookie } });

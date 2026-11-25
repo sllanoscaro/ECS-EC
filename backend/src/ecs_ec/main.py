@@ -97,8 +97,12 @@ def create_app(
         app.add_exception_handler(ReportsProblem, reports_problem)
         app.include_router(reports_router)
         modules = modules + (reports_module(),)
+        from ecs_ec.notifications.lifecycle import install as install_notifications
+        modules = modules + (install_notifications(app, identity_service, app.state.consumption),)
         app.state.identity = identity_service
         app.add_middleware(IdentityMiddleware, identity=identity_service)
+        from ecs_ec.observability.http import ObservationBoundary
+        app.add_middleware(ObservationBoundary)
         app.add_exception_handler(IdentityProblem, problem_response)
         app.add_exception_handler(RequestValidationError, validation_response)
         app.include_router(router)

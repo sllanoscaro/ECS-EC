@@ -49,10 +49,11 @@ export function sessionActivityHeaders(activity: Activity = "background") {
 }
 
 /** Restrict return destinations to installed relative routes, without encoded origins or unvalidated query. */
-export function safeReturn(value: string | null, routes = ["/reportes/", "/costos/", "/administracion/costos/", "/consumption/", "/administracion/consumo/", "/cuenta/", "/administracion/usuarios/", "/administracion/historial/"]) {
+export function safeReturn(value: string | null, routes = ["/notificaciones/", "/notificaciones/reglas/", "/reportes/", "/costos/", "/administracion/costos/", "/consumption/", "/administracion/consumo/", "/cuenta/", "/administracion/usuarios/", "/administracion/historial/"]) {
   if (!value || !value.startsWith("/") || value.startsWith("//") || /[\\%\u0000-\u0020]/.test(value)) return "/cuenta/";
   try {
     const url = new URL(value, "https://local.invalid");
+    if (!url.hash && ((url.pathname==='/notificaciones/'&&/^\?entrega=[a-f0-9-]{36}$/i.test(url.search))||(url.pathname==='/notificaciones/reglas/'&&/^\?regla=[a-f0-9-]{36}$/i.test(url.search))) && routes.includes(url.pathname))return url.pathname+url.search;
     if (url.pathname === "/reportes/" && routes.includes(url.pathname) && !url.hash && /^\?reporte=[a-f0-9-]{36}$/i.test(url.search)) return url.pathname + url.search;
     if (url.origin !== "https://local.invalid" || url.search || url.hash || !routes.includes(url.pathname)) return "/cuenta/";
     return url.pathname;

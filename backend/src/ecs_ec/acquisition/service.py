@@ -45,7 +45,7 @@ class Acquisition:
         now = self.clock.now()
         return dict(recorded_at=now, retain_until=anniversary(now, zone))
 
-    def signal(self, handle, stage=None, outcome="success", code=None):
+    def signal(self, handle, stage=None, outcome="success", code=None, counts=None):
         """Emit only fixed technical fields; failures and disabled output cannot escape to business transactions."""
         try:
             if self.telemetry:
@@ -61,8 +61,15 @@ class Acquisition:
                     self.telemetry.complete(
                         handle,
                         outcome=outcome,
+                        counts=counts,
                         code=code
-                        or ("ok" if outcome == "success" else "processing_interrupted"),
+                        or (
+                            "ok"
+                            if outcome == "success"
+                            else "invalid_input"
+                            if outcome == "expected_rejection"
+                            else "processing_interrupted"
+                        ),
                     )
         except Exception:
             pass
@@ -145,6 +152,9 @@ class Acquisition:
             return completed
         handle = None
         terminal = "success"
+        counts = None
+        terminal_code = None
+        evaluation = None
         with bind(context):
             try:
                 if self.telemetry:
@@ -157,7 +167,9 @@ class Acquisition:
                 evaluation, binding, publication = await self.prepare(
                     publication_id, evaluation_id, handle=handle
                 )
+                counts, invalid = await self.technical_summary(evaluation)
                 if evaluation.state == "completed":
+                    terminal = "expected_rejection" if invalid else "success"
                     return evaluation.outcome
                 if evaluation.attempt_id is None:
                     return None
@@ -180,13 +192,61 @@ class Acquisition:
                 if any(result.reason_code == "too_early" for result in outcome.results):
                     self.signal(handle, "wait", "expected_rejection", code="too_early")
                 await self.finish(evaluation.id, binding, outcome)
+                if outcome.results and not any(
+                    r.status == "accepted" for r in outcome.results
+                ):
+                    terminal = "expected_rejection"
+                    if all(r.status == "duplicate" for r in outcome.results):
+                        terminal_code = "duplicate"
                 self.signal(handle, "publish")
                 return outcome.model_dump(mode="json")
             except Exception:
                 terminal = "unexpected_error"
                 raise
             finally:
-                self.signal(handle, outcome=terminal)
+                self.signal(
+                    handle,
+                    outcome=terminal,
+                    code=terminal_code,
+                    counts=counts if terminal != "unexpected_error" else None,
+                )
+
+    async def technical_summary(self, evaluation):
+        """Read committed file outcomes for this evaluation; a failed technical read cannot fail processing.
+
+        File counts describe adaptation, never transferred bytes or accepted002 records.
+        Unknown/incomplete parse state stays null rather than inventing a complete summary.
+        """
+        try:
+            async with UnitOfWork(self.database.sessions) as uow:
+                files = (
+                    await uow.session.scalars(
+                        select(ReceivedFile).where(
+                            ReceivedFile.session_id == evaluation.session_id
+                        )
+                    )
+                ).all()
+                invalid = await uow.session.scalar(
+                    select(AdaptationResult.id)
+                    .where(
+                        AdaptationResult.evaluation_id == evaluation.id,
+                        AdaptationResult.reason.is_not(None),
+                    )
+                    .limit(1)
+                )
+                if any(
+                    file.parse_status not in {"parsed", "unreadable"} for file in files
+                ):
+                    return None, bool(invalid)
+                return dict(
+                    files_seen=len(files),
+                    files_parsed=sum(file.parse_status == "parsed" for file in files),
+                    files_unreadable=sum(
+                        file.parse_status == "unreadable" for file in files
+                    ),
+                ), bool(invalid)
+        except Exception:
+            return None, False
 
     async def prepare(self, publication_id, evaluation_id=None, *, handle=None):
         """Freeze canonical ledger-derived input once; a second processor sees exactly the same attempt and records."""

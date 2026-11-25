@@ -1,6 +1,7 @@
 /** Small consistent stroke icons; decorative by default because controls carry text labels. */
 export function Icon({ name, size = 20 }: { name: string; size?: number }) {
   const paths: Record<string, string> = {
+    mail: 'M3 5h18v14H3V5Zm0 0 9 7 9-7',
     dashboard: 'M4 20V12h3v8M11 20V7h3v13M18 20V3h3v17',
     consumption: 'M13 2 4 14h7l-1 8 10-13h-7l1-7Z',
     costs: 'M4 6c0-4 16-4 16 0s-16 4-16 0Zm0 0v12c0 4 16 4 16 0V6M4 12c0 4 16 4 16 0',

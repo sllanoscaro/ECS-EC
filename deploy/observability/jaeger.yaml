@@ -25,6 +25,8 @@ extensions:
             keys: /badger/keys
             values: /badger/values
           ephemeral: false
+          consistency: true
+          maintenance_interval: 10m
           ttl:
             spans: ${env:OBS_RETENTION:-168h}
 receivers:

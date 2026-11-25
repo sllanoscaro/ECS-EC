@@ -392,3 +392,60 @@ main { overflow-x:auto; }
 .report-facts dt{color:var(--muted);font-size:.875rem;margin-bottom:6px}
 .report-facts dd{margin:0;overflow-wrap:anywhere}
 @media(max-width:640px){.report-form{align-items:stretch}.report-form label,.report-form button{width:100%}.report-facts{grid-template-columns:1fr;gap:16px}}
+
+/*008 rules/delivery workspace uses the existing Electro Conforma shell and ElectroSans.
+  The content grid is 12 equal tracks + 11x24px gaps: master spans4, editor spans8;
+  both edges match the existing canvas. Below1100px the two regions stack. */
+.notifications-page { font-size:14px; }
+.notifications-page h1 { font-size:28px; margin-bottom:8px; }
+.notifications-page h2 { font-size:18px; margin:0 0 12px; }
+.notifications-page h3 { font-size:16px; }
+.notification-intro { color:var(--muted); margin:0 0 24px; }
+.notification-toolbar,.notification-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:16px 0; }
+.notification-toolbar a { margin-right:auto; }
+.notification-workspace { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:24px; align-items:start; }
+.notification-rule-list { grid-column:span 4; border:1px solid var(--rule); padding:20px; border-radius:8px; background:var(--surface); }
+.notification-editor { grid-column:span 8; min-width:0; border:1px solid var(--rule); padding:24px; border-radius:8px; background:var(--surface); }
+.notification-rule-list ul { list-style:none; padding:0; margin:0; }
+.notification-rule-list li { border-top:1px solid var(--rule); }
+.notification-rule-list li[data-selected=true] { background:#eef1ef; }
+.notification-rule-list li button { display:flex; flex-direction:column; align-items:start; width:100%; border:0; border-radius:0; background:transparent; padding:14px 0; text-align:left; gap:6px; }
+.notification-rule-list li span { color:var(--muted); font-size:13px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.notification-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.notification-fields label { display:flex; flex-direction:column; gap:8px; }
+.notification-fields input,.notification-fields select { width:100%; }
+.notification-fields label span[role=alert],.notification-fields label[aria-invalid=true] { color:var(--error-ink); }
+.notification-editor fieldset { min-width:0; padding:20px 0; margin:16px 0; border:0; border-top:1px solid var(--rule); }
+.notification-editor legend { padding:0 8px 0 0; font-weight:600; }
+.notification-choice { display:flex; align-items:start; gap:10px; padding:8px 0; }
+.notification-choice input { flex:none; margin-top:4px; }
+.notification-editor p { line-height:1.55; }
+.notification-primary { background:var(--ink); border-color:var(--ink); color:white; }
+.notification-primary:disabled { color:var(--muted); background:#eef1ef; border-color:var(--control); }
+.notification-preview { border-top:1px solid var(--rule); padding-top:12px; margin-top:20px; }
+.notification-preview ol { padding-left:20px; }
+.notification-preview li { padding:8px 0; }
+.notification-preview span { display:block; margin-top:6px; color:var(--muted); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+@media(max-width:1100px) { .notification-rule-list,.notification-editor { grid-column:span 12; } }
+@media(max-width:640px) { .notification-fields { grid-template-columns:1fr; } .notification-editor,.notification-rule-list { padding:16px; } .notification-actions button { min-height:44px; } .notifications-page h1 { font-size:24px; } }
+
+.notification-choice span { min-width:0; overflow-wrap:anywhere; }
+.notification-history-filters { border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:20px 0; margin-bottom:24px; }
+.notification-history-filters button { margin-top:16px; }
+.notification-filter-primary { display:flex; gap:16px; align-items:end; flex-wrap:wrap; }
+.notification-filter-primary label { display:flex; flex-direction:column; gap:8px; flex:1; min-width:180px; max-width:400px; }
+.notification-filter-primary button { margin:0; }
+.notification-history-filters details { margin-top:16px; }
+.notification-history-filters summary { cursor:pointer; width:fit-content; }
+.notification-history-filters details .notification-fields { margin-top:16px; }
+.notification-resend-dialog { max-width:min(560px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow:auto; border:1px solid var(--rule); border-radius:8px; padding:24px; color:var(--ink); background:var(--surface); }
+.notification-resend-dialog::backdrop { background:rgb(0 0 0 / .35); }
+.notification-resend-dialog form>label:first-child { display:flex; flex-direction:column; gap:8px; }
+.notification-resend-dialog textarea { width:100%; border:1px solid var(--control); border-radius:4px; padding:10px; font:inherit; resize:vertical; }
+.notification-delivery-detail { overflow-wrap:anywhere; }
+.notification-delivery-detail dl { display:grid; grid-template-columns:minmax(100px,1fr) 2fr; gap:12px 16px; }
+.notification-delivery-detail dd { margin:0; font-variant-numeric:tabular-nums; }
+.notification-delivery-state { font-size:20px; font-weight:600; }
+.notification-summary section,.notification-delivery-detail>section { border-top:1px solid var(--rule); padding-top:12px; margin-top:20px; }
+.notification-delivery-detail nav { display:flex; flex-direction:column; gap:12px; margin-top:24px; }
+@media(max-width:640px) { .notification-delivery-detail dl { grid-template-columns:1fr; } .notification-delivery-detail dt { font-weight:600; } }

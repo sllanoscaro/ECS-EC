@@ -1,0 +1,17 @@
+{
+  "type": "panel",
+  "id": "ecsec-coverage-panel",
+  "name": "ECS-EC continuity",
+  "skipDataQuery": true,
+  "info": {
+    "description": "Bounded closed-window reconciliation for logs and independently queryable traces.",
+    "author": {"name": "ECS-EC"},
+    "keywords": ["observability", "continuity"],
+    "logos": {"small": "logo.svg", "large": "logo.svg"},
+    "links": [],
+    "screenshots": [],
+    "version": "1.0.0",
+    "updated": "2026-11-24"
+  },
+  "dependencies": {"grafanaDependency": ">=13.3.0", "plugins": []}
+}

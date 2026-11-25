@@ -35,7 +35,7 @@ def serialize(event: dict) -> bytes:
         candidate = dict(event)
         if type(candidate.get("code")) is str and candidate["code"] not in CODES:
             candidate["code"] = "unclassified"
-        for timestamp in (candidate.get("timestamp"), *((candidate.get("health") or {}).get(k) for k in ("last_log_collector_success", "last_trace_export_success"))):
+        for timestamp in (candidate.get("timestamp"), *((candidate.get("health") or {}).get(k) for k in ("last_log_collector_success", "last_trace_export_success", "collector_started_at"))):
             if timestamp is not None:
                 if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?Z", timestamp):
                     raise ValueError()

@@ -3,7 +3,7 @@
   "title": "ECS-EC — observabilidad técnica",
   "editable": false,
   "schemaVersion": 41,
-  "version": 1,
+  "version": 2,
   "timezone": "utc",
   "refresh": "15s",
   "time": {
@@ -22,11 +22,26 @@
         "x": 0,
         "y": 0,
         "w": 24,
-        "h": 5
+        "h": 3
       },
       "options": {
         "mode": "markdown",
-        "content": "Entorno exclusivo del gateway. UTC; ventana inicial 15 min; política 007-v1, logs/trazas 168 h (test:24 h), muestreo de trazas1.0. Cobertura **desconocida** hasta conciliar secuencias, pérdidas y señales consultables. La ausencia no equivale a cero ni prueba que no hubo operación. Transporte OTLP confirmado no certifica persistencia. No hay cobertura de negocio acreditada todavía. [Consultar trazas](/jaeger/)."
+        "content": "ECS-EC · Solo consulta técnica del entorno autorizado. UTC [inicio,fin). Cobertura independiente por señal; las ventanas abiertas son provisionales. Los logs de etapas no cuentan operaciones. [Buscar trazas](/jaeger/)."
+      }
+    },
+    {
+      "id": 10,
+      "type": "ecsec-coverage-panel",
+      "title": "Continuidad, métricas y diagnóstico · UTC",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 24,
+        "h": 20
+      },
+      "options": {
+        "revision": "007-v1",
+        "traceRatio": 1.0
       }
     },
     {
@@ -35,9 +50,9 @@
       "title": "Eventos técnicos observados — UTC",
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 23,
         "w": 24,
-        "h": 12
+        "h": 10
       },
       "datasource": {
         "type": "loki",
@@ -46,7 +61,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{service_name=\"ecs-ec\"}",
+          "expr": "{service_name=\"ecs-ec\",environment=\"$environment\",operation=~\"$operation\",outcome=~\"$outcome\",severity=~\"$severity\"} |~ \"${operation_ref:regex}\"",
           "queryType": "range",
           "maxLines": 1000
         }
@@ -59,11 +74,11 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Terminales observados por operación/resultado — cobertura desconocida",
-      "description": "Solo operation.completed; no es un conteo contable ni prueba de cobertura de negocio. Ventana/corte de Grafana UTC. Recepción y PDF tienen terminales propios, pendientes del catálogo US3.",
+      "title": "Entregas brutas de terminales — no usar como total lógico",
+      "description": "Agregados brutos de Loki; pueden incluir relecturas. El panel de conciliación contrasta filas únicas y limita la cobertura si difieren. Excluye admisiones, ejecuciones y rechazos PDF previos a admisión.",
       "gridPos": {
         "x": 0,
-        "y": 17,
+        "y": 33,
         "w": 24,
         "h": 5
       },
@@ -80,11 +95,114 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (operation, outcome) (count_over_time({service_name=\"ecs-ec\"} | json event=\"event\" | event=\"operation.completed\" | __error__=\"\" [$__range]))",
+          "expr": "sum by (environment,operation,outcome) (count_over_time({service_name=\"ecs-ec\",environment=\"$environment\",operation=~\"$operation\",outcome=~\"$outcome\",severity=~\"$severity\"} | json terminal=\"event\" | (terminal=\"operation.completed\" and operation!=\"report.generate\") or terminal=\"reception.completed\" or terminal=\"report.completed\" or terminal=\"notification.operation.completed\" | __error__=\"\" [$__range]))",
           "queryType": "instant",
           "legendFormat": "{{operation}} / {{outcome}}"
         }
       ]
     }
-  ]
+  ],
+  "timepicker": {
+    "refresh_intervals": [
+      "15s",
+      "30s",
+      "1m",
+      "5m"
+    ],
+    "time_options": [
+      "1m",
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Entorno",
+        "type": "custom",
+        "query": "local,test,vps",
+        "current": {
+          "text": "local",
+          "value": "local"
+        },
+        "includeAll": false,
+        "allValue": null,
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "operation",
+        "label": "Operación",
+        "type": "custom",
+        "query": "acquisition.receive,acquisition.process,reception.accept,consumption.aggregate,consumption.retention,consumption.query_detail,consumption.query_aggregates,cost.calculate,cost.compare,cost.query,report.generate,report.query,report.download,identity.authenticate,identity.authorize,identity.session,administration.change,administration.query,telemetry,notification.configure,notification.query,notification.plan,notification.evaluate,notification.dispatch,notification.smtp",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "outcome",
+        "label": "Resultado",
+        "type": "custom",
+        "query": "success,expected_rejection,unexpected_error",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "severity",
+        "label": "Severidad",
+        "type": "custom",
+        "query": "DEBUG,INFO,WARNING,ERROR",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "options": []
+      },
+      {
+        "name": "operation_ref",
+        "label": "Operación/publicación opaca",
+        "type": "textbox",
+        "query": ".*",
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": false,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  }
 }

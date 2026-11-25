@@ -34,3 +34,54 @@ con el emisor real. Imprime referencias/corte/salud técnicos; no ejecuta consul
 negocio y no acredita cobertura001–006. Ejecutarlo en red de ingesta del stack con
 certificados de aplicación/salud, nunca como endpoint público. Ver comando reproducible
 en [stack](../../deploy/observability/README.md).
+
+## Cuotas y dashboard
+
+`prepare_quotas.py prepare|unmount --root /raíz/privada --image <imagen-local>
+--allow-host-mounts` requiere intención explícita de operar mounts exclusivos. Preparar
+TLS primero, con sus destinos técnicos vacíos. Usa Docker privilegiado sin red y
+nsenter al namespace de montaje del host para las cinco imágenes ext4 nuevas;
+no toca volúmenes funcionales ni configura fstab. No admite sobrescribir recursos.
+`unmount` verifica propietario, mountpoint exacto y loop/backing registrado; conserva
+imágenes para revisión. Si falla a mitad, conserva manifiesto y estado para limpieza
+verificada, sin desmontar rutas ajenas. El perfil comprobado es Linux local/test,
+no un procedimiento de VPS ya validado. [Operación y reservas](../../deploy/observability/README.md).
+
+`render_dashboard.py --environment test --policy-revision 007-sampling-test
+--trace-ratio 0.1 --output /raíz/privada/dashboard` genera `platform.json` y
+`notifications.json` con la misma política, a partir de sus dashboards versionados.
+Cada archivo se publica atómicamente. Salida externa0700/0600, sin secretos ni red.
+Configurar OBS_DASHBOARD_DIRECTORY con ese directorio y alinear revisión/ratio del
+emisor. Admite1.0/0.1; ratio0.1 exige revisión distinta de007-v1. El módulo JS del
+plugin es fuente manual, no un bundle generado; se prueba con Node --test.
+
+## Ensayo reanudable24h
+
+`retention_probe.py start` exige raíz test propia con manifiesto de cuotas, CA y stack
+exclusivo. El contenedor `<project>-worker` es una fixture técnica privada que ejecuta
+el emisor real con sus certificados/spool, sin HTTP de negocio; el operador puede
+usar el app del proyecto como productor ajustando explícitamente su fixture. No se
+añade este worker a la composición de producción. La contraseña de prueba debe
+residir en archivo propio0600, sin mostrarse en argumentos ni resultados:
+
+```sh
+uv run python scripts/observability/retention_probe.py start \
+  --root /raíz/privada/test --project ecs007-ensayo \
+  --image ecs007-host-tools:local --url https://localhost:3446 \
+  --password-file /raíz/privada/test/probe-password
+uv run python scripts/observability/retention_probe.py run --root /raíz/privada/test
+uv run python scripts/observability/retention_probe.py status --root /raíz/privada/test
+```
+
+`start` comprueba mounts antes de reiniciar únicamente Loki/Jaeger del ensayo; emite
+10operaciones técnicas y verifica tres señales antes/después. El archivo
+retention-probe.json guarda cortes, archivos/asignación física y referencias, nunca
+contraseñas. `run` usa UTC real/CLOCK_BOOTTIME, espera en intervalos<=60s y puede
+reiniciarse. No ejecutar simultáneamente fallos/cuotas, alterar reloj, recrear datos
+ni desmontar recursos del ensayo. Mantener el emisor técnico para heartbeat/TTL de
+spool y snapshot de cuotas; sin snapshot fresco ingesta se cierra507.
+
+`expired_query_confirmed_physical_review_pending` no acepta GC. Los dos casos
+real_time de test_retention_sampling.py revisan expiración consultable y retirada de
+archivos físicos originales por separado; Badger puede necesitar evidencia adicional.
+Ningún script marca tareas/checklists. [Límites y continuación](../../specs/007-observabilidad-externa/validation/retention.md).

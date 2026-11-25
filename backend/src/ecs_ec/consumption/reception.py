@@ -272,8 +272,8 @@ class Reception:
                 counts = reception_counts(outcome)
                 if any(r.reason_code == 'too_early' for r in outcome.results):
                     signal(self.telemetry, handle, stage='wait', outcome='expected_rejection', code='too_early')
-                rejected = not counts['records_accepted'] and bool(counts['records_other_rejected'] or counts['records_invalid'])
-                result, code = ('expected_rejection', 'too_early' if any(r.reason_code == 'too_early' for r in outcome.results) else 'invalid_input') if rejected else ('success', 'ok')
+                rejected = not counts['records_accepted'] and bool(counts['records_other_rejected'] or counts['records_invalid'] or counts['records_duplicate'])
+                result, code = ('expected_rejection', 'too_early' if any(r.reason_code == 'too_early' for r in outcome.results) else 'duplicate' if counts['records_duplicate'] and not (counts['records_invalid'] or counts['records_other_rejected']) else 'invalid_input') if rejected else ('success', 'ok')
                 signal(self.telemetry, handle, event='execution.completed', outcome=result, code=code)
                 signal(self.telemetry, handle, event='reception.completed', outcome=result, code=code, counts=counts)
             except Exception:

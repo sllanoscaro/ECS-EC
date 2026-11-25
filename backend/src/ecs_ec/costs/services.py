@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import select, text, tuple_
 
+from ecs_ec.costs.telemetry import progress
 from ecs_ec.core.unit_of_work import UnitOfWork
 from ecs_ec.core.retention import anniversary
 from ecs_ec.consumption.catalog_storage import lock_configuration
@@ -58,6 +59,7 @@ class Costs:
                 raise CostsProblem('building_context_missing', 503)
             old = await replay(uow, actor_ref, operation, key, body)
             if old:
+                progress('read')
                 return old.response, old.http_status
             response, status = await handler(uow, actor_ref)
             await remember(uow, actor_ref, operation, key, body, response, status, self.clock, self.timezone)
@@ -65,6 +67,7 @@ class Costs:
             session.last_activity_at = max(session.last_activity_at, now)
             session.idle_expires_at = min(session.absolute_expires_at, session.last_activity_at + timedelta(minutes=30))
             await uow.commit()
+            progress('commit')
             return response, status
 
     async def get_supply(self, principal):
@@ -90,11 +93,14 @@ class Costs:
             async with UnitOfWork(self.database.sessions) as read:
                 await read.session.execute(text('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY'))
                 inputs = await capture(read, consumption=self.consumption, supply_id=supply.id, request=request, cutoff_at=self.clock.now())
+            progress('capture')
             try:
                 result = engine.evaluate(inputs)
+                progress('calculate')
             except CostsProblem:
                 raise
             except Exception:
+                progress('calculate', failed=True)
                 raise EngineFailure(inputs) from None
             return await self._save_calculation(uow, actor_ref, inputs, result), 201
         try:
@@ -314,7 +320,9 @@ class Costs:
         """Persist a validated pair inside an authorized caller's building lock, including trusted local provisioning."""
         from ecs_ec.costs.comparison import compare
         from ecs_ec.costs.models import Comparison, ComparisonLine
+        progress('capture')
         result = compare(await self._calculation_view(uow, calculation), self._bill_view(bill))
+        progress('compare')
         previous = await uow.session.scalar(select(Comparison).where(Comparison.calculation_id == calculation.id,
             Comparison.bill_revision_id == bill.id).order_by(Comparison.revision.desc()).limit(1))
         now = self.clock.now()

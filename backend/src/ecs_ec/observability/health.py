@@ -1,7 +1,7 @@
 """Signal-specific transport evidence and conservative heartbeat continuity, never business readiness."""
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 import httpx
 from ecs_ec.core.clock import SystemClock
 
@@ -15,12 +15,16 @@ class Health:
         self.collector_status, self.last_collector_success = "unknown", None
         self.collector_dropped = None
         self._sent = None
+        self.collector_started_at = None
+        self.collector_restarts = 0
 
     def observe_collector(self, *, success, dropped=None):
         """Update log evidence only; failure preserves any previous success and nullable drop count."""
         if success:
             self.collector_status = "available"
-            self.last_collector_success = self.clock.now().isoformat().replace("+00:00", "Z")
+            self.last_collector_success = (
+                self.clock.now().isoformat().replace("+00:00", "Z")
+            )
         else:
             self.collector_status = "degraded"
         if type(dropped) is int and dropped >= 0:
@@ -35,7 +39,9 @@ class Health:
         """
         try:
             async with asyncio.timeout(1):
-                async with httpx.AsyncClient(verify=tls, trust_env=False, follow_redirects=False, timeout=1) as client:
+                async with httpx.AsyncClient(
+                    verify=tls, trust_env=False, follow_redirects=False, timeout=1
+                ) as client:
                     async with client.stream("GET", endpoint) as response:
                         if response.status_code != 200:
                             raise ValueError()
@@ -44,36 +50,71 @@ class Health:
                             body += chunk
                             if len(body) > 65536:
                                 raise ValueError()
-            permitted = {"loki_write_sent_entries_total": 0, "loki_write_dropped_entries_total": 0}
+            permitted = {
+                "loki_write_sent_entries_total": 0,
+                "loki_write_dropped_entries_total": 0,
+            }
             found = set()
+            started = None
             for line in body.decode().splitlines():
                 parts = line.split()
                 if len(parts) != 2:
                     continue
                 name = parts[0].split("{", 1)[0]
+                if name == "process_start_time_seconds":
+                    import math
+
+                    value = float(parts[1])
+                    if math.isfinite(value) and value > 0:
+                        started = (
+                            datetime.fromtimestamp(value, UTC)
+                            .isoformat()
+                            .replace("+00:00", "Z")
+                        )
                 if name in permitted:
                     value = float(parts[1])
                     if not value.is_integer() or value < 0:
                         raise ValueError()
                     permitted[name] += int(value)
                     found.add(name)
+            if started is not None:
+                if (
+                    self.collector_started_at is not None
+                    and started != self.collector_started_at
+                ):
+                    self.collector_restarts += 1
+                    self.collector_status = "unknown"
+                self.collector_started_at = started
             if "loki_write_sent_entries_total" in found:
                 sent = permitted["loki_write_sent_entries_total"]
                 if sent > (self._sent or 0):
-                    self.observe_collector(success=True, dropped=permitted["loki_write_dropped_entries_total"])
+                    self.observe_collector(
+                        success=True,
+                        dropped=permitted["loki_write_dropped_entries_total"],
+                    )
                 self._sent = sent
         except Exception:
             self.observe_collector(success=False)
 
     def snapshot(self):
         """Return strictly schema-defined counters/status, with null for unavailable evidence."""
-        return dict(logs_dropped_total=self.logs.dropped, spans_dropped_total=self.traces.dropped,
-                    schema_rejected_total=self.logs.schema_rejected, log_queue_depth=self.logs.depth,
-                    span_queue_depth=self.traces.depth, spool_dropped_total=self.logs.spool_dropped,
-                    collector_dropped_total=self.collector_dropped, log_collector_status=self.collector_status,
-                    last_log_collector_success=self.last_collector_success, trace_export_status=self.traces.status,
-                    last_trace_export_success=self.traces.last_success, trace_export_failures_total=self.traces.failures,
-                    trace_exported_spans_total=self.traces.exported)
+        return dict(
+            collector_restarts_total=self.collector_restarts,
+            collector_started_at=self.collector_started_at,
+            logs_dropped_total=self.logs.dropped,
+            spans_dropped_total=self.traces.dropped,
+            schema_rejected_total=self.logs.schema_rejected,
+            log_queue_depth=self.logs.depth,
+            span_queue_depth=self.traces.depth,
+            spool_dropped_total=self.logs.spool_dropped,
+            collector_dropped_total=self.collector_dropped,
+            log_collector_status=self.collector_status,
+            last_log_collector_success=self.last_collector_success,
+            trace_export_status=self.traces.status,
+            last_trace_export_success=self.traces.last_success,
+            trace_export_failures_total=self.traces.failures,
+            trace_exported_spans_total=self.traces.exported,
+        )
 
 
 def heartbeat_continuity(last: datetime | None, now: datetime) -> str:

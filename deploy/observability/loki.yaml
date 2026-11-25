@@ -36,6 +36,8 @@ compactor:
   retention_delete_delay: 10m
   delete_request_store: filesystem
 limits_config:
+  #007 owns severity; do not add an unapproved detected_level metadata dimension.
+  discover_log_levels: false
   retention_period: ${OBS_RETENTION:-168h}
   query_timeout: 30s
   max_entries_limit_per_query: 10000

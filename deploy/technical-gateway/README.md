@@ -15,6 +15,9 @@ export OBS_RESOURCE_ROOT="$HOME/.local/state/ecs-ec/observability/local"
 export OBS_UID="$(id -u)"
 export OBS_ENVIRONMENT=local OBS_PORT=3443
 bash scripts/observability/manage_programmer.sh grant --environment local --subject prog-local-01
+# Preparar cuotas físicas antes de activar emisión/ingesta, según guía del stack.
+uv run python scripts/observability/prepare_quotas.py prepare \
+  --root "$OBS_RESOURCE_ROOT" --image ecs-ec-platform:local --allow-host-mounts
 docker compose --profile observability config --quiet
 docker compose --profile observability up -d technical-gateway
 ```
@@ -74,3 +77,29 @@ cuotas y restauración técnica. La validación local no acredita esa instalaci�
 [Operación del stack](../observability/README.md),
 [scripts](../../scripts/observability/README.md),
 [contrato de acceso](../../specs/007-observabilidad-externa/contracts/technical-access.md).
+
+## Ampliación del paso4
+
+El panel provisionado usa las consultas existentes de Loki/Jaeger, recursos estáticos
+JS/mjs locales y argumentos var-environment/operation/outcome/severity/operation_ref
+enumerados. No se abre proxy genérico ni administración de plugins. Solo el plugin
+propio ecsec-coverage-panel se habilita sin firma en Grafana; cambiar esa allowlist
+requiere revisión. Enlaces Jaeger abren página propia y vuelven a exigir Basic.
+
+Cada listener de ingesta verifica quota-status/status.json: snapshot atómico válido,
+mismo entorno/edad<=30s y las cinco cuotas<90%; ausencia/error/agobio deniegan507.
+La ruta de salud y lecturas humanas mantienen su autorización independiente.
+/collector-health solo añade process_start_time_seconds a los contadores permitidos;
+007 lo traduce a collector_started_at y collector_restarts_total. Nunca expone métricas
+generales o señales consultables a la identidad de salud.
+
+Grafana solicita metadatos opcionales/ofrep/historial de página fuera del contrato;
+sus denegaciones pueden aparecer en consola. No se habilitan APIs de escritura para
+silenciarlas. Los recorridos reales verifican el contenido de paneles, consultas y
+navegación permitidos. [Evidencia vigente](../../specs/007-observabilidad-externa/validation/step4.md).
+
+
+Integración008: se registran únicamente los UID de lectura `ecs-platform` y
+`ecs-notifications` en las rutas de dashboard clásico y API versionada de Grafana.
+UID ajeno y escritura siguen denegados; no se amplían cuentas, métodos administrativos
+ni permisos funcionales. [Evidencia008](../../specs/008-notificaciones-programables/validation/observability.md).

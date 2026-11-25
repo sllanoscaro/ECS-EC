@@ -3,11 +3,11 @@
 from ecs_ec.identity.schemas import Principal
 
 BASIC = frozenset({"session.read", "session.logout", "account.password.change"})
-READ = frozenset({"consumption.read", "costs.read", "reports.read", "reports.generate"})
+READ = frozenset({"consumption.read", "costs.read", "reports.read", "reports.generate", "notifications.deliveries.read"})
 ADMIN = frozenset({"identity.accounts.read", "identity.accounts.manage", "administration.history.read",
                    "consumption.configuration.read", "consumption.configuration.manage",
                    "costs.configuration.read", "costs.configuration.manage", "costs.bills.manage",
-                   "costs.calculations.create", "costs.comparisons.create"})
+                   "costs.calculations.create", "costs.comparisons.create", "notifications.rules.manage", "notifications.deliveries.resend"})
 ACTIONS = BASIC | READ | ADMIN
 
 

@@ -1,6 +1,16 @@
 #009 platform, optional003 acquisition and007 technical profile; SMTP remains owned by008.
 name: ecs-ec
 services:
+  mailpit:
+    image: ghcr.io/axllent/mailpit:v1.33.1@sha256:aef2aacc11f075ec0fb6874275ee4a421e688e11a96ebb296134d1735c7761ce
+    profiles: [mail]
+    ports:
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+    environment:
+      MP_MAX_MESSAGES: "5000"
+    logging:
+      driver: none
   db:
     image: postgres:18.3-bookworm@sha256:80630f83606d8db77d30b3851b16a9f78be2d0d4dda6f7b82a1fdca5ebe3acba
     environment:
@@ -21,6 +31,19 @@ services:
     image: ecs-ec-platform:local
     build: .
     environment: &application_environment
+      NOTIFICATION_ENABLED: "${NOTIFICATION_ENABLED:-false}"
+      NOTIFICATION_CYCLE_SECONDS: ${NOTIFICATION_CYCLE_SECONDS:-5}
+      NOTIFICATION_SLOTS: ${NOTIFICATION_SLOTS:-4}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-local_prueba}
+      MAIL_FROM: ${MAIL_FROM:-ecs@example.test}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_STARTTLS: "${SMTP_STARTTLS:-false}"
+      SMTP_SOCKET_TIMEOUT: ${SMTP_SOCKET_TIMEOUT:-10}
+      SMTP_ATTEMPT_TIMEOUT: ${SMTP_ATTEMPT_TIMEOUT:-30}
+      APP_PUBLIC_BASE_URL: ${APP_PUBLIC_BASE_URL:-${PUBLIC_URL:-http://localhost:8000}}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ecs_local}:${POSTGRES_PASSWORD:?Set an external PostgreSQL password}@db:5432/${POSTGRES_DB:-ecs_local}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8000}
       BUILDING_TIMEZONE: ${BUILDING_TIMEZONE:-America/Santiago}
@@ -66,7 +89,11 @@ services:
       OBS_SERVICE_VERSION: ${OBS_SERVICE_VERSION:-0.1.0}
       OBS_POLICY_REVISION: ${OBS_POLICY_REVISION:-007-v1}
       OBS_RETENTION_HOURS: "${OBS_RETENTION_HOURS:-168}"
+      OBS_RETENTION: ${OBS_RETENTION:-168h}
       OBS_TRACE_RATIO: "${OBS_TRACE_RATIO:-1.0}"
+      OBS_REQUIRE_QUOTAS: "${OBS_REQUIRE_QUOTAS:-true}"
+      OBS_CAPACITY_ROOT: /telemetry/capacity
+      OBS_CAPACITY_STATUS: /telemetry/quota-status/status.json
       OBS_SPOOL: /telemetry/spool
       OBS_CA: /telemetry/app/ca.crt
       OBS_APP_CERT: /telemetry/app/app.crt
@@ -79,6 +106,12 @@ services:
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/spool:/telemetry/spool
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/app:/telemetry/app:ro
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/health:/telemetry/health:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/spool/.capacity:/telemetry/capacity/spool:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/alloy/.capacity:/telemetry/capacity/alloy:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/loki/.capacity:/telemetry/capacity/loki:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/jaeger/.capacity:/telemetry/capacity/jaeger:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/grafana/.capacity:/telemetry/capacity/grafana:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/quota-status:/telemetry/quota-status
     networks: [default, technical_ingest]
   technical-gateway:
     profiles: [observability]
@@ -87,6 +120,7 @@ services:
     entrypoint: [nginx, -g, "daemon off;"]
     environment:
       OBS_ENVIRONMENT: ${OBS_ENVIRONMENT:-local}
+      OBS_REQUIRE_QUOTAS: "${OBS_REQUIRE_QUOTAS:-true}"
     ports:
       - "${OBS_BIND_ADDRESS:-127.0.0.1}:${OBS_PORT:-3443}:8443"
     volumes:
@@ -94,6 +128,7 @@ services:
       - ./deploy/technical-gateway/gateway.js:/etc/nginx/gateway.js:ro
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/clients/gateway:/tls:ro
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/credentials:/credentials:ro
+      - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/quota-status:/quota:ro
     tmpfs: ["/tmp:size=64m,mode=1777"]
     read_only: true
     cap_drop: [ALL]
@@ -155,12 +190,14 @@ services:
     image: "grafana/grafana:13.3.0@sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205"
     user: "${OBS_UID:-10001}"
     environment:
+      GF_PATHS_PLUGINS: /etc/grafana/plugins
       GF_AUTH_PROXY_WHITELIST: ${OBS_GATEWAY_IP:-172.30.7.2}
       GF_SERVER_ROOT_URL: ${OBS_PUBLIC_URL:-https://localhost:3443/grafana/}
     volumes:
       - ./deploy/observability/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./deploy/observability/grafana/dashboards:/etc/grafana/dashboards:ro
+      - ${OBS_DASHBOARD_DIRECTORY:-./deploy/observability/grafana/dashboards}:/etc/grafana/dashboards:ro
+      - ./deploy/observability/grafana/plugins:/etc/grafana/plugins:ro
       - ${OBS_RESOURCE_ROOT:-/tmp/ecs-observability-disabled}/data/grafana:/var/lib/grafana
     tmpfs: ["/tmp:size=32m,mode=1777"]
     read_only: true

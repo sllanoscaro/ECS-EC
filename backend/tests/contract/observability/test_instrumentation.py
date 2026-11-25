@@ -1,8 +1,6 @@
 """007 terminal semantics before any producer integration: one transition, bounded safe fields and no fake completion."""
 import json
-from uuid import uuid4
 from ecs_ec.observability.lifecycle import Telemetry,Policy
-from ecs_ec.observability.context import new_context
 
 
 def events(telemetry,path):

@@ -81,7 +81,10 @@
         "report.admitted",
         "report.completed",
         "telemetry.heartbeat",
-        "policy.changed"
+        "policy.changed",
+        "notification.operation.completed",
+        "notification.delivery.attempt.completed",
+        "notification.scheduler.tick"
       ]
     },
     "operation": {
@@ -104,7 +107,13 @@
         "identity.session",
         "administration.change",
         "administration.query",
-        "telemetry"
+        "telemetry",
+        "notification.configure",
+        "notification.query",
+        "notification.plan",
+        "notification.evaluate",
+        "notification.dispatch",
+        "notification.smtp"
       ]
     },
     "stage": {
@@ -144,7 +153,8 @@
         "reports",
         "identity",
         "platform",
-        "observability"
+        "observability",
+        "notifications"
       ]
     },
     "severity": {
@@ -184,7 +194,11 @@
         "sampling",
         "retention_expired",
         "coverage_unknown",
-        "unclassified"
+        "unclassified",
+        "smtp_accepted",
+        "smtp_transient_rejection",
+        "smtp_permanent_rejection",
+        "smtp_confirmation_unknown"
       ]
     },
     "context_status": {
@@ -449,6 +463,23 @@
             "trace_exported_spans_total": {
               "type": "integer",
               "minimum": 0
+            },
+            "collector_restarts_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "collector_started_at": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "allOf": [
@@ -498,7 +529,10 @@
               "operation.completed",
               "execution.completed",
               "reception.completed",
-              "report.completed"
+              "report.completed",
+              "notification.operation.completed",
+              "notification.delivery.attempt.completed",
+              "notification.scheduler.tick"
             ]
           }
         }

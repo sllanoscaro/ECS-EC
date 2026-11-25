@@ -20,6 +20,10 @@ router = APIRouter(prefix="/api/v1", responses={status: {"model": ProblemView} f
 
 def route_action(method, path):
     """Classify installed identity and consumption routes; policy is explicit rather than a verb-based grant."""
+    if path.startswith('/api/v1/notifications/'):
+        if path.startswith('/api/v1/notifications/deliveries'):
+            return 'notifications.deliveries.read' if method=='GET' else 'notifications.deliveries.resend'
+        return 'notifications.rules.manage'
     if path == "/api/v1/reports" or path.startswith("/api/v1/reports/"):
         return "reports.generate" if method == "POST" else "reports.read"
     if path.startswith("/api/v1/costs/"):
@@ -121,7 +125,7 @@ class IdentityMiddleware:
         """Bind request-local007 instrumentation, never transporting identity in public headers."""
         from ecs_ec.identity.telemetry import emission_scope
         state = scope.setdefault('state', {})
-        state['operation_ref'] = uuid4()
+        state.setdefault('operation_ref', uuid4())
         app = scope.get('app')
         emitter = getattr(app.state, 'telemetry', None) if app else None
         with emission_scope(emitter, state['operation_ref']):
@@ -168,7 +172,8 @@ class IdentityMiddleware:
                     verify_csrf(identity.settings, "preauth", request.cookies.get("ecs_ec_preauth"), request.headers.get("x-csrf-token"))
                 elif action:
                     verify_csrf(identity.settings, "session", request.cookies.get("ecs_ec_session"), request.headers.get("x-csrf-token"))
-                if request.method in {"POST", "PUT", "PATCH"} and path != "/api/v1/auth/logout" and request.headers.get("content-type", "").split(";", 1)[0].strip() != "application/json":
+                bodyless = path == "/api/v1/auth/logout" or (request.method == "POST" and re.fullmatch(r"/api/v1/notifications/rules/[0-9a-fA-F-]{36}/pause", path) and request.headers.get("content-length", "0") == "0")
+                if request.method in {"POST", "PUT", "PATCH"} and not bodyless and request.headers.get("content-type", "").split(";", 1)[0].strip() != "application/json":
                     raise IdentityProblem("invalid_input", 422)
                 try:
                     if int(request.headers.get("content-length", "0")) > 8192:

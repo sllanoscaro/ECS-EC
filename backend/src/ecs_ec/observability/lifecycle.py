@@ -30,9 +30,12 @@ class Policy(BaseModel):
     version: str = Field(default="0.1.0", min_length=1, max_length=128)
     revision: str = Field(default="007-v1", min_length=1, max_length=128)
     retention_hours: Literal[24, 168] = 168
-    trace_ratio: float = Field(default=1.0, ge=0, le=1, allow_inf_nan=False)
+    trace_ratio: Literal[1.0, 0.1] = 1.0
     endpoint: str = "https://technical-gateway:8444/v1/traces"
     health_endpoint: str = "https://technical-gateway:8446/collector-health"
+    quotas_required: bool = False
+    capacity_root: Path | None = None
+    capacity_status: Path | None = None
     ca: Path | None = None
     cert: Path | None = None
     key: Path | None = None
@@ -43,12 +46,34 @@ class Policy(BaseModel):
     def validate_transport(self):
         """Require exact HTTPS ingestion/health paths and complete distinct process credentials."""
         from urllib.parse import urlsplit
-        for endpoint, path in ((self.endpoint, "/v1/traces"), (self.health_endpoint, "/collector-health")):
+
+        for endpoint, path in (
+            (self.endpoint, "/v1/traces"),
+            (self.health_endpoint, "/collector-health"),
+        ):
             url = urlsplit(endpoint)
-            if url.scheme != "https" or not url.hostname or url.path != path or url.username or url.query or url.fragment:
+            if (
+                url.scheme != "https"
+                or not url.hostname
+                or url.path != path
+                or url.username
+                or url.query
+                or url.fragment
+            ):
                 raise ValueError("Invalid telemetry endpoint")
         if self.environment != "test" and self.retention_hours != 168:
             raise ValueError("Disposable retention requires test environment")
+        if self.quotas_required and (
+            self.capacity_root is None or self.capacity_status is None
+        ):
+            raise ValueError("Quota sentinel configuration required")
+        if self.quotas_required and (
+            not self.capacity_root.is_absolute()
+            or not self.capacity_status.is_absolute()
+        ):
+            raise ValueError("Absolute quota paths required")
+        if self.trace_ratio != 1.0 and self.revision == "007-v1":
+            raise ValueError("Sampling requires an explicit policy revision")
         return self
 
 
@@ -79,19 +104,53 @@ class Telemetry:
         """Initialize safe policy/queues; a None policy is a no-resource disabled facade."""
         self.policy, self.clock = policy, clock or SystemClock()
         self.logs = self.traces = self.status = None
+        self.capacity = None
         self._stop = threading.Event()
         self._thread = None
         if policy is None:
             return
-        exporter = DeadlineExporter(policy.endpoint, ca=policy.ca, cert=policy.cert, key=policy.key)
-        self.logs = LogEmitter(policy.spool, clock=self.clock, autostart=autostart, ttl_seconds=policy.retention_hours * 3600)
-        self.traces = Traces(exporter=exporter, clock=self.clock, autostart=autostart,
-                             ratio=policy.trace_ratio, environment=policy.environment, version=policy.version)
+        if policy.quotas_required:
+            from ecs_ec.observability.capacity import Capacity
+
+            self.capacity = Capacity(
+                policy.capacity_root,
+                policy.capacity_status,
+                policy.environment,
+                policy.revision,
+                self.clock,
+            )
+            if self.capacity.observe() is None:
+                raise ValueError("Quota status output unavailable")
+        exporter = DeadlineExporter(
+            policy.endpoint, ca=policy.ca, cert=policy.cert, key=policy.key
+        )
+        self.logs = LogEmitter(
+            policy.spool,
+            clock=self.clock,
+            autostart=autostart,
+            ttl_seconds=policy.retention_hours * 3600,
+        )
+        self.traces = Traces(
+            exporter=exporter,
+            clock=self.clock,
+            autostart=autostart,
+            ratio=policy.trace_ratio,
+            environment=policy.environment,
+            version=policy.version,
+        )
         self.status = Health(self.logs, self.traces, clock=self.clock)
-        self._emit(None, event="policy.changed", operation="telemetry", source_module="observability",
-                   stage="observe", outcome="not_applicable")
+        self._emit(
+            None,
+            event="policy.changed",
+            operation="telemetry",
+            source_module="observability",
+            stage="observe",
+            outcome="not_applicable",
+        )
         if autostart:
-            self._thread = threading.Thread(target=self._heartbeat_loop, name="telemetry-health", daemon=True)
+            self._thread = threading.Thread(
+                target=self._heartbeat_loop, name="telemetry-health", daemon=True
+            )
             self._thread.start()
 
     @classmethod
@@ -107,46 +166,127 @@ class Telemetry:
         try:
             if values.get("OBS_ENABLED") != "true":
                 raise ValueError()
-            required = ["OBS_SPOOL", "OBS_CA", "OBS_APP_CERT", "OBS_APP_KEY", "OBS_HEALTH_CERT", "OBS_HEALTH_KEY"]
+            required = [
+                "OBS_SPOOL",
+                "OBS_CA",
+                "OBS_APP_CERT",
+                "OBS_APP_KEY",
+                "OBS_HEALTH_CERT",
+                "OBS_HEALTH_KEY",
+            ]
             if any(not values.get(key) for key in required):
                 raise ValueError()
-            policy = Policy(spool=values["OBS_SPOOL"], environment=values.get("OBS_ENVIRONMENT", "local"),
-                            version=values.get("OBS_SERVICE_VERSION", "0.1.0"), revision=values.get("OBS_POLICY_REVISION", "007-v1"),
-                            retention_hours=int(values.get("OBS_RETENTION_HOURS", "168")),
-                            trace_ratio=float(values.get("OBS_TRACE_RATIO", "1.0")),
-                            endpoint=values.get("OBS_OTLP_ENDPOINT", "https://technical-gateway:8444/v1/traces"),
-                            health_endpoint=values.get("OBS_HEALTH_ENDPOINT", "https://technical-gateway:8446/collector-health"),
-                            ca=values["OBS_CA"], cert=values["OBS_APP_CERT"], key=values["OBS_APP_KEY"],
-                            health_cert=values["OBS_HEALTH_CERT"], health_key=values["OBS_HEALTH_KEY"])
+            required_quotas = values.get("OBS_REQUIRE_QUOTAS", "true")
+            if (
+                required_quotas not in {"true", "false"}
+                or required_quotas == "false"
+                and values.get("OBS_ENVIRONMENT", "local") != "test"
+            ):
+                raise ValueError()
+            policy = Policy(
+                spool=values["OBS_SPOOL"],
+                environment=values.get("OBS_ENVIRONMENT", "local"),
+                quotas_required=required_quotas == "true",
+                capacity_root=values.get("OBS_CAPACITY_ROOT", "/telemetry/capacity"),
+                capacity_status=values.get(
+                    "OBS_CAPACITY_STATUS", "/telemetry/quota-status/status.json"
+                ),
+                version=values.get("OBS_SERVICE_VERSION", "0.1.0"),
+                revision=values.get("OBS_POLICY_REVISION", "007-v1"),
+                retention_hours=int(values.get("OBS_RETENTION_HOURS", "168")),
+                trace_ratio=float(values.get("OBS_TRACE_RATIO", "1.0")),
+                endpoint=values.get(
+                    "OBS_OTLP_ENDPOINT", "https://technical-gateway:8444/v1/traces"
+                ),
+                health_endpoint=values.get(
+                    "OBS_HEALTH_ENDPOINT",
+                    "https://technical-gateway:8446/collector-health",
+                ),
+                ca=values["OBS_CA"],
+                cert=values["OBS_APP_CERT"],
+                key=values["OBS_APP_KEY"],
+                health_cert=values["OBS_HEALTH_CERT"],
+                health_key=values["OBS_HEALTH_KEY"],
+            )
+            if (
+                values.get("OBS_RETENTION")
+                and values["OBS_RETENTION"] != f"{policy.retention_hours}h"
+            ):
+                raise ValueError()
             if policy.cert == policy.health_cert or policy.key == policy.health_key:
                 raise ValueError()
-            for path in (policy.ca, policy.cert, policy.key, policy.health_cert, policy.health_key):
+            for path in (
+                policy.ca,
+                policy.cert,
+                policy.key,
+                policy.health_cert,
+                policy.health_key,
+            ):
                 if not path.is_absolute() or not path.is_file():
                     raise ValueError()
             health_tls = ssl.create_default_context(cafile=str(policy.ca))
             health_tls.load_cert_chain(str(policy.health_cert), str(policy.health_key))
             return cls(policy, clock=clock)
         except Exception:
-            print("telemetry_disabled: invalid_technical_configuration", file=sys.stderr)
+            print(
+                "telemetry_disabled: invalid_technical_configuration", file=sys.stderr
+            )
             return cls(clock=clock)
 
-    def _emit(self, handle, *, event, stage, outcome, operation=None, source_module=None, code="ok", duration_ms=None, counts=None, health=None, control=False):
+    def _emit(
+        self,
+        handle,
+        *,
+        event,
+        stage,
+        outcome,
+        operation=None,
+        source_module=None,
+        code="ok",
+        duration_ms=None,
+        counts=None,
+        health=None,
+        control=False,
+    ):
         """Build only catalog primitives and admit safely; arbitrary domain data is never formatted."""
         if not self.logs:
             return "disabled"
         try:
             context = handle.context if handle else Context()
-            span_context = handle.span.get_span_context() if handle and handle.span else None
-            envelope = dict(schema_version=1, event_id=str(uuid4()), boot_id=self.logs.boot_id, sequence=1,
-                            timestamp=self.clock.now().isoformat().replace("+00:00", "Z"),
-                            environment=self.policy.environment, service_version=self.policy.version,
-                            policy_revision=self.policy.revision, event=event, operation=operation or handle.operation,
-                            source_module=source_module or handle.source_module, stage=stage,
-                            severity="ERROR" if outcome == "unexpected_error" else "WARNING" if outcome == "expected_rejection" else "INFO",
-                            outcome=outcome, code=code, duration_ms=duration_ms, counts=counts, health=health,
-                            trace_id=f"{span_context.trace_id:032x}" if span_context and span_context.is_valid else None,
-                            span_id=f"{span_context.span_id:016x}" if span_context and span_context.is_valid else None,
-                            **context.fields())
+            span_context = (
+                handle.span.get_span_context() if handle and handle.span else None
+            )
+            envelope = dict(
+                schema_version=1,
+                event_id=str(uuid4()),
+                boot_id=self.logs.boot_id,
+                sequence=1,
+                timestamp=self.clock.now().isoformat().replace("+00:00", "Z"),
+                environment=self.policy.environment,
+                service_version=self.policy.version,
+                policy_revision=self.policy.revision,
+                event=event,
+                operation=operation or handle.operation,
+                source_module=source_module or handle.source_module,
+                stage=stage,
+                severity="ERROR"
+                if outcome == "unexpected_error"
+                else "WARNING"
+                if outcome == "expected_rejection"
+                else "INFO",
+                outcome=outcome,
+                code=code,
+                duration_ms=duration_ms,
+                counts=counts,
+                health=health,
+                trace_id=f"{span_context.trace_id:032x}"
+                if span_context and span_context.is_valid
+                else None,
+                span_id=f"{span_context.span_id:016x}"
+                if span_context and span_context.is_valid
+                else None,
+                **context.fields(),
+            )
             return self.logs.emit(envelope, control=control)
         except Exception:
             self.logs.schema_rejected += 1
@@ -157,16 +297,36 @@ class Telemetry:
         """Begin a trusted catalog operation without adopting ambient/public propagation."""
         if not self.policy:
             return None
-        if type(operation) is not str or operation not in OPERATIONS or type(source_module) is not str or source_module not in MODULES or context is not None and type(context) is not Context:
+        if (
+            type(operation) is not str
+            or operation not in OPERATIONS
+            or type(source_module) is not str
+            or source_module not in MODULES
+            or context is not None
+            and type(context) is not Context
+        ):
             self.logs.schema_rejected += 1
             return None
         try:
-            context = context or new_context(parent_operation_ref=parent.context.operation_ref if parent else None)
+            from ecs_ec.observability.http import borrow
+
+            shared = borrow(self, operation, source_module)
+            if shared is not None:
+                return shared
+            context = context or new_context(
+                parent_operation_ref=parent.context.operation_ref if parent else None
+            )
             attributes = {k: v for k, v in context.fields().items() if v is not None}
-            attributes.update(source_module=source_module, policy_revision=self.policy.revision)
+            attributes.update(
+                source_module=source_module, policy_revision=self.policy.revision
+            )
             span = self.traces.begin(operation, attributes, links=links)
-            handle = Operation(operation, source_module, context, self.clock.monotonic(), span)
-            self._emit(handle, event="operation.started", stage="start", outcome="in_progress")
+            handle = Operation(
+                operation, source_module, context, self.clock.monotonic(), span
+            )
+            self._emit(
+                handle, event="operation.started", stage="start", outcome="in_progress"
+            )
             return handle
         except Exception:
             self.logs.schema_rejected += 1
@@ -176,13 +336,39 @@ class Telemetry:
         """Emit a registered completed stage as a child span/log, never another operation terminal."""
         if not self.policy or handle is None:
             return "disabled"
-        if type(handle) is not Operation or type(stage) is not str or stage not in STAGES or handle.closed or type(outcome) is not str or outcome not in {"success", "expected_rejection", "unexpected_error"} or type(code) is not str:
+        if (
+            type(handle) is not Operation
+            or type(stage) is not str
+            or stage not in STAGES
+            or handle.closed
+            or type(outcome) is not str
+            or outcome not in {"success", "expected_rejection", "unexpected_error"}
+            or type(code) is not str
+        ):
             return "dropped"
-        child = self.traces.begin(handle.operation, {"stage": stage}, parent=handle.span)
+        child = self.traces.begin(
+            handle.operation, {"stage": stage}, parent=handle.span
+        )
         self.traces.end(child, outcome, code)
-        return self._emit(handle, event="stage.completed", stage=stage, outcome=outcome, code=code, duration_ms=duration_ms)
+        return self._emit(
+            handle,
+            event="stage.completed",
+            stage=stage,
+            outcome=outcome,
+            code=code,
+            duration_ms=duration_ms,
+        )
 
-    def complete(self, handle, *, outcome="success", code="ok", counts=None, event="operation.completed", duration_ms="observed"):
+    def complete(
+        self,
+        handle,
+        *,
+        outcome="success",
+        code="ok",
+        counts=None,
+        event="operation.completed",
+        duration_ms="observed",
+    ):
         """Close a transient handle once; logical transition/summary ownership stays with producer.
 
         The producer informs its won durable transition; this emitter never commits,
@@ -190,47 +376,100 @@ class Telemetry:
         """
         if not self.policy or handle is None:
             return "disabled"
-        if type(handle) is not Operation or type(outcome) is not str or outcome not in {"success", "expected_rejection", "unexpected_error"} or type(code) is not str:
+        if (
+            type(handle) is not Operation
+            or type(outcome) is not str
+            or outcome not in {"success", "expected_rejection", "unexpected_error"}
+            or type(code) is not str
+        ):
             self.logs.schema_rejected += 1
             return "dropped"
-        permitted = {"report.completed"} if handle.operation=="report.generate" else {"reception.completed","execution.completed"} if handle.operation=="reception.accept" else {"operation.completed"}
-        if event not in permitted or event == "execution.completed" and outcome == "unexpected_error" and counts is not None:
+        permitted = (
+            (
+                {"report.completed", "operation.completed"}
+                if not handle.admission_emitted and outcome != "success"
+                else {"report.completed"}
+            )
+            if handle.operation == "report.generate"
+            else {"reception.completed", "execution.completed"}
+            if handle.operation == "reception.accept"
+            else {'notification.delivery.attempt.completed'}
+            if handle.operation=='notification.smtp'
+            else {'notification.scheduler.tick'}
+            if handle.operation=='notification.plan'
+            else {'notification.operation.completed'}
+            if handle.operation.startswith('notification.')
+            else {"operation.completed"}
+        )
+        if (
+            event not in permitted
+            or event == "execution.completed"
+            and outcome == "unexpected_error"
+            and counts is not None
+        ):
             return "dropped"
         with handle.lock:
-            if handle.closed or event=="execution.completed" and handle.execution_emitted:
+            if (
+                handle.closed
+                or event == "execution.completed"
+                and handle.execution_emitted
+            ):
                 return "dropped"
-            if event=="execution.completed":
-                handle.execution_emitted=True
-                handle.closed=outcome=="unexpected_error"
-            else:handle.closed=True
-        result = self._emit(handle, event=event, stage="complete", outcome=outcome, code=code,
-                            counts=counts, duration_ms=max(0, (self.clock.monotonic() - handle.started) * 1000) if duration_ms == "observed" else duration_ms)
+            if event == "execution.completed":
+                handle.execution_emitted = True
+                handle.closed = outcome == "unexpected_error"
+            else:
+                handle.closed = True
+        result = self._emit(
+            handle,
+            event=event,
+            stage="complete",
+            outcome=outcome,
+            code=code,
+            counts=counts,
+            duration_ms=max(0, (self.clock.monotonic() - handle.started) * 1000)
+            if duration_ms == "observed"
+            else duration_ms,
+        )
         self.traces.end(handle.span, outcome, code)
         return result
 
     def admitted(self, handle):
         """Emit report admission once per live handle after its producer confirms a new durable request."""
-        if not self.policy or handle is None:return "disabled"
-        if type(handle) is not Operation or handle.operation != "report.generate":return "dropped"
+        if not self.policy or handle is None:
+            return "disabled"
+        if type(handle) is not Operation or handle.operation != "report.generate":
+            return "dropped"
         with handle.lock:
-            if handle.closed or handle.admission_emitted:return "dropped"
-            handle.admission_emitted=True
-        return self._emit(handle,event="report.admitted",stage="commit",outcome="success")
+            if handle.closed or handle.admission_emitted:
+                return "dropped"
+            handle.admission_emitted = True
+        return self._emit(
+            handle, event="report.admitted", stage="commit", outcome="success"
+        )
 
     def release(self, handle, *, outcome="success", code="ok"):
         """End a transient span without a logical completion when work continues durably elsewhere."""
-        if not self.policy or handle is None:return "disabled"
-        if type(handle) is not Operation:return "dropped"
+        if not self.policy or handle is None:
+            return "disabled"
+        if type(handle) is not Operation:
+            return "dropped"
         with handle.lock:
-            if handle.closed:return "dropped"
-            handle.closed=True
-        self.traces.end(handle.span,outcome,code)
+            if handle.closed:
+                return "dropped"
+            handle.closed = True
+        self.traces.end(handle.span, outcome, code)
         return "released"
 
     def continue_operation(self, operation, source_module, context, *, link=None):
         """Continue a trusted durable attempt with fresh execution/tracing root; no invented parent."""
         try:
-            return self.begin(operation, source_module, context=recover(context), links=(link,) if link is not None else ())
+            return self.begin(
+                operation,
+                source_module,
+                context=recover(context),
+                links=(link,) if link is not None else (),
+            )
         except Exception:
             return None
 
@@ -238,21 +477,34 @@ class Telemetry:
         """Admit the replaceable mandatory health snapshot; never imply functional readiness."""
         if not self.policy:
             return "disabled"
-        return self._emit(None, event="telemetry.heartbeat", stage="observe", operation="telemetry",
-                          source_module="observability", outcome="not_applicable", health=self.status.snapshot(), control=True)
+        return self._emit(
+            None,
+            event="telemetry.heartbeat",
+            stage="observe",
+            operation="telemetry",
+            source_module="observability",
+            outcome="not_applicable",
+            health=self.status.snapshot(),
+            control=True,
+        )
 
     def _heartbeat_loop(self):
         """Poll only permitted health counters and emit every15s, independently of domain requests."""
         import asyncio
+
         tls = None
         try:
             if self.policy.ca and self.policy.health_cert and self.policy.health_key:
                 tls = ssl.create_default_context(cafile=str(self.policy.ca))
-                tls.load_cert_chain(str(self.policy.health_cert), str(self.policy.health_key))
+                tls.load_cert_chain(
+                    str(self.policy.health_cert), str(self.policy.health_key)
+                )
         except Exception:
             self.status.observe_collector(success=False)
         next_tick = self.clock.monotonic()
         while not self._stop.is_set():
+            if self.capacity:
+                self.capacity.observe()
             if tls:
                 asyncio.run(self.status.poll(self.policy.health_endpoint, tls))
             self.health()
@@ -276,14 +528,17 @@ class Telemetry:
 
 def observability_module(clock):
     """Register007 as an optional existing009 lifecycle extension, without owning core resources."""
+
     @asynccontextmanager
     async def lifespan(app):
         """Initialize only technical state after core readiness; always close within technical budget."""
         import asyncio
+
         telemetry = Telemetry.from_environment(clock=clock)
         app.state.telemetry = telemetry
         try:
             yield
         finally:
             await asyncio.to_thread(telemetry.shutdown)
+
     return Module("observability", lifespan=lifespan)

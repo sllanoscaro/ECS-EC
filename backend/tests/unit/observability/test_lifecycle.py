@@ -1,8 +1,6 @@
 """Exercise configuration isolation, safe diagnostics, monotonic duration and bounded close."""
 
 import json
-import time
-from uuid import uuid4
 import pytest
 
 
@@ -96,3 +94,25 @@ def test_unregistered_or_untyped_calls_do_not_escape(tmp_path):
     assert telemetry.stage(object(), "read") == "dropped"
     assert telemetry.complete(handle) == "enqueued"
     telemetry.shutdown()
+
+
+@pytest.mark.parametrize('environment,retention,ratio,revision', [('local',24,1.,'007-v1'),('test',24,.1,'007-v1'),('test',24,.5,'test-sampling')])
+def test_policy_rejects_unsupported_or_unversioned_profiles(tmp_path,environment,retention,ratio,revision):
+    """Only approved retention/sampling profiles may activate;0.1 requires a visible deliberate revision."""
+    from pydantic import ValidationError
+    from ecs_ec.observability.lifecycle import Policy
+    with pytest.raises(ValidationError):Policy(spool=tmp_path,environment=environment,retention_hours=retention,trace_ratio=ratio,revision=revision)
+
+
+def test_sampling_dashboard_and_emitter_share_policy(tmp_path):
+    """An external read-only dashboard explicitly names the same0.1 revision and initial test environment."""
+    import json
+    from scripts.observability.render_dashboard import render
+    from ecs_ec.observability.lifecycle import Policy
+    output=tmp_path/'private-dashboard'
+    file=render('test','007-sampling-test',.1,output)
+    dashboard=json.loads(file.read_text())
+    panel=next(panel for panel in dashboard['panels'] if panel['type']=='ecsec-coverage-panel')
+    assert panel['options']=={'revision':'007-sampling-test','traceRatio':.1}
+    assert Policy(spool=tmp_path,environment='test',revision='007-sampling-test',trace_ratio=.1).trace_ratio==.1
+    assert next(variable for variable in dashboard['templating']['list'] if variable['name']=='environment')['current']['value']=='test'

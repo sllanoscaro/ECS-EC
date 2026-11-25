@@ -8,6 +8,7 @@ import time
 def test_capacity_and_replaceable_control(safe_event, tmp_path):
     """1023 data events plus one replaceable control never block or exceed1024 slots."""
     from ecs_ec.observability.logging import LogEmitter
+
     log = LogEmitter(tmp_path, autostart=False)
     for _ in range(1023):
         assert log.emit(safe_event) == "enqueued"
@@ -21,10 +22,11 @@ def test_capacity_and_replaceable_control(safe_event, tmp_path):
     assert log.dropped == 1026
 
 
-def test_sequence_holes_and_immutable_body(safe_event, tmp_path):
+def test_sequence_holes_and_immutable_body(safe_event, tmp_path, telemetry_clock):
     """Validation failures leave sequence gaps; worker writes the original admitted bytes."""
     from ecs_ec.observability.logging import LogEmitter
-    log = LogEmitter(tmp_path, autostart=False)
+
+    log = LogEmitter(tmp_path, autostart=False, clock=telemetry_clock)
     assert log.emit(safe_event) == "enqueued"
     safe_event["body"] = "SECRET"
     assert log.emit(safe_event) == "dropped"
@@ -32,7 +34,10 @@ def test_sequence_holes_and_immutable_body(safe_event, tmp_path):
     assert log.emit(safe_event) == "enqueued"
     log.drain_one()
     log.drain_one()
-    events = [json.loads(row) for row in (tmp_path / "events-0.jsonl").read_text().splitlines()]
+    events = [
+        json.loads(row)
+        for row in (tmp_path / "events-0.jsonl").read_text().splitlines()
+    ]
     assert [event["sequence"] for event in events] == [1, 3]
     assert "SECRET" not in json.dumps(events)
     assert log.schema_rejected == 1
@@ -41,7 +46,15 @@ def test_sequence_holes_and_immutable_body(safe_event, tmp_path):
 def test_rotation_ttl_and_disk_failure(safe_event, tmp_path, telemetry_clock):
     """Spool respects explicit test limits and expires only technical files; disk errors count."""
     from ecs_ec.observability.logging import LogEmitter
-    log = LogEmitter(tmp_path, autostart=False, file_bytes=2000, files=2, ttl_seconds=60, clock=telemetry_clock)
+
+    log = LogEmitter(
+        tmp_path,
+        autostart=False,
+        file_bytes=2000,
+        files=2,
+        ttl_seconds=60,
+        clock=telemetry_clock,
+    )
     for _ in range(10):
         log.emit(safe_event)
         log.drain_one()
@@ -62,11 +75,14 @@ def test_rotation_ttl_and_disk_failure(safe_event, tmp_path, telemetry_clock):
 def test_admission_does_not_wait_for_sink(safe_event, tmp_path):
     """A blocked disk worker never holds admission; shutdown has a real shared deadline."""
     from ecs_ec.observability.logging import LogEmitter
+
     entered, release = threading.Event(), threading.Event()
+
     def stalled_write(data):
         """Model an unavailable sink; only this worker waits, never the caller."""
         entered.set()
         release.wait(2)
+
     log = LogEmitter(tmp_path, writer=stalled_write)
     log.emit(safe_event)
     assert entered.wait(1)
@@ -80,3 +96,36 @@ def test_admission_does_not_wait_for_sink(safe_event, tmp_path):
     assert time.monotonic() - start < 0.5
     release.set()
     assert log.dropped > 0
+
+
+def test_appending_and_restart_cannot_extend_oldest_event_ttl(
+    safe_event, tmp_path, telemetry_clock
+):
+    """New traffic must not renew an older segment beyond its original retention, including after process restart."""
+    from ecs_ec.observability.logging import LogEmitter
+
+    log = LogEmitter(tmp_path, autostart=False, ttl_seconds=60, clock=telemetry_clock)
+    try:
+        log.emit(safe_event)
+        log.drain_one()
+        telemetry_clock.advance(59)
+        log.emit(
+            {
+                **safe_event,
+                "timestamp": telemetry_clock.now().isoformat().replace("+00:00", "Z"),
+            }
+        )
+        log.drain_one()
+        assert len(list(tmp_path.glob("events-*.jsonl"))) == 1
+        telemetry_clock.advance(2)
+        restarted = LogEmitter(
+            tmp_path, autostart=False, ttl_seconds=60, clock=telemetry_clock
+        )
+        try:
+            restarted.expire()
+            assert not list(tmp_path.glob("events-*.jsonl"))
+            assert restarted.spool_dropped == 2
+        finally:
+            restarted.shutdown()
+    finally:
+        log.shutdown()

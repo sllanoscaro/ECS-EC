@@ -9,11 +9,10 @@ from ecs_ec.core.unit_of_work import UnitOfWork
 
 
 async def test_schema_ownership(identity_db):
-    """Migrate only installed owners; guard is singleton and protected FKs use RESTRICT."""
+    """006 owns exactly its five tables alongside other installed owners; guard/FKs retain their original invariants."""
     async with identity_db.engine.connect() as connection:
         names = await connection.run_sync(lambda conn: inspect(conn).get_table_names())
-        assert {"identity_account", "identity_session", "identity_preauth", "identity_login_bucket", "identity_guard"} <= set(names)
-        assert not any(name.startswith("notification") for name in names)
+        assert {name for name in names if name.startswith('identity_')} == {"identity_account", "identity_session", "identity_preauth", "identity_login_bucket", "identity_guard"}
         assert await connection.scalar(text("SELECT count(*) FROM identity_guard WHERE id=1")) == 1
         fks = await connection.run_sync(lambda conn: inspect(conn).get_foreign_keys("identity_session"))
         assert fks[0]["options"]["ondelete"] == "RESTRICT"

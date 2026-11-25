@@ -2,6 +2,22 @@
  * Inputs are untrusted HTTP; outputs finite read responses or fixed denial codes.
  * No URL, body, subject, credential, exception or backend diagnostic is logged.
  */
+import fs from 'fs';
+
+/** Refuse ingestion unless the monolith's current fixed-filesystem observation proves headroom. */
+function quotaAllowed() {
+    if (process.env.OBS_REQUIRE_QUOTAS === 'false') return true;
+    try {
+        const value=JSON.parse(fs.readFileSync('/quota/status.json','utf8'));
+        const age=Date.now()-Date.parse(value.timestamp);
+        if (value.environment !== process.env.OBS_ENVIRONMENT || value.valid !== true || value.allowed !== true || !Number.isFinite(age) || age < 0 || age > 30000) return false;
+        const limits={spool:134217728,alloy:67108864,loki:2147483648,jaeger:2147483648,grafana:268435456};
+        return Object.keys(limits).every(function(name) {
+            const item=value.quotas[name];
+            return item && Number.isInteger(item.total_bytes) && item.total_bytes>0 && item.total_bytes<=limits[name] && Number.isInteger(item.used_bytes) && item.used_bytes>=0 && item.used_bytes*10<item.total_bytes*9;
+        });
+    } catch (_) { return false; }
+}
 
 /** Return an encoded argument string after rejecting duplicate or oversized values. */
 function argumentsFor(r) {
@@ -10,7 +26,7 @@ function argumentsFor(r) {
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         const value = r.args[key];
-        if (typeof value !== 'string' || value.length > 65536 || !/^[a-zA-Z_][a-zA-Z_0-9.]*$/.test(key)) throw Error();
+        if (typeof value !== 'string' || value.length > 65536 || (!/^[a-zA-Z_][a-zA-Z_0-9.]*$/.test(key) && !/^var-(environment|operation|outcome|severity|operation_ref)$/.test(key))) throw Error();
         result[key] = value;
     }
     return result;
@@ -123,13 +139,13 @@ async function read(r) {
             } else if (path === '/jaeger/' || path === '/jaeger/search' || /^\/jaeger\/trace\/[0-9a-f]{32}$/.test(path) || /^\/jaeger\/static\/[a-zA-Z0-9_./-]+\.(?:js|css|png|svg|woff2?|ico|map)$/.test(path)) {
                 target = '/_jaeger' + path;
             } else if (/^\/grafana\/apis\/dashboard\.grafana\.app\/$/.test(path) ||
-                /^\/grafana\/apis\/dashboard\.grafana\.app\/(?:v0alpha1|v1beta1|v2beta1|v1|v2)\/namespaces\/default\/dashboards\/ecs-platform(?:\/dto)?$/.test(path) ||
+                /^\/grafana\/apis\/dashboard\.grafana\.app\/(?:v0alpha1|v1beta1|v2beta1|v1|v2)\/namespaces\/default\/dashboards\/(?:ecs-platform|ecs-notifications)(?:\/dto)?$/.test(path) ||
                 /^\/grafana\/apis\/preferences\.grafana\.app\/v1\/namespaces\/default\/preferences(?:\/merged)?$/.test(path) ||
                 path === '/grafana/apis/collections.grafana.app/v1alpha1/namespaces/default/stars') {
                 target = '/_grafana' + path.slice('/grafana'.length);
-            } else if (path === '/grafana/' || /^\/grafana\/d\/ecs-platform\/[a-zA-Z0-9-]+$/.test(path) ||
-                /^\/grafana\/public\/[a-zA-Z0-9_./@-]+\.(?:js|css|png|svg|woff2?|ico|json|map)$/.test(path) ||
-                /^\/grafana\/api\/(?:frontend\/settings|user|user\/preferences|user\/orgs|login\/ping|org|search|folders|dashboards\/home|dashboards\/uid\/ecs-platform|datasources|datasources\/uid\/ecs-loki)$/.test(path)) {
+            } else if (path === '/grafana/' || /^\/grafana\/d\/(?:ecs-platform|ecs-notifications)\/[a-zA-Z0-9-]+$/.test(path) ||
+                /^\/grafana\/public\/[a-zA-Z0-9_./@-]+\.(?:js|mjs|css|png|svg|woff2?|ico|json|map)$/.test(path) ||
+                /^\/grafana\/api\/(?:frontend\/settings|user|user\/preferences|user\/orgs|login\/ping|org|search|folders|dashboards\/home|dashboards\/uid\/(?:ecs-platform|ecs-notifications)|datasources|datasources\/uid\/ecs-loki)$/.test(path)) {
                 target = '/_grafana' + path.slice('/grafana'.length);
             } else { r.return(403); return; }
         }
@@ -156,17 +172,18 @@ async function ingest(r) {
     if (!rule || r.variables.ssl_client_verify !== 'SUCCESS' ||
         r.variables.ssl_client_s_dn !== 'CN=ecs-obs-' + env + '-' + rule[0] ||
         r.uri !== rule[1] || r.method !== rule[2] || r.variables.args) { r.return(403); return; }
+    if (rule[0] !== 'health' && !quotaAllowed()) { r.return(507); return; }
     try {
         const response = await r.subrequest(rule[3], {method: r.method, body: r.requestBuffer || ''});
         if (rule[0] === 'health') {
             // Only permitted transport counters cross the health boundary, never all
             // tool metrics/labels. Drop all labels before the monolith receives them.
-            const values = {'loki_write_sent_entries_total': 0, 'loki_write_dropped_entries_total': 0};
+            const values = {'loki_write_sent_entries_total': 0, 'loki_write_dropped_entries_total': 0, 'process_start_time_seconds': 0};
             const found = {};
             const linesIn = response.responseText.split('\n');
             for (let i = 0; i < linesIn.length; i++) {
                 const line = linesIn[i];
-                const match = /^(loki_write_sent_entries_total|loki_write_dropped_entries_total)(?:\{[^\n]*\})?\s+([0-9.e+]+)$/.exec(line);
+                const match = /^(loki_write_sent_entries_total|loki_write_dropped_entries_total|process_start_time_seconds)(?:\{[^\n]*\})?\s+([0-9.e+]+)$/.exec(line);
                 if (match) { values[match[1]] += Number(match[2]); found[match[1]] = true; }
             }
             const lines = Object.keys(found).map(k => k + ' ' + values[k]).join('\n');
