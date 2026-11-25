@@ -75,3 +75,6 @@ ni hooks de implementación registrados.
 Detalle: [US1](us1.md), [US2](us2.md), [US3](us3.md), [US4](us4.md),
 [trazabilidad](coverage.md), [SC-006 pendiente](usability.md). No acredita aceptación
 humana, despliegue VPS, PDF005, notificaciones008, instrumentación007 ni tarifas reales.
+
+Instrumentación propia007 integrada y verificada en el paso4 con autorización explícita;
+[alcance y límites](observability.md). T064/personas conserva su estado pendiente.

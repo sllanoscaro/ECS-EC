@@ -156,3 +156,23 @@ trace_id a Jaeger y referencias de operación a otras ejecuciones del mismo ento
 Una traza no disponible muestra límite de muestreo/retención/cobertura, no «nunca ocurrió».
 Viewer consulta estos dashboards y fuentes; no necesita Editor ni administración.
 El historial administrativo de 006 sigue en su vista funcional y no sirve estos paneles.
+
+## Implementación y límite de replay — 2026-11-24
+
+`backend/src/ecs_ec/observability/queries.py` parametriza el catálogo cerrado con
+ventana positiva<=24h y evaluación en fin−1ns. Referencia de boot opcional filtra la
+línea JSON, no crea dimensión. Loki desactiva discover_log_levels para que no agregue
+detected_level a las cinco dimensiones autorizadas.
+
+El panel propio Grafana ecsec-coverage-panel concilia filas acotadas por event_id y
+cuerpo inmutable, calcula fórmulas/percentiles sobre eventos únicos y contrasta el
+agregado nativo de terminales con ese conjunto. En la versión fijada, una repetición
+idéntica dio1000 eventos únicos pero1001 entregas en count_over_time. Esa discrepancia
+produce partial/replay_en_agregado y porcentajesN/D; no se cambia etiquetado para
+ocultarla. El panel nativo de entregas brutas no se presenta como total lógico.
+El catálogo LogQL por sí solo no garantiza deduplicación métrica después de replay.
+
+Cada consulta y lectura del plugin usa Basic/TLS vigente y endpoints existentes.
+Consulta/corte fallidos no fabrican ausencia. La edad/continuidad incorpora inicio
+y reinicios reales de Alloy; posición borrada/reinicio/rate-limit no sanea historia.
+[Resultados, fórmulas y navegación](../validation/metrics.md).

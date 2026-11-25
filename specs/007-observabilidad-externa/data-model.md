@@ -145,3 +145,21 @@ La cobertura de trazas exige contrastar política, pérdidas y referencias esper
 señales consultables bajo autorización Programador; consulta fallida/truncada o evidencia
 insuficiente → `unknown`. El éxito de Alloy no acredita trazas y una caída de Loki no
 invalida por sí sola trazas disponibles. Recuperar transporte no rellena huecos anteriores.
+
+## Concreciones de implementación — paso4
+
+Sin tablas/migraciones007. Los sobres internos003 preservan únicamente referencias
+confiables; no se modifica payload nativo ni medición. ASGI comparte un handle técnico
+una sola vez para resultados de rutas instaladas y denegaciones anteriores al módulo.
+collector_started_at/collector_restarts_total son campos opcionales de salud esquema1,
+no dimensiones. El paquete y contrato normativo del esquema permanecen iguales.
+
+quota-status/status.json es estado técnico derivado, atómico y acotado (entorno,
+revisión, UTC, valid/allowed, cinco capacidades numéricas); no contiene señales ni
+credenciales y no es auditoría funcional. La aplicación solo observa cinco sentinelas
+vacíos readonly en sistemas de archivos distintos; el gateway monta el directorio
+readonly para ver sustituciones por rename.
+
+retention-probe.json es evidencia privada del ensayo prolongado, no dato funcional ni
+aceptación automática. Incluye tiempos reales, referencias opacas y metadatos físicos;
+la contraseña se referencia por ruta externa, nunca se copia al resultado.

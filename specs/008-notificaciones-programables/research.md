@@ -2,7 +2,9 @@
 
 Consultado: 2026-11-01. Alcance: decisiones de notificaciones y referencias a las decisiones compartidas. Las decisiones
 arquitectónicas son propuestas de este diseño; la documentación no acredita la ejecución
-de la combinación completa de dependencias.
+de la combinación completa de dependencias. La implementación posterior verifica
+90/92 tareas localmente; [aceptación y límites](validation/acceptance.md). El diseño
+original se conserva como antecedente, sin afirmar validación humana o VPS.
 
 ## R1. Versiones reproducibles
 

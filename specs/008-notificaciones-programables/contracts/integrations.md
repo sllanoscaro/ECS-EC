@@ -155,7 +155,7 @@ SMTP no ocupan locks de mediciones, consultas, costos ni PDF.
 ## Señales y acceso técnico
 
 Loguru usa JSON con `timestamp`, entorno, versión, operación/etapa, severidad, resultado,
-`duration_seconds` y referencias opacas de correlación. `diagnose=False`; exclusión antes
+`duration_ms` y referencias opacas de correlación. `diagnose=False`; exclusión antes
 de emitir. No registrar emails, nombres, valores de consumo/facturación, cuerpos SMTP,
 archivos, cookies, credenciales ni variables locales de excepciones.
 
@@ -208,5 +208,29 @@ acciones a Viewer; la puerta permite rutas de consulta (también POST de consult
 y deniega administración. Las ingestas usan rutas/redes separadas con credenciales técnicas
 de escritura, nunca las de consulta humana. En local la puerta se publica solo en loopback
 y conserva la autenticación. Estos controles no añaden lógica funcional independiente.
-El procedimiento de acceso se documentará en `deploy/README.md`; no se implementa un visor
+El procedimiento de acceso está documentado en `deploy/README.md`; no se implementa un visor
 técnico en las páginas funcionales ni se añade contenido técnico a los correos.
+
+
+## Aclaración aprobada2026-11-24: primer corte vacío
+
+El usuario eligió conservar el primer horario cuando coincide exactamente con starts_at.
+Solo esa ventana inicial periódica admite inicio=fin y se identifica mediante
+initial_window_empty=true. El contenido informa ausencia de período observado:
+summary_items desconocidos, conteoNULL y motivo ventana_inicial_vacia; no inventa cero
+ni cobertura histórica. Las ventanas posteriores y las de consumo/evidencia siguen
+exigiendo inicio<fin. No cambia el contrato positivo de intervalos de otros propietarios.
+
+## Concreción local2026-11-25
+
+El catálogo007 incluye `notifications` y operaciones `notification.configure`,
+`notification.query`, `notification.plan`, `notification.evaluate`,
+`notification.dispatch` y `notification.smtp`. El panel propio distingue ciclos,
+operaciones y registros de intento; usa cobertura/conciliación007 y nunca interpreta
+aceptación SMTP como lectura. [Evidencia](../validation/observability.md).
+
+`notification_consumed_event` confirma identidades funcionales por activación en la
+misma transacción que la evaluación. Un cursor de fecha/UUID no se trata como orden
+de commit. Condición, episodio, referencia/fecha del suceso y detección son campos
+opcionales tipados de la captura urgente exigidos porFR010–013/021, compartidos por
+correo y UI. Los eventos de correo/telemetría no alimentan las reglas funcionales.

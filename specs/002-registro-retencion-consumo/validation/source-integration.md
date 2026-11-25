@@ -3,6 +3,11 @@
 2026-11-23. Alcance:002:T064 y su contrato de publicación/intento/recuperación.
 Se reutilizan001,002,003 y009 reales; no se implementan formatos ni transporte en002.
 
+Este informe conserva el corte del23 de noviembre.002:T065, pendiente al final de
+ese corte, se completó después en el paso3: [evidencia vigente](telemetry.md).
+El único pendiente actual de002 esT068/personas; no se reejecutó esta suite al actualizar
+la documentación el2026-11-25.
+
 ## Entorno y reproducción
 
 PostgreSQL18.3 desechable `ecs-step1-test`, loopback55461, base `ecs_step1_test`

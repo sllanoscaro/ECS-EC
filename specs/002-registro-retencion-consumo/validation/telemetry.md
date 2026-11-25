@@ -26,3 +26,12 @@ entre commit y emisión; no se promete contabilidad técnica exactamente una vez
 
 [Regresión compartida](../../006-acceso-usuarios-rbac/validation/regression.md).
 002 queda70/71; T068 exige personas y permanece pendiente.
+
+## Verificación transversal del paso4 —2026-11-24
+
+La suite007 consume ahora receptor/adaptadores reales y consulta Loki/Jaeger.
+Se corrigió clasificación de todo duplicado/rechazado y conteo de archivos desde
+resultado confirmado.003 enlaza contexto de sesión SFTP a su evaluación en metadatos
+técnicos existentes, sin modificar archivos nativos; consulta contexto antes de sellar
+para respetar invariantes SQL. [Cobertura y recuperación](../../007-observabilidad-externa/validation/coverage-acquisition.md).
+No se modifican tareas de personas ni aceptación integral del propietario.

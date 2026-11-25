@@ -1,3 +1,10 @@
+# Corte del paso2 conservado; continuación transversal completada
+
+2026-11-24. El paso4 verifica T033–T038 y cobertura001–006 real; las limitaciones de disponibilidad/prerrequisitos del texto histórico siguiente ya no describen el estado actual.
+[Resultados y límites actuales](step4.md); [continuación](implementation-checkpoint-2026-11-24.md).
+
+## Corte histórico conservado
+
 # Ampliación común coordinada con PDF — 2026-11-24
 
 **Capacidad usada por005 implementada y verificada;007 sin aceptación integral.**

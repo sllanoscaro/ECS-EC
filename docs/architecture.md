@@ -1,15 +1,20 @@
 # Arquitectura compartida de ECS-EC
 
-Estado revisado el 2026-11-24: plataforma009, identidad006, consumo001/002, costos004 y
+Estado revisado el 2026-11-25: plataforma009, identidad006, consumo001/002, costos004 y
 recepción PAS600/SFTP003 implementados localmente según sus evidencias.006 verifica
 consultas001/002/004, autorización administrativa e instrumentación propia007; sus
 pruebas consumidoras de aislamiento SFTP quedaron verificadas en006:T069/T077;
-La integración PDF de006 sigue pendiente. [Evidencia006](../specs/006-acceso-usuarios-rbac/validation/technical-separation.md). PDF005 tiene entrega técnica verificada de generación/persistencia/API/interfaz:60/63tareas.
+La integración PDF de006 ya fue verificada en el paso3. [Evidencia006](../specs/006-acceso-usuarios-rbac/validation/technical-separation.md). PDF005 tiene entrega técnica verificada de generación/persistencia/API/interfaz:60/63tareas.
 [Resultados y pendientes físicos/humanos](../specs/005-generar-reportes-pdf/validation/acceptance.md).
-008 sigue sin implementar. Integraciones finales, personas y
-VPS pendientes. Este documento centraliza decisiones ya presentes
-en la planificación de notificaciones; su traslado no acredita instalación, pruebas ni
-despliegue. La [hoja de ruta](implementation-roadmap.md) asigna propietarios y etapas.
+008 verifica localmente US1–US4, SMTP, recuperación/reenvíos, conservación e
+instrumentación:90/92 tareas. [Resultados008](../specs/008-notificaciones-programables/validation/acceptance.md).
+Solo008:T090/personas y008:T091/VPS siguen pendientes en su lista.001:T056 ya verificó
+la integración consumidora003/007/008; [resultados](../specs/001-visualizar-consumo-categorias/validation/local-integrations.md).
+La continuación técnica es007:T059–T065 según sus prerrequisitos;
+los [27 pendientes del proyecto](implementation-priority-plan-2026-11-03.md) incluyen
+además referencia19, personas, impresión y VPS. Este documento centraliza decisiones
+compartidas; la evidencia de cada spec acredita únicamente sus verificaciones realizadas.
+La [hoja de ruta](implementation-roadmap.md) asigna propietarios y etapas.
 La constitución local `.specify/memory/constitution.md` conserva su precedencia.
 
 Consumo 001 tiene catálogo/configuración, reglas puras y consulta web de detalle integrados
@@ -26,11 +31,12 @@ DOCA0172EN-19, reproducción por otra persona y aceptación integral siguen pend
 La instrumentación propia002/003 y la integración PDF006 se completaron en el paso3;
 [evidencia](../specs/006-acceso-usuarios-rbac/validation/regression.md). [Estado003](../specs/003-simulador-pas600-sftp/validation/implementation-status.md).
 
-007 tiene emisor básico y acceso técnico externo verificados localmente. La
-[ampliación común con005](../specs/007-observabilidad-externa/validation/step2.md) está
-verificada para005, con cierre transversal007 pendiente; cobertura
-completa001–006, políticas/cuotas/retención real, personas y VPS siguen pendientes.
-[Estado parcial007](../specs/007-observabilidad-externa/validation/acceptance.md).
+007 verifica acceso técnico, cobertura001–006, continuación, métricas y aislamiento
+con productores reales. El paso4 incorpora instrumentación004 autorizada, panel
+nativo Grafana de conciliación acotada y cuotas físicas separadas con corte90%.
+Retención24h/GC, recorrido final, personas y VPS siguen pendientes.
+[Estado/evidencia007](../specs/007-observabilidad-externa/validation/step4.md).
+No introduce servicios de negocio, API pública de métricas ni tablas007.
 
 ## Unidad de aplicación y herramientas
 
@@ -55,7 +61,7 @@ en los manifiestos/lockfiles e imágenes de plataforma 009. Los módulos posteri
 sus dependencias al incorporarse. El [registro de investigación](../specs/009-fundaciones-plataforma/research.md)
 conserva sus fuentes y alternativas; cada módulo conserva las decisiones de su dominio.
 
-## Estructura prevista del código
+## Estructura del código
 
 ```text
 pyproject.toml, uv.lock, .python-version, .env.example, Dockerfile, compose.yaml
@@ -90,8 +96,8 @@ deploy/
 └── README.md                  # procedimientos comunes y enlaces a guías de módulos
 ```
 
-`core`, `audit`, la composición y el scaffold web ya existen; los módulos de negocio de
-la estructura prevista se incorporan por sus propietarios. Los contratos implementados
+`core`, `audit`, la composición y la interfaz web existen; los módulos de negocio de
+esta estructura ya se incorporaron por sus propietarios. Los contratos implementados
 están en [plataforma](platform.md). La exportación estática no usa SSR
 por solicitud, Server Actions ni un servidor Node en ejecución. Las rutas que seleccionan
 entidades usan query/estado cliente; los datos privados se obtienen de la API autenticada.
@@ -139,3 +145,8 @@ Mailpit y observabilidad se incorporan por sus funcionalidades a perfiles opcion
 La VPS requiere HTTPS, URL pública, secretos externos y respaldo/restauración comprobados.
 `America/Santiago` y direcciones `example.test` son valores locales de prueba, no confirmación
 de la instalación real. Dominio, zona real y credenciales siguen siendo configuración.
+
+
+Excepción aprobada2026-11-24 en008: el primer corte periódico igual a starts_at admite
+ventana vacía identificada, sin historia observada ni consumo cero. Los intervalos de
+otros módulos conservan inicio<fin. [Decisión](../specs/008-notificaciones-programables/spec.md#session-2026-11-24).

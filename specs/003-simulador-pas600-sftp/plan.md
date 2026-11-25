@@ -7,7 +7,7 @@ Los cortes fechados anteriores se conservan como registro.
 rama Git actual `develop`, sin creación de rama.
 **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: `specs/003-simulador-pas600-sftp/spec.md`.
-**Estado actualizado2026-11-03**: 69/76 [tareas](tasks.md) completas. Recorrido SFTP local, recepción001/002, recuperación, contraste y restauración implementados; siete tareas conservan gates documentales, humanos, técnicos007 o aceptación integral. [Continuidad y límites](validation/implementation-status.md).
+**Estado revisado2026-11-25**: 70/76 [tareas](tasks.md) completas. Recorrido SFTP local, recepción001/002, recuperación, contraste, restauración e instrumentación propia007 verificados; seis tareas conservan referencia19, reproducción por otra persona o aceptación integral pendientes. [Continuidad y límites](validation/implementation-status.md).
 Al iniciar la planificación no existía `tasks.md` ni borrador de traslado para esta funcionalidad.
 
 ## Contexto compartido del proyecto (ECS-EC)
@@ -122,12 +122,12 @@ specs/003-simulador-pas600-sftp/
 └── checklists/requirements.md   # conservar su estado
 ```
 
-[tasks.md](tasks.md) contiene la lista integral generada con `$speckit-tasks`; todas las
-tareas siguen pendientes y su generación no acredita implementación ni aceptación.
+[tasks.md](tasks.md) contiene la lista integral y sus marcas vigentes:70/76 completas.
+La generación original de tareas no acreditó implementación ni aceptación.
 
 ### Source Code (repository root, this feature)
 
-Rutas futuras, no archivos existentes ni revisiones de migración reservadas:
+Estructura de implementación; las rutas existentes se contrastan con tareas y evidencia:
 
 ```text
 tools/pas600_simulator/
@@ -225,7 +225,9 @@ hacen secuencialmente y no transfieren su propiedad.
 | Transversal; FR-009/021 y SC-001/004/005 | Idempotencia tras reintento/crash, conflictos/cambios de fuente y timestamp/offset, cero/ausencia, un único lote por categoría, evidencia protegida. |
 
 Hay escenarios de generación local ejecutados y registrados en [US1](validation/us1.md)
-y [US3](validation/us3.md); los escenarios integrados siguen pendientes. No se modifican
+y [US3](validation/us3.md), más recepción real, recuperación y restauración en
+[aceptación](validation/acceptance.md). Referencia19 y reproducción por otra persona
+siguen pendientes; no confundirlos con ausencia de integración local. No se modifican
 checklists por esta actualización ni se acredita compatibilidad física o aceptación integral.
 
 ## Complexity Tracking

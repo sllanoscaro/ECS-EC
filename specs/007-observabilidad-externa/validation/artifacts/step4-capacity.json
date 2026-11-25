@@ -1,0 +1,93 @@
+{
+  "observed_at": "2026-11-24T21:43:08.610678+00:00",
+  "scope": "Post-load container memory, not peak or serialized payload size",
+  "containers": [
+    {
+      "BlockIO": "4.37MB / 0B",
+      "CPUPerc": "39.78%",
+      "Container": "ecs007-step4-technical-gateway-1",
+      "ID": "418b502f0a29",
+      "MemPerc": "0.11%",
+      "MemUsage": "8.512MiB / 7.461GiB",
+      "Name": "ecs007-step4-technical-gateway-1",
+      "NetIO": "144MB / 143MB",
+      "PIDs": "2"
+    },
+    {
+      "BlockIO": "8.5MB / 0B",
+      "CPUPerc": "0.19%",
+      "Container": "ecs007-step4-alloy-1",
+      "ID": "35b74066bc86",
+      "MemPerc": "1.08%",
+      "MemUsage": "82.44MiB / 7.461GiB",
+      "Name": "ecs007-step4-alloy-1",
+      "NetIO": "46kB / 8.08MB",
+      "PIDs": "13"
+    },
+    {
+      "BlockIO": "11.8MB / 0B",
+      "CPUPerc": "0.55%",
+      "Container": "ecs007-step4-loki-1",
+      "ID": "687365a26ccd",
+      "MemPerc": "2.41%",
+      "MemUsage": "184MiB / 7.461GiB",
+      "Name": "ecs007-step4-loki-1",
+      "NetIO": "8.67MB / 11MB",
+      "PIDs": "14"
+    },
+    {
+      "BlockIO": "6.74MB / 0B",
+      "CPUPerc": "0.99%",
+      "Container": "ecs007-step4-jaeger-1",
+      "ID": "97732a93303a",
+      "MemPerc": "1.12%",
+      "MemUsage": "85.68MiB / 7.461GiB",
+      "Name": "ecs007-step4-jaeger-1",
+      "NetIO": "739kB / 9.83MB",
+      "PIDs": "13"
+    },
+    {
+      "BlockIO": "99MB / 24MB",
+      "CPUPerc": "0.65%",
+      "Container": "ecs007-step4-grafana-1",
+      "ID": "58235b245147",
+      "MemPerc": "4.87%",
+      "MemUsage": "372.1MiB / 7.461GiB",
+      "Name": "ecs007-step4-grafana-1",
+      "NetIO": "891kB / 128MB",
+      "PIDs": "170"
+    }
+  ],
+  "filesystem_quota_observation": {
+    "spool": {
+      "total_bytes": 120015872,
+      "used_bytes": 16410624,
+      "ceiling_bytes": 134217728,
+      "filesystem_metadata_overhead_bytes": 14201856
+    },
+    "alloy": {
+      "total_bytes": 57381888,
+      "used_bytes": 8103936,
+      "ceiling_bytes": 67108864,
+      "filesystem_metadata_overhead_bytes": 9726976
+    },
+    "loki": {
+      "total_bytes": 2040373248,
+      "used_bytes": 232636416,
+      "ceiling_bytes": 2147483648,
+      "filesystem_metadata_overhead_bytes": 107110400
+    },
+    "jaeger": {
+      "total_bytes": 2040373248,
+      "used_bytes": 232128512,
+      "ceiling_bytes": 2147483648,
+      "filesystem_metadata_overhead_bytes": 107110400
+    },
+    "grafana": {
+      "total_bytes": 241081344,
+      "used_bytes": 32705536,
+      "ceiling_bytes": 268435456,
+      "filesystem_metadata_overhead_bytes": 27354112
+    }
+  }
+}

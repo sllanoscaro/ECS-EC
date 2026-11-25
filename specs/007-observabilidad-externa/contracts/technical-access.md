@@ -29,6 +29,12 @@ significa automáticamente escritura: la excepción `ds/query` es solo consulta.
 mediante `nginx -t` y pruebas de rutas normales, codificadas, duplicación de slash,
 traversal, Host y método; rutas desconocidas no se reenvían.
 
+La allowlist implementada de dashboards contiene `ecs-platform` y `ecs-notifications`.
+El segundo fue incorporado por008 para su instrumentación propia. Consultas por UID
+ajeno y escrituras permanecen denegadas; ampliar un registro conocido no concede
+administración Grafana ni cambia la autorización Programador.
+[Evidencia de integración008](../../008-notificaciones-programables/validation/observability.md).
+
 Sin WebSockets, Live, tail, SSE, caché de señales o URL pública de exportación que
 entregue información después sin reautorizar. Consultas finitas <=30 s, logs <=10000 filas,
 cuerpo de consulta <=64 KiB y 4 consultas
@@ -146,3 +152,23 @@ servicios ni readiness funcional ligada a ellos. Para operar solo negocio no se 
 el perfil. VPS conserva separación de redes/secretos, TLS y cuotas; su procedimiento
 va en `deploy/technical-gateway/README.md` y `deploy/observability/README.md`, enlazados
 desde el `deploy/README.md` común de009. Despliegue/VPS no se acredita con este documento.
+
+## Mecanismo comprobado del paso4 — 2026-11-24
+
+Cinco ext4 sobre imágenes loop nuevas aplican los techos de disco en Linux local/test.
+Metadatos ext4 se cuentan aparte;10% reservado pertenece al presupuesto no disponible.
+La aplicación lee solo mounts vacíos .capacity y publica cada15s snapshot atómico
+acotado propio. Gateway valida esquema/entorno/edad<=30s y cuota<90% antes de ingesta;
+ausencia/falla/saturación→507, sin conceder consultas a identidades automáticas. Los
+cinco casos reales de llenado y recuperación están en [aislamiento](../validation/isolation.md).
+`OBS_REQUIRE_QUOTAS=true` por defecto; false se admite solo en test y no acredita cuotas.
+
+OBS_RETENTION debe coincidir con OBS_RETENTION_HOURS;0.1 requiere revisión explícita
+distinta de007-v1. Dashboard privado renderizado coincide con entorno/revisión/ratio.
+TTL spool parte del primer evento original del segmento y no se renueva al añadir
+heartbeats; retirada conservadora contabiliza también jóvenes perdidos.
+
+El plugin manual propio se admite sin firma solo por ID exacto; no ofrece editor ni
+servicio adicional. Rutas estáticas mjs y argumentos var-* enumerados no amplían APIs
+de administración. [Procedimientos](../../../deploy/observability/README.md).
+Real24h/GC, personas y VPS mantienen sus gates; configurar no acredita aceptación.

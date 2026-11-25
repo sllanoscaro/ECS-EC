@@ -1,0 +1,51 @@
+{
+  "phase": "waiting_real_ttl",
+  "started_at": "2026-11-24T21:39:30.471862Z",
+  "expires_at": "2026-11-25T21:39:45.188773Z",
+  "precheck_at": "2026-11-25T21:29:33.159891Z",
+  "verification_deadline": "2026-11-25T22:39:33.159891Z",
+  "spool_sources": [
+    {
+      "path": "events-0.jsonl",
+      "first_timestamp": "2026-11-24T17:34:49.233520Z",
+      "verification_deadline": "2026-11-25T18:34:49.233520Z",
+      "first_event_id": "abb4f7cf-a199-44c1-9469-d75f3b005768"
+    }
+  ],
+  "signals": {
+    "before_restart": {
+      "observed_at": "2026-11-24T21:39:37.891489Z",
+      "logs": 10,
+      "metric_operations": 10.0,
+      "traces": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "after_restart": {
+      "observed_at": "2026-11-24T21:39:52.183185Z",
+      "logs": 10,
+      "metric_operations": 10.0,
+      "traces": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    }
+  }
+}

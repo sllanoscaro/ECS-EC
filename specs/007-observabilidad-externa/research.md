@@ -9,13 +9,16 @@ solas. La instalación y validación local posteriores del emisor/acceso constan
 [aceptación parcial](validation/acceptance.md); la aceptación integral sigue pendiente.
 
 Las decisiones R7 y acceso local/VPS conservan sus títulos/anclajes para enlaces de008.
-Los cinco trabajos trasladados de007 quedan incorporados al diseño y pendientes en tareas.
+Los cinco trabajos trasladados de007 se incorporaron al diseño y a tareas integrales;
+su estado vigente está en [tasks.md](tasks.md),58/65 completas. No confundir el traslado
+inicial con evidencia de implementación.
 
 ## R1. Límites de propiedad y despliegue
 
 **Decision**: módulo `observability` en el proceso del monolito; herramientas técnicas
 como infraestructura opcional, una instancia/volúmenes por entorno. 009 conserva scaffold,
-core y auditoría; 001–006 instrumentan sus operaciones; 008 instrumentará su propio dominio.
+core y auditoría; 001–006 instrumentan sus operaciones; 008 ya instrumenta su propio dominio y reutiliza este emisor;
+[evidencia de integración008](../008-notificaciones-programables/validation/observability.md).
 
 **Rationale**: respeta constitución y hoja de ruta. Emisor implementable antes que productores
 y visores; aceptación completa espera productores reales. Ninguna transacción depende
@@ -226,6 +229,32 @@ comunes fuera de su propietario produce evidencia falsa; cambiar a otra pila no 
 
 En el cierre original de fase0 no quedaron incertidumbres de diseño. Las versiones y
 el emisor/acceso se comprobaron posteriormente según [dependencias](validation/dependencies.md)
-y [aceptación parcial](validation/acceptance.md).003 y001/002/004/006 están disponibles;
-generación005, cobertura integral007, dominios/secretos reales y personas SC-008 conservan
-sus condiciones pendientes. La investigación no sustituye esas pruebas ni aceptación.
+y [aceptación parcial](validation/acceptance.md).003,001/002/004/006 y generación005
+están disponibles; cobertura001–006, métricas y cuotas se verificaron en el paso4.
+008 añadió su instrumentación en el paso5. TTL/GC, recorrido final, dominios/secretos
+reales y personas SC-008 conservan sus condiciones pendientes. La investigación no
+sustituye esas pruebas ni aceptación.
+
+## Hallazgos de ejecución — paso4, 2026-11-24
+
+El agregado nativo Loki y la consulta de filas divergen ante replay idéntico:1001
+entregas frente a1000 eventos únicos. Se conserva etiquetado autorizado y se usa
+conciliación acotada en panel nativo de Grafana; discrepancia→partial/porcentajesN/D.
+No se certifica deduplicación exacta de count_over_time. discover_log_levels se
+desactiva explícitamente para evitar detected_level. Fuente primaria de la opción:
+[configuración Loki](https://grafana.com/docs/loki/latest/configure/).
+
+El panel propio es System.register con React/@grafana/data proporcionados por Grafana
+y un conciliador ES module manual, sin dependencia remota/build generado. Se permite
+únicamente su ID sin firma según [documentación de plugins](https://grafana.com/docs/grafana/latest/administration/plugin-management/plugin-sign/).
+La revisión usa navegador autenticado/CA confiable en HOME exclusivo: el inspector
+visual distribuido no admite esta frontera Basic/CA. No se crea proxy sin autenticación.
+Node24.22/Playwright necesitó --jitless tras un fallo nativo inicial; los recorridos
+reales pasan con esa opción y no se deshabilita TLS.
+
+Cuotas comprobadas sobre cinco ext4 aislados, con10% reservado incluido en el
+presupuesto no disponible. Snapshot15s/edadmáxima30s gobierna507 de ingesta, sin IO en
+commit de negocio. El helper controla solo nuevos loop mounts verificados; no instala
+fstab ni acredita restauración tras reinicio del host o VPS. La retención de Badger
+requiere diferenciar inaccesibilidad por TTL y liberación por GC: [implementación2.22](https://github.com/jaegertracing/jaeger/blob/v2.22.0/internal/storage/v1/badger/factory.go).
+El ensayo real24h y su revisión física siguen en [retención](validation/retention.md).

@@ -1,39 +1,17 @@
-# Prerrequisitos verificados de 007
+# Prerrequisitos verificados007 —2026-11-24
 
-Disponibilidad revisada el2026-11-23 por inspección del checkout; no acredita nueva
-aceptación funcional. Los comandos de2026-11-02 son evidencia histórica.
+| Capacidad / propietario | Estado comprobado |
+| --- | --- |
+|009 core/DB/reloj/auditoría/lifecycle | Disponible; regresión PostgreSQL real, commits/rollback bajo fallos007. |
+|001/002 consultas/validación/recepción/agregación/retirada | Productores instalados e instrumentados; [cobertura](coverage-acquisition.md). |
+|003 SFTP/publicación/adaptación | Receptor real, EOF/abortos/contexto durable/recuperación consultables; no hay bloqueo por inexistencia. |
+|004 costos/boletas/calendarios | Integración propietaria007 autorizada expresamente; [evidencia004](../../004-costos-tarifa-bt43/validation/observability.md). |
+|005 PDF | Generación durable, render/preflight/publicación/descarga reales; matriz007 sin omisión PDF. |
+|006 identidad/permisos/historial | Matriz funcional y denegaciones reales, independientes del Basic Programador. |
+|007 terminales/continuación/métricas/cuotas | Capacidad transversal verificada en el paso4; [resultados](step4.md). |
+|TTL24h/GC / personas / VPS | Permanecen pendientes por evidencia real o participantes; no se simulan. |
 
-| Propietario/capacidad | Evidencia en raíz | Estado para 007 |
-| --- | --- | --- |
-| 009 scaffold/lifecycle/reloj | `backend/src/ecs_ec/{main.py,core/lifecycle.py,core/clock.py}`; `compose.yaml`, `pyproject.toml`, `uv.lock` | Disponible; habilita emisor. `uv sync --locked` ejecutado correctamente antes de cambios. |
-| 009 DB/auditoría | `backend/src/ecs_ec/{core/database.py,core/unit_of_work.py,audit/}` | Disponible; aislamiento transaccional requiere pruebas reales. |
-| 001/002 catálogo, consultas, recepción durable, agregación/retirada | `backend/src/ecs_ec/consumption/`; contratos de ambas specs | Disponible;001:T054 instrumentada y verificada.002:T065 completada con adaptador instalado y contexto durable; [evidencia002](../../002-registro-retencion-consumo/validation/telemetry.md). La cobertura transversal007 sigue pendiente. |
-| 003 publicación/receptor SFTP | `backend/src/ecs_ec/acquisition/`, `tools/pas600_simulator/` y [evidencia003](../../003-simulador-pas600-sftp/validation/acceptance.md) | Disponibles con recepción001/002 real. 003:T072 completada con semántica/continuación durables; [evidencia003](../../003-simulador-pas600-sftp/validation/telemetry.md). Falta cobertura transversal007. No hay bloqueo por inexistencia del receptor. |
-| 004 costos | `backend/src/ecs_ec/costs/` | Disponible; llamadas de instrumentación propias pendientes. |
-| 005 PDF | `backend/src/ecs_ec/reports/{ports.py,snapshots.py}` | Contrato/snapshot parcial; falta generación durable/render/descarga. Bloquea cobertura PDF real. |
-| 006 identidad | `backend/src/ecs_ec/identity/`, `identity/telemetry.py` y [evidencia006](../../006-acceso-usuarios-rbac/validation/observability.md) | Disponible;006:T082/T083 verificadas con emisor007. La matriz integral007 sigue pendiente. No ampliar roles funcionales con Programador. |
-| Diagnóstico humano | No hay participantes/resultados | SC-008/T061 pendiente. |
-
-Documentos propietarios: [009](../../009-fundaciones-plataforma/plan.md),
-[001](../../001-visualizar-consumo-categorias/contracts/integrations.md),
-[002](../../002-registro-retencion-consumo/contracts/integrations.md),
-[003](../../003-simulador-pas600-sftp/contracts/sftp-reception.md),
-[004](../../004-costos-tarifa-bt43/contracts/integrations.md),
-[005](../../005-generar-reportes-pdf/contracts/integrations.md),
-[006](../../006-acceso-usuarios-rbac/contracts/integrations.md).
-
-## Límite del emisor disponible
-
-`backend/src/ecs_ec/observability/{logging,tracing,lifecycle}.py` existen y el módulo está
-registrado desde `main.py`. `Telemetry.complete` admite únicamente `operation.completed`:
-los terminales de recepción y admisión/resultado PDF aún requieren007:T037; continuación
-durable requiere007:T038. Sus contratos/pruebas y prerrequisitos siguen en
-[tareas007](../tasks.md) y [contrato de integración](../contracts/integrations.md).
-Las tareas002:T065 y005:T062/T063 tienen evidencia en sus propietarios; no cierran automáticamente ninguna tarea007.
-
-La matriz completa de acceso007 espera PDF005 real; el grafo permite preparar pruebas y
-puertos comunes de US2 desde fundaciones sin declarar US1 aceptada. No se omiten los
-prerrequisitos existentes de007:T037/T038; el incremento coordinado requiere concretarlos
-antes de ejecutar esa ampliación.
-
-No se modifican tareas de otros propietarios ni checklists de revisión.
+Cada propietario conserva su módulo, contratos y tareas. Las pruebas007 consumen sus
+proveedores y no reemplazan aceptación humana/documental externa. Selección Spec Kit
+persistida003 intacta; se inspeccionó007 sin persistir. Checklists16/16 de revisión,
+sin modificación; no hooks before/after porque extensions.yml está ausente.

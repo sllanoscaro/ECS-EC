@@ -3,13 +3,13 @@
 **Branch de contexto Spec Kit**: `007-observabilidad-externa` | **Date**: 2026-11-02 | **Spec**: [spec.md](spec.md)
 
 **Rama Git real**: `develop`; setup resuelve el identificador de funcionalidad, sin crear
-ni cambiar una rama Git. **Estado revisado2026-11-23**: diseño y revisión de consistencia
-completados;28/65 tareas completas. Emisor básico y acceso técnico verificados localmente;
-cobertura, métricas, políticas y aceptación integral pendientes. [Evidencia](validation/acceptance.md).
+ni cambiar una rama Git. **Estado revisado2026-11-25**: diseño y revisión de consistencia
+completados;58/65 tareas completas al cierre técnico del paso4. Cobertura001–006,
+métricas, aislamiento y cuotas comprobadas; retención real/GC y aceptación integral pendientes. [Evidencia](validation/acceptance.md).
 
 **Actualización2026-11-24**: la capacidad común de terminales/continuación usada por005
 está verificada; T031/T032 se completan. T033–T035 y el cierre transversal T037/T038
-conservan sus prerrequisitos y verificaciones pendientes. [Detalle de capacidad y límites](validation/step2.md).
+se verifican en el paso4 sobre productores reales, incluida004 autorizada expresamente. [Detalle de capacidad y límites](validation/step2.md).
 
 ## Contexto compartido del proyecto (ECS-EC)
 
@@ -78,7 +78,8 @@ trazas al 100 % en aceptación; no heredar los 12 meses funcionales.
 
 **Scale/Scope**: un edificio por despliegue inicial, un emisor y stack técnico por entorno;
 cobertura real de operaciones 001–006. Dimensiones cerradas; referencias únicas solo
-como campos. 008 añade su instrumentación después y no es prerrequisito de 007.
+como campos. 008 ya añadió su instrumentación como propietaria; no es prerrequisito de aceptación007.
+[Evidencia008](../008-notificaciones-programables/validation/observability.md).
 
 ## Constitution Check
 
@@ -113,13 +114,13 @@ specs/007-observabilidad-externa/
 │   ├── signals.md
 │   ├── technical-access.md
 │   └── log-event.schema.json
-└── tasks.md                 # tareas integrales; traslado conservado y pendiente
+└── tasks.md                 # tareas integrales; traslado conservado y trazable
 ```
 
 ### Source Code (repository root, this feature)
 
-Estructura objetivo: el emisor, scripts y stack técnico básicos ya existen. Las pruebas
-de cobertura/aislamiento y capacidades ampliadas pendientes se identifican en [tasks.md](tasks.md);
+Estructura implementada: emisor, scripts, stack y cobertura técnica disponibles. Las
+verificaciones finales pendientes se identifican en [tasks.md](tasks.md);
 la presencia de una ruta no acredita completar toda su tarea.
 
 ```text
@@ -131,10 +132,13 @@ backend/src/ecs_ec/observability/
 ├── logging.py               # cola no bloqueante, spool y pérdidas
 ├── tracing.py               # spans de dominio y exportación OTLP por lotes
 ├── health.py                # heartbeat, secuencias y limitaciones
+├── capacity.py              # presupuestos físicos/snapshot periódico
+├── http.py                  # contexto en rutas instaladas/denegaciones
+├── queries.py               # catálogo LogQL cerrado
 └── lifecycle.py             # registro en lifespan común
 backend/tests/{unit,integration,contract}/observability/
 backend/tests/integration/test_observability_isolation.py
-scripts/observability/{prepare_local.sh,manage_programmer.sh}
+scripts/observability/{prepare_local.sh,manage_programmer.sh,prepare_quotas.py,render_dashboard.py,retention_probe.py}
 deploy/technical-gateway/{nginx.conf,README.md}
 deploy/observability/
 ├── alloy.alloy
@@ -205,10 +209,17 @@ espera su instrumentación. Los productores operan sin receptores/visores.
 | Traslado T003/T004 de 007, antes T100/T101 de 008 | Investigación/catálogo/despliegue | Alloy/Loki/Grafana/Jaeger, Badger, TTL y perfil opcional |
 | Traslado T005 de 007, pruebas comunes anteriores de T103 de 008 | Quickstart/aislamiento | 10/8/2, 20 %, cobertura, colas, privacidad y permisos |
 
-IDs como procedencia local a sus specs, no dependencias de ejecución. Todas las tareas
-trasladadas siguen pendientes.
+IDs como procedencia local a sus specs, no dependencias de ejecución. El traslado
+por sí solo no cerró tareas; su ejecución posterior se registra en tasks.md.
 
 ## Complexity Tracking
 
 Sin violaciones que justificar. La infraestructura técnica externa respeta la unidad
 del monolito y no introduce otro servicio propio de aplicación.
+
+## Estado del paso4
+
+[Evidencia actual](validation/step4.md) y [punto de continuación](validation/implementation-checkpoint-2026-11-24.md).
+T059 permanece pendiente hasta vencer/comprobar TTL24h y GC físico; T060–T065
+conservan su grafo, incluidos personas, recorrido local final y revisión documental.
+Actualizar guías ahora no cierra anticipadamente esas tareas. No hay aceptación VPS.

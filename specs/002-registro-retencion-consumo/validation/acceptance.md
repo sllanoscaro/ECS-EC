@@ -1,4 +1,4 @@
-# Aceptación local de spec-002, pendiente de integraciones y personas
+# Aceptación local de spec-002, pendiente de personas
 
 ## Estado vigente — paso3,2026-11-24
 
@@ -7,7 +7,7 @@ completadas. [Instrumentación y recuperación](telemetry.md); regresión compar
 backend aprobadas,91 frontend y recorridos reales de identidad/proveedores. No acredita
 usabilidad humana ni aceptación integral. Los cortes siguientes son históricos.
 
-## Continuación vigente — paso1,2026-11-23
+## Corte histórico — paso1,2026-11-23
 
 **69/71 tareas completas; T065/T068 pendientes.** T064 completada mediante seis casos
 consumidores con generador/publicador003, SFTP y PostgreSQL18 reales: CSV/JSON,
@@ -23,7 +23,7 @@ respecto del incremento inicial. T001–T063/T066–T067/T069–T071 completas;
 T064/T065/T068 pendientes. No se modificaron checklists de revisión ni tareas001/004.
 Se preservaron los cambios previos de004. No hay commit ni despliegue VPS en esta sesión.
 
-## Resultado vigente
+## Resultado del corte histórico2026-11-02
 
 Se reutilizó001 para catálogo/configuración/detalle, router, página y componentes;
 009 para UoW/reloj/aniversarios/auditoría y006 para sesiones/permisos/CSRF.

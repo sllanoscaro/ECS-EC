@@ -1,14 +1,32 @@
 # Aceptación parcial de spec-001
 
-## Continuación vigente — 2026-11-03
+## Estado vigente — punto6.1,2026-11-25
+
+**58/61 tareas completas.**001:T056 verificada sobre SFTP003,series001/002,identidad006,
+Mailpit008 yAlloy/Loki/Jaeger/Grafana007 reales. Dos recorridos CSV/JSON y dos escenarios
+Playwright,con4+4=8kWh por formato,coincidencia API/gráfico/tabla,resumen yalerta en
+correo,cobertura ypermisos actuales. [Evidencia yreproducción](local-integrations.md).
+
+Regresión de consumo: **209 aprobadas,0 fallos,0 omisiones en118,83s**,incluidos los
+dos recorridos; [JUnit](artifacts/local-integrations-regression.xml). TypeScript,Ruff y
+format/docstrings de los archivos nuevos correctos. Se reutilizó la exportación real
+construida en el paso5,sin cambios de interfaz de producto ni otra construcción aquí.
+FR-019/SC-006 verificados localmente; T059/personas,T060/VPS yT061/aceptación integral
+siguen pendientes. No se acredita referenciaPAS600-19,medidores físicos,relay externo,
+TTL/GC007 ni tareas ajenas. La selección persistida003 ylas checklists siguen intactas.
+
+## Corte anterior — revisión previa a001:T056,2026-11-25
 
 **57/61 tareas completas.** Completadas001:T018/T038/T041/T043/T044/T045/T052/T053/T054.
 No hay aceptación integral: T056 espera ejecutar la integración con003/007 y correo008
-real. Revisión documental2026-11-23: el receptor/adaptador003 ya está disponible;008
-sigue sin implementar. La prueba consumidora001:T056 conserva su estado pendiente;
+real. Receptor/adaptador003, observabilidad007 y notificaciones008 están implementados
+y verificados localmente en sus alcances. [Evidencia008](../../008-notificaciones-programables/validation/acceptance.md).
+La prueba consumidora001:T056 conserva su estado pendiente y ya tiene sus proveedores;
 T059/personas y T060/VPS se difieren por instrucción del usuario; T061 depende de esos
 resultados. No se modificaron checklists ni tareas ajenas. requirements16/16, sin hooks
-registrados antes/después (`.specify/extensions.yml` ausente). Selección explícita001.
+registrados antes/después de la ejecución001 (`.specify/extensions.yml` ausente).
+Los resultados siguientes conservan su corte2026-11-03; esta revisión documental no
+los reejecuta. La selección persistida actual se mantiene en003.
 
 | Verificación | Resultado observado |
 | --- | --- |
@@ -64,7 +82,7 @@ Zona/tzdata y versiones en [prerrequisitos](prerequisites.md). Los comandos Post
 usan las bases y contenedor sintéticos de la ejecución, no credenciales de instalación.
 El90% es una medición global observada, no un umbral nuevo de aceptación.
 
-## Evidencia por requisito
+## Evidencia por requisito del corte histórico2026-11-02
 
 | Requisito | Alcance comprobado | Pendiente para aceptación |
 | --- | --- | --- |
@@ -92,7 +110,7 @@ El90% es una medición global observada, no un umbral nuevo de aceptación.
 | SC-006 | Proveedores 003/007/008 ausentes; T056 pendiente. |
 | SC-007 | VPS no provista; T060 pendiente. |
 
-## Próxima capacidad necesaria
+## Próxima capacidad necesaria en aquel corte, ya resuelta
 
 Implementar las tareas propias de [spec-002](../../002-registro-retencion-consumo/tasks.md)
 mediante una selección explícita posterior: recepción, estado temporal, almacenamiento,

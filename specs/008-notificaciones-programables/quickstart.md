@@ -1,10 +1,8 @@
 # Quickstart y guía de validación
 
-Esta guía define los comandos y escenarios que deberá ofrecer la implementación.
-Para notificaciones008 solo existen especificaciones y artefactos de diseño: sus
-comandos, migración y pruebas específicos aún no son ejecutables. La plataforma y
-los proveedores001/002/004/006,003 y el emisor básico007 sí existen. [tasks.md](tasks.md) recoge
-el trabajo propio pendiente; no se afirma una validación funcional ya realizada.
+La configuración y las fundaciones de008 están verificadas; US1–US4 se validan con PostgreSQL/Mailpit y navegador reales. [US1](validation/us1.md),
+[US2](validation/us2.md) y [continuación](validation/implementation-checkpoint-2026-11-24.md)
+distinguen resultados y trabajo pendiente. [Urgencias](validation/us3.md), [historial](validation/us4.md) e [instrumentación](validation/observability.md) tienen evidencia local. Personas y VPS siguen pendientes.
 
 Referencias: [plan](plan.md), [modelo](data-model.md), [API](contracts/openapi.json),
 [integraciones](contracts/integrations.md) e [interfaz](contracts/ui.md).
@@ -17,8 +15,8 @@ identidad según [spec-006](../006-acceso-usuarios-rbac/tasks.md), series según
 [spec-001](../001-visualizar-consumo-categorias/tasks.md)/[spec-002](../002-registro-retencion-consumo/tasks.md)
 y emisores/visores según [spec-007](../007-observabilidad-externa/tasks.md).
 Sus ampliaciones y verificaciones pendientes se realizan en sus propietarios;
-no se implementan desde notificaciones. PDF005 todavía debe entregar su productor real
-para las alertas de fallo PDF. Contexto:
+no se implementan desde notificaciones. Los productores reales004/005 están disponibles;
+su integración consumidora de alertas está verificada en US3. Contexto:
 [arquitectura](../../docs/architecture.md) y [hoja de ruta](../../docs/implementation-roadmap.md).
 
 - Docker Engine con Compose v2, uv con soporte Python 3.14 y Node >=20.9/npm para pruebas
@@ -31,23 +29,24 @@ para las alertas de fallo PDF. Contexto:
   Solo sus alertas de sistema y aceptación integral esperan esos productores; otros incrementos
   con dependencias reales disponibles pueden validarse. Dobles no acreditan integración final.
 - `.env.example`, Dockerfile multietapa, Compose, Alembic y comandos de la aplicación
-  deben existir después de implementar. `.env` y secretos no se confirman en Git.
+  ya existen. `.env` y secretos no se confirman en Git.
 
-Configuración local prevista:
+Configuración local implementada:
 
 | Variable | Valor/propósito |
 | --- | --- |
-| `APP_ENV` | `local` |
+| `ENVIRONMENT` | `local` |
+| `NOTIFICATION_ENABLED` | `false` por defecto; `true` habilita ciclos internos |
 | `APP_PUBLIC_BASE_URL` | `http://localhost:8000` |
 | `BUILDING_TIMEZONE` | `America/Santiago`, dato sintético de prueba |
 | `DATABASE_URL` | URL PostgreSQL del servicio `db`, credenciales locales propias |
 | `MAIL_TRANSPORT` | `local_prueba` |
 | `SMTP_HOST`, `SMTP_PORT` | `mailpit`, `1025` |
-| `SMTP_STARTTLS_REQUIRED` | `false` solo para capturador local |
-| `SMTP_FROM` | Remitente de prueba `ecs-ec@example.test` |
-| `NOTIFICATION_POLL_SECONDS` | `5` |
-| `NOTIFICATION_SEND_CONCURRENCY` | `4` |
-| `PYTHONTZPATH` | Vacío para usar `tzdata` fijado |
+| `SMTP_STARTTLS` | `false` solo para capturador local |
+| `MAIL_FROM` | Remitente de prueba `ecs@example.test` |
+| `NOTIFICATION_CYCLE_SECONDS` | `5`, máximo5s |
+| `NOTIFICATION_SLOTS` | `4`, máximo4 |
+| `SMTP_SOCKET_TIMEOUT` / `SMTP_ATTEMPT_TIMEOUT` | `10` / `30` segundos |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Endpoint interno Jaeger del perfil técnico |
 | `OTEL_TRACES_SAMPLER` | `always_on` en casos de referencia |
 
@@ -56,17 +55,16 @@ y visores de solo lectura según `deploy/README.md`. Ninguna cuenta funcional lo
 Pruebas y retención usan un reloj inyectable en el proceso de test, sin API pública para
 cambiar la hora ni generar fallos. SMTP determinista es un adaptador exclusivo de tests.
 
-## Arranque previsto
+## Arranque local
 
-Desde la raíz del proyecto, después de completar la implementación:
+Desde la raíz, con `.env`/claves/contexto de edificio ya preparados según009/006/001.
+Usar un proyecto y puertos propios; no recrear instancias o ensayos de otros pasos.
+Conservar una `.env` existente; copiar el ejemplo solo para una instalación nueva.
 
 ```sh
-cp .env.example .env
-docker compose --profile local build app
-docker compose --profile local up -d db mailpit
-docker compose --profile local run --rm app uv run --locked alembic -c backend/alembic.ini upgrade head
-docker compose --profile local run --rm app uv run --locked python -m ecs_ec.cli bootstrap-admin
-docker compose --profile local --profile observability up -d
+docker compose -f compose.yaml --profile mail build app
+docker compose -f compose.yaml --profile mail up -d --wait
+docker compose -f compose.yaml exec app uv run --locked ecs-ec identity bootstrap-admin --email admin@example.test
 docker compose ps
 ```
 
@@ -76,29 +74,46 @@ de spec-006. Ingresar en `http://localhost:8000`, renovarla y crear desde admini
 un segundo Administrador técnico y un Operador con correos `example.test` distintos.
 
 Esperado: una única imagen/proceso de aplicación sirve UI y API; PostgreSQL está sano,
-migraciones aplicadas y scheduler iniciado una sola vez. Mailpit muestra correos locales
+migraciones aplicadas y ciclos008 optativos iniciados si `NOTIFICATION_ENABLED=true`.
+El líder reconcilia tzdata y recuperación antes de planificar. Mailpit muestra correos locales
 en `http://localhost:8025`, publicado solo en loopback. UI técnica se alcanza a través de
 su puerta de acceso; Loki, Jaeger query e ingestas no tienen acceso público directo.
 
 La base monta `/var/lib/postgresql` para PG18. Reiniciar app conserva reglas e historial.
 SMTP/observabilidad pueden caer sin retirar la disponibilidad funcional de la aplicación.
 
-## Comprobaciones automatizadas previstas
+## Comprobaciones automatizadas
 
 ```sh
 uv sync --locked --group dev
-uv run --locked pytest backend/tests/unit/notifications backend/tests/contract/notifications backend/tests/integration/notifications
 npm --prefix frontend ci
-npm --prefix frontend run test -- --run
+npm --prefix frontend test -- --maxWorkers=1
+npm --prefix frontend run typecheck
 npm --prefix frontend run build
-npm --prefix frontend run test:e2e
+
+# Solo tras preparar PostgreSQL y Mailpit exclusivos de prueba como se indica abajo.
+export NOTIFICATION_TEST_SMTP=1
+export NOTIFICATION_BROWSER_WEB="$PWD/frontend/out"
+export NOTIFICATION_BROWSER_ARTIFACTS=/tmp/ecs008-browser
+export NOTIFICATION_MIXED_ARTIFACT=/tmp/ecs008-mixed40.json
+uv run --locked pytest backend/tests/unit/notifications backend/tests/contract/notifications backend/tests/integration/notifications
 ```
 
 Las suites de integración usan PostgreSQL 18 y un esquema/base de prueba independiente
 configurado en `TEST_DATABASE_URL`; se niegan a ejecutarse contra la base de producción.
 La suite de contratos compara API implementada con `contracts/openapi.json`, valida
 errores y permisos y no depende solo de snapshots. El build debe producir `frontend/out/`
-sin funciones Node requeridas en ejecución. Playwright usa `APP_PUBLIC_BASE_URL` local.
+sin funciones Node requeridas en ejecución. Los dos arneses pytest de navegador
+arrancan el monolito en un puerto efímero, crean sus cuentas sintéticas y ejecutan los
+cinco escenarios Playwright; no requieren provisionar una sesión manual ni ejecutar
+todos los E2E ajenos. Usan Node `--jitless` y un worker; Vitest usa Node normal.
+
+Los tests SMTP esperan un Mailpit exclusivo en loopback11025, distinto del1025 del
+perfil habitual. Exponer allí el1025 interno de la misma imagen/digest fijados en
+`compose.yaml`, sin reutilizar un capturador con mensajes del usuario. La base debe
+ser desechable, terminar en `_test` y diferir de `DATABASE_URL`; las fixtures borran
+sus datos sintéticos. Las variables anteriores habilitan explícitamente estas pruebas;
+si faltan sus recursos, conservarlas deshabilitadas y registrar las omisiones.
 
 Ejecutar estas suites una vez con Mailpit y los adaptadores funcionales reales. Los tests
 de fallo usan transporte controlado para comprobar momentos que Mailpit no simula por sí solo.

@@ -2,6 +2,8 @@
 
 **Contexto**: `009-fundaciones-plataforma` | **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: Reorganización del diseño común previamente concentrado en spec-008.
+**Estado revisado2026-11-25**:22/23 tareas completas;009:T022/VPS real sigue diferida.
+Los módulos001–008 ya se incorporaron por sus propietarios. [Evidencia009](validation/acceptance.md).
 **Contexto compartido**: [arquitectura](../../docs/architecture.md), [hoja de ruta](../../docs/implementation-roadmap.md).
 
 ## Summary

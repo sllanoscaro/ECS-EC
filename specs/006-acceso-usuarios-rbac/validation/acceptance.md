@@ -9,7 +9,7 @@ verificadas. Se corrigió la proyección de resultados004 en el historial006.
 [UI administrativa](administration-ui.md) y [regresión](regression.md).
 No se acreditan personas, VPS ni aceptación integral. Los cortes siguientes son históricos.
 
-## Estado vigente — paso1,2026-11-23
+## Corte histórico — paso1,2026-11-23
 
 **75/87 tareas completas;12 pendientes.** T069/T077 completadas con receptor/publicador003
 reales y siete casos de separación: publicación sin cuenta/sesión006, contraseña/cookie

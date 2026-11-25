@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-25",
+  "task": "001:T056",
+  "result": "passed",
+  "backend_regression": {
+    "passed": 209,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 118.828
+  },
+  "integrated_profiles": 2,
+  "browser_scenarios": 2,
+  "browser_transport": "real HTTP; no intercepted responses",
+  "native_formats": [
+    "csv",
+    "json"
+  ],
+  "smtp_accepted": 4,
+  "expected_per_format": {
+    "interval_energy_kwh": [
+      "4",
+      "4"
+    ],
+    "total_energy_kwh": "8",
+    "reception_events": 1,
+    "rejected_records": 0,
+    "urgent_closed_interval_kwh": "4"
+  },
+  "versions": {
+    "python": "3.14.4",
+    "node_browser": "24.21.0",
+    "fastapi": "0.162.0",
+    "sqlalchemy": "2.0.55",
+    "psycopg": "3.3.6",
+    "tzdata": "2026.6",
+    "asyncssh": "2.24.1",
+    "pytest": "9.2.0",
+    "httpx": "0.28.1",
+    "postgresql": "18.3",
+    "mailpit": "1.33.1",
+    "alloy": "1.21.3",
+    "loki": "3.7.9",
+    "jaeger": "2.22.0",
+    "grafana": "13.3.0"
+  },
+  "resources": {
+    "project": "ecs001-step6",
+    "database_port": 55566,
+    "smtp_port": 11026,
+    "mailpit_ui_port": 18026,
+    "technical_gateway_port": 3449,
+    "test_policy_retention_hours": 24,
+    "physical_quotas_enforced": false,
+    "cpu_memory_reserved": false
+  },
+  "clock_scope": "Internal business clock and private browser Date controlled; SSH/HTTP/SMTP/collector/trace transport real; no latency,900s cadence or TTL claim",
+  "limits": [
+    "synthetic electrical data/source descriptors/accounts",
+    "no DOCA0172EN-19 certification or physical firmware",
+    "no external SMTP/VPS/participants",
+    "no additional acceptance of007 TTL/GC or other specs"
+  ]
+}

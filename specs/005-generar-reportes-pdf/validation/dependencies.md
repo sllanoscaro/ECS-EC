@@ -15,8 +15,8 @@ preparación2026-11-02 que sigue es histórica, no se suma a las nuevas suites.
 | Identidad | `backend/src/ecs_ec/identity/services.py` (006) | Resolver sesión actual; `require_report_access`, `authorize(..., 'reports.generate', ...)` |
 | Consumo | `backend/src/ecs_ec/consumption/queries.py` (001/002) | `read_report_snapshot` devuelve siete categorías con detail/aggregates/procedencia; granularidad hour/day/month/year |
 | Costos | `backend/src/ecs_ec/costs/services.py`, `snapshots.py`, `schemas.py` (004) | `Costs.read_snapshot` con `unit_of_work`; devuelve `CostsSnapshot`, ciclos y comparación del par exacto |
-| Eventos | `backend/src/ecs_ec/audit/events.py` (009) | `EventWriter.append(uow,event)`, no firma invertida; registro005 de `pdf.failed` en `reports/repository.py`, con pruebas parciales de atomicidad |
-| Emisor común | `backend/src/ecs_ec/observability/{logging,tracing,lifecycle}.py` (007) existentes y registrados desde `main.py` | Operaciones ordinarias y código nuevo de terminales/continuación PDF; 005:T062/T063 verificados; cierre integral007:T037/T038 sujeto a sus prerrequisitos y cobertura por propietario. [Estado007](../../007-observabilidad-externa/validation/step2.md). |
+| Eventos | `backend/src/ecs_ec/audit/events.py` (009) | `EventWriter.append(uow,event)`, no firma invertida; registro005 de `pdf.failed` en `reports/repository.py`, con pruebas reales de atomicidad |
+| Emisor común | `backend/src/ecs_ec/observability/{logging,tracing,lifecycle}.py` (007) existentes y registrados desde `main.py` | Operaciones ordinarias y código nuevo de terminales/continuación PDF; 005:T062/T063 verificados; 007:T037/T038 y su cobertura por productores completadas en el paso4. TTL/GC y aceptación integral007 siguen pendientes. [Estado007](../../007-observabilidad-externa/validation/step4.md). |
 
 Los [contratos007](../../007-observabilidad-externa/contracts/) y sus
 [tareas](../../007-observabilidad-externa/tasks.md) conservan la propiedad de la capacidad

@@ -152,7 +152,9 @@ confirman revisión/evidencia/actividad de sesión en una UoW. La composición r
 `consumption.configuration.changed` en el catálogo de historia administrativa existente.
 
 `read_general_snapshot`, `read_demand_history`, lecturas agrupadas y `FunctionalSummary.read`
-siguen pendientes de 002; encontrar esta fachada no acredita esos proveedores.
-`MeasurementStore.read_detail` devuelve IDs de registros cruzados, pero filtra diagnósticos
-cruzados sin exponerlos.002 debe ampliar su evidencia de lectura para que 001 pueda
-contarlos una sola vez;001 no crea otra consulta sobre tablas internas como sustituto.
+están implementados por002 en `backend/src/ecs_ec/consumption/queries.py`.
+`MeasurementStore.read_detail` y la fachada exponen evidencia de registros/diagnósticos
+cruzados sin duplicar su conteo. Las pruebas locales001/002 verifican esas integraciones;
+la disponibilidad de esta fachada no sustituye la prueba consumidora001:T056,
+ya [ejecutada y documentada](../validation/local-integrations.md).
+[Evidencia002](../../002-registro-retencion-consumo/validation/acceptance.md).

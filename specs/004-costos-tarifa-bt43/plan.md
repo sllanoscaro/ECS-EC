@@ -6,12 +6,15 @@ a [plataforma009](../009-fundaciones-plataforma/plan.md); esta funcionalidad con
 
 **Contexto**: `004-costos-tarifa-bt43` | **Date**: 2026-11-01 | **Spec**: [spec.md](spec.md)
 **Input**: Spec-004 y decisión U1: construir el productor real de costos en su propia funcionalidad, antes de integrar eventos en 008. Este contexto no crea una rama ni cambia la funcionalidad activa.
+**Estado revisado2026-11-25**:66/67 tareas completas; solo004:T064/personas pendiente.
+La instrumentación propia007 y el consumo de `cost.failed` por008 tienen evidencia
+local; no acreditan tarifas reales ni aceptación humana. [Resultados](validation/acceptance.md).
 
 ## Summary
 
 Implementar cálculo real BT4.3, desglose por ciclo, perfil versionado, boletas manuales, comparación e historial. Usar exclusivamente CAT-01 física asociada al suministro: el total calculado no sustituye esa base. Persistir resultados, limitaciones y evidencia suficiente para reproducirlos aunque caduque el detalle de origen.
 
-`costs` pertenece al monolito y produce resultados y eventos durables `cost.failed`. El consumidor 008 se conecta después; no interviene en calcular o persistir. Reportes 005 recibe capturas por `Costs.read_snapshot`.
+`costs` pertenece al monolito y produce resultados y eventos durables `cost.failed`. El consumidor008 ya consume `cost.failed` con [pruebas reales](../008-notificaciones-programables/validation/us3.md); no interviene en calcular o persistir. Reportes 005 recibe capturas por `Costs.read_snapshot`.
 
 ## Technical Context
 

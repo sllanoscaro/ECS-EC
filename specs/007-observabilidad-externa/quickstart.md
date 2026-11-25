@@ -1,12 +1,16 @@
+> Actualización paso4,2026-11-24: capacidades técnicas disponibles y verificadas en
+> [evidencia](validation/step4.md). Preparar cuotas físicas antes de habilitar emisión,
+> conforme a [operación](../../deploy/observability/README.md). Los escenarios humanos,
+> TTL real/GC y recorrido final sin salida remota todavía no están aceptados.
+
 # Quickstart de validación: observabilidad externa
 
 [Plan](plan.md), [modelo](data-model.md), [señales](contracts/signals.md),
 [emisión](contracts/integrations.md), [acceso/políticas](contracts/technical-access.md).
-Guía del alcance completo, con implementación parcial:26/65 tareas completas. El emisor,
-los scripts de preparación/provisión y el stack de acceso técnico tienen
-[evidencia local](validation/acceptance.md). Cobertura integral, métricas ampliadas,
-cuotas/retención real y personas siguen pendientes; los escenarios siguientes no se
-consideran todos ejecutados por disponer de esta guía. Estado revisado2026-11-23.
+Guía del alcance completo, con58/65 tareas completas. Emisor, cobertura001–006,
+métricas/continuidad y cuotas reales tienen [evidencia local](validation/step4.md).
+Retención24h/GC, recorrido final y personas siguen pendientes; disponer de esta guía
+no acredita ejecutar todos sus escenarios. Estado revisado2026-11-24.
 
 ## Prerrequisitos y arranque
 
@@ -17,10 +21,10 @@ Fixtures sintéticas internas, DB y volúmenes exclusivos de prueba; no crear en
 públicos para inyectar datos, adelantar relojes o provocar fallos.
 
 CPython3.14, uv, Docker Compose; Node/npm/Playwright solo para checks de navegador.
-Fijar imágenes/digests y dependencias al implementar. Los nombres previstos de servicios
+Imágenes/digests y dependencias están fijados. Los nombres de servicios
 son `app`, `db`, `technical-gateway`, `alloy`, `loki`, `grafana`, `jaeger`.
 
-Comandos previstos desde raíz, después de implementar y regenerar tareas:
+Comandos desde raíz, con configuración privada de009/006 y cuotas007 preparadas:
 
 ```sh
 uv sync --locked
@@ -154,15 +158,11 @@ payload por separado. Ventanas afectadas siguen limitadas tras recuperar transpo
 Repetir además los fallos por separado, restaurando cada componente entre casos:
 
 ```sh
-docker compose --profile observability stop jaeger
 uv run pytest backend/tests/integration/observability/test_collection_continuity.py -k jaeger_only
-docker compose --profile observability start jaeger
-docker compose --profile observability stop alloy loki
 uv run pytest backend/tests/integration/observability/test_collection_continuity.py -k logs_only
-docker compose --profile observability start alloy loki
 ```
 
-Los casos deben existir con esos nombres al implementar T045. Con Jaeger/OTLP caído,
+Los casos existen y controlan/restauran exclusivamente los componentes del proyecto de prueba. Con Jaeger/OTLP caído,
 logs/métricas de logs conservan su cobertura propia mientras trazas muestran su
 limitación. Con Alloy/Loki caído, las trazas consultables mantienen su evidencia y
 logs/métricas declaran el vacío. Tras recuperar, los huecos históricos siguen visibles.
@@ -206,3 +206,25 @@ Guardar comandos, versiones/digests, política, ventanas/cortes, fixtures, resul
 conteos esperados/observados, pérdidas, capturas saneadas y evaluación con personas en
 `specs/007-observabilidad-externa/validation/` cuando se ejecuten. No crear aprobaciones,
 marcar checklists de revisión o afirmar validación por generar estos documentos.
+
+## Comandos adicionales disponibles
+
+008 añadió el dashboard `ecs-notifications` y su catálogo de señales; la generación
+de política externa incluye `platform.json` y `notifications.json` con la misma
+revisión/ratio. La puerta mantiene lectura solo de ambos UID conocidos.
+[Integración verificada008](../008-notificaciones-programables/validation/observability.md).
+
+```sh
+# Las fixtures requieren PostgreSQL *_test, dos stacks exclusivos, CA y permisos.
+uv run pytest backend/tests/integration/observability backend/tests/integration/test_observability_isolation.py
+node --test deploy/observability/grafana/plugins/ecsec-coverage-panel/reconcile.test.mjs
+uv run python scripts/observability/prepare_quotas.py --help
+uv run python scripts/observability/render_dashboard.py --help
+uv run python scripts/observability/retention_probe.py --help
+```
+
+No lanzar los casos que llenan cuotas o detienen servicios sobre el stack de un ensayo
+24h ya iniciado. Usar otro proyecto o completarlos antes de emitir la cohorte. Consultar
+el [checkpoint](validation/implementation-checkpoint-2026-11-24.md) antes de detener
+recursos retenidos. El modo real_time se selecciona explícitamente después de vencer
+el plazo; no fabricar evidencia para que pase. T064 completo espera su cadena previa.

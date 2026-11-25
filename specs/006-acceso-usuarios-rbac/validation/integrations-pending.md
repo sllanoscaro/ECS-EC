@@ -14,3 +14,8 @@ T043/T046/T048–T050/T068/T076/T078/T084: [matriz](operator-matrix.md),
 
 008/SMTP y la cobertura transversal007 permanecen en sus propietarios. No se modifican
 checklists de revisión ni se declara aceptada la funcionalidad completa.
+
+Revisión2026-11-25: el paso4 verificó cobertura001–006 en007 y el paso5 completó
+el participante concreto008, SMTP local y revalidación concurrente de cuentas/permisos.
+[Evidencia008](../../008-notificaciones-programables/validation/us4.md). Estas
+integraciones no cierran006:T085/T086/T087 ni trasladan a006 la propiedad del correo.

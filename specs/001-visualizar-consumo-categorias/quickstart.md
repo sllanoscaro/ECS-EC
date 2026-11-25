@@ -2,10 +2,12 @@
 
 [Plan](plan.md), [modelo](data-model.md), [HTTP](contracts/http.md),
 [integraciones](contracts/integrations.md), [arquitectura](../../docs/architecture.md).
-Estado revisado2026-11-23:57/61 tareas completas; consulta/API, administración, períodos/
+Estado revisado2026-11-25:58/61 tareas completas; consulta/API, administración, períodos/
 estados ampliados y telemetría propia disponibles sobre002/006/007 reales.
-[Evidencia vigente y pendientes](validation/acceptance.md). Receptor003 disponible;
-integración transversal con003/007/008, personas, VPS y aceptación integral pendientes.
+[Evidencia vigente y pendientes](validation/acceptance.md). Receptor003, stack007 y
+correo008 disponibles y verificados localmente por sus propietarios;
+integración transversal001:T056 con003/007/008 verificada. Personas,VPS y aceptación
+integral siguen pendientes; [resultados y reproducción](validation/local-integrations.md).
 
 ## Comandos disponibles ahora
 
@@ -177,9 +179,26 @@ consulta. El build estático se realiza sin consultar datos privados y se sirve 
 
 ## Integración local y aceptación posterior
 
+**001:T056 verificada el2026-11-25.** El arnés consumidor
+`backend/tests/integration/consumption/test_local_integrations.py` ejecuta CSV yJSON por
+SFTP real,consulta001/002,reglas/correo008 yseñales007. Incluye el E2E real
+`frontend/tests/e2e/consumption-local-integrations.spec.ts`,sin interceptar respuestas.
+Preparar las variables yrecursos test exclusivos de
+[reproducción yresultados](validation/local-integrations.md) antes de ejecutar:
+
+```sh
+CONSUMPTION_LOCAL_INTEGRATIONS=1 .venv/bin/pytest backend/tests/integration/consumption/test_local_integrations.py -q
+```
+
+El flag no sustituye PostgreSQL/Mailpit/stack007/exportación web configurados en esa
+guía. Sin selección explícita los dos casos se omiten; una omisión no acreditaT056.
+Personas yVPS continúan enT059/T060,consolidados después enT061.
+
 Para SC-006, ejecutar además escenarios locales de 003 con SFTP/archivos nativos CSV y JSON,
 007 con sus receptores/visores y 008 con SMTP/Mailpit, según los procedimientos de cada
-propietario cuando existan. No añadir sus servicios al setup de 001. Documentar qué
+propietario, ya disponibles. Usar recursos test exclusivos; no reutilizar el ensayo
+activo007 de retención24h ni sus volúmenes para estas pruebas. No añadir sus servicios
+al setup de 001. Documentar qué
 sustitutos se usaron y qué contratos/resultados conservan; fixture interno no acredita SFTP.
 Ningún recurso remoto o VPS es obligatorio para estas pruebas locales.
 
@@ -240,8 +259,10 @@ al terminar la verificación. No usar este script como bootstrap de una instalac
 El xfail estricto por diagnósticos cruzados del [incremento anterior](validation/increment-2026-11-02.md)
 quedó resuelto al integrar002 y completar las verificaciones ampliadas001. La
 [aceptación vigente](validation/acceptance.md) registra períodos/estados y telemetría
-propia verificados. Integración transversal SFTP003/visores007/SMTP008, personas y VPS
-permanecen gates separados; la disponibilidad de003 no cierra por sí sola001:T056.
+propia verificados. La integración transversal SFTP003/visores007/SMTP008 quedó
+verificada en001:T056; [recorrido y comandos](validation/local-integrations.md).
+Personas yVPS conservan sus gates propios; la disponibilidad de un proveedor no
+sustituye una prueba consumidora.
 
 
 ## Verificación ampliada001 (2026-11-03)

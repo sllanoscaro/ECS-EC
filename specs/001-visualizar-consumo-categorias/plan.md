@@ -4,10 +4,12 @@
 
 **Rama Git real**: `develop`; este flujo no crea ni cambia ramas.
 **Input**: `specs/001-visualizar-consumo-categorias/spec.md` y el alcance trasladado, integrado en [tasks.md](tasks.md).
-**Estado revisado2026-11-23**: 57/61 tareas completas, con evidencia local del2026-11-03.
+**Estado revisado2026-11-25**: 58/61 tareas completas,con evidencia de integración local del2026-11-25.
 Recepción real002, consulta web, administración, períodos/estados ampliados e instrumentación
-propia007 verificados; integración transversal003/007/008, personas, VPS y aceptación
+propia007 e integración transversal003/007/008 verificadas; personas,VPS y aceptación
 integral pendientes. [Evidencia vigente](validation/acceptance.md).
+001:T056 completada con dos recorridos CSV/JSON reales y209 pruebas de regresión
+aprobadas; [evidencia consumidora](validation/local-integrations.md).
 **Aclaraciones aplicadas**: I1, U1 y A1 aprobadas expresamente el 2026-11-01; modelo,
 contratos, ejemplos y tareas sincronizados, sin acreditar implementación ni cerrar aceptación.
 
@@ -215,8 +217,8 @@ generación de tareas lo concreta en 61 tareas organizadas por las cuatro histor
 | US2, datos confiables | FR-002..006/010; SC-003 | Puerto de recepción, equivalencia, conflicto, solapamiento, unidades y concurrencia PostgreSQL con 002. |
 | US3, período y zona | FR-011..013; SC-002/004 | Contención, aviso de cruces, período inicial global, rango inválido, DST y zona distinta del navegador. |
 | US4, estados y aislamiento | FR-014..016; SC-004 | Cero/ausencia/sin medidor/incompleto, un punto, huecos, error/reintento y carreras de solicitudes. |
-| Local/VPS/acceso | FR-017..019; SC-006/007 | Contratos reales locales; perfiles de integración 003/007/008 cuando existan, HTTPS y red externa en aceptación final. |
-| Traslado 008 → 001 | [Trazabilidad en tasks.md](tasks.md#trazabilidad-del-traslado), T001/T002/T003 del borrador anterior de 001 | Pruebas semánticas, catálogo/validación y consulta/CAT-01 conservados e integrados en las cuatro historias; siguen pendientes. |
+| Local/VPS/acceso | FR-017..019; SC-006/007 | Proveedores003/007/008 y prueba consumidora001:T056 verificados localmente. HTTPS y red externa requieren VPS real. |
+| Traslado 008 → 001 | [Trazabilidad en tasks.md](tasks.md#trazabilidad-del-traslado), T001/T002/T003 del borrador anterior de 001 | Pruebas semánticas, catálogo/validación y consulta/CAT-01 implementadas y verificadas según las tareas actuales; no equivalen a aceptación transversal/humana/VPS. |
 
 La lista integral [tasks.md](tasks.md) ya fue generada con `$speckit-tasks`; sus marcas y la evidencia vigente reflejan el trabajo realizado y pendiente. Revisar la consistencia entre artefactos y satisfacer los
 gates de capacidad aplicables antes de implementar; la generación no acredita aceptación.

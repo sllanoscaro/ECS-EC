@@ -5,10 +5,10 @@ Los cortes fechados anteriores se conservan como registro.
 
 [Plan](plan.md), [modelo](data-model.md), [CLI](contracts/cli.md),
 [perfil](contracts/pas600-profile.md), [recepción](contracts/sftp-reception.md).
-**Estado2026-11-03:** implementados validate/generate/test-connection/publish/resend/
+**Estado revisado2026-11-25:** implementados validate/generate/test-connection/publish/resend/
 report/compare y el módulo backend acquisition con mantenimiento/exportación. La
-conformidad documental19, reproducción por otra persona, ampliación técnica007 y cierre
-integral permanecen pendientes. [Evidencia](validation/acceptance.md).
+conformidad documental19, reproducción por otra persona y cierre integral permanecen
+pendientes; la instrumentación propia007 se verificó en el paso3. [Evidencia](validation/acceptance.md).
 
 ## Prerrequisitos
 

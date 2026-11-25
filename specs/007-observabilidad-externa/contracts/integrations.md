@@ -160,3 +160,25 @@ contratos, infraestructura y pruebas transversales. Fixture de productor inexist
 solo prueba el emisor: no acredita SC-002 ni autoriza implementarlo desde 007.
 Receptores/visores detenidos no invalidan commits, permisos o registros funcionales.
 Sin dependencia de SMTP/consumidor008.
+
+## Concreciones verificadas del paso4 — 2026-11-24
+
+La frontera ASGI de007 cataloga exclusivamente rutas instaladas001/002/004/005/006,
+crea contexto interno antes de autorización y lo presta una vez al productor. Captura
+status/respuesta técnica, nunca cuerpos o cabeceras públicas. Objetivo denegado antes
+del módulo y decisión identity.authorize son operaciones distintas; historia006 que
+consulta004 comparte el objetivo administrativo para no duplicarlo. Generación005
+rechazada antes de admisión solo produce diagnóstico, excluido de generaciones.
+
+004 instrumenta sus propias rutas/servicios con autorización explícita de esta sesión.
+HTTP201 con ejecución durable fallida clasifica calculation_failed/ERROR; commit se
+registra después de confirmar y replay no inventa etapa de cálculo.003 conserva el
+contexto receive→process en el sobre técnico de evaluación existente, sin alterar
+archivos nativos/mediciones. Los conteos de archivos salen de resultados confirmados;
+todo rechazado/duplicado se clasifica expected_rejection.
+
+Salud añade dos campos opcionales a esquema1: collector_started_at (UTC nullable)
+y collector_restarts_total (entero>=0). Proceden únicamente del inicio de proceso
+Alloy permitido, para detectar reinicios sin afirmar continuidad por un HTTP200.
+Se mantienen los seis campos obligatorios previos; eventos anteriores sin esta
+observación dejan continuidad desconocida. [Evidencia](../validation/coverage.md).

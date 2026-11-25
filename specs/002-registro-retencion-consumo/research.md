@@ -2,8 +2,9 @@
 
 **Fecha**: 2026-11-01. [Plan](plan.md), [spec](spec.md), [arquitectura](../../docs/architecture.md).
 Registro de fase0: decisiones de diseño resueltas. La instalación e implementación local
-posteriores constan en [aceptación](validation/acceptance.md); integración003,
-instrumentación ampliada007 y personas siguen pendientes.
+posteriores constan en [aceptación](validation/acceptance.md). Revisión2026-11-25:
+integración003 e instrumentación propia con007 verificadas;70/71 tareas completas,
+solo002:T068/personas pendiente. Este registro conserva las decisiones de diseño.
 Se investigaron recepción/concurrencia y calendario/conservación mediante agentes de
 investigación de solo lectura, conforme a la habilidad de planificación.
 

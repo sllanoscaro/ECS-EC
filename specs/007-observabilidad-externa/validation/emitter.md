@@ -1,3 +1,10 @@
+# Emisor ampliado y verificado — paso4
+
+2026-11-24. Terminales/continuación, contexto ASGI, salud de reinicios, políticas estrictas, cuotas y TTL spool desde primer evento verificados. La evidencia anterior se conserva por su fecha.
+[Resultados y límites actuales](step4.md); [continuación](implementation-checkpoint-2026-11-24.md).
+
+## Corte histórico conservado
+
 # Emisor fundamental: evidencia parcial
 
 **Actualización2026-11-24**: las cifras de esta página son históricas. La ampliación

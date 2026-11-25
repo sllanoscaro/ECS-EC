@@ -1,0 +1,307 @@
+{
+  "profile": "mixed40_supervised",
+  "supervised": true,
+  "recipients": 10,
+  "periodic_rules": 2,
+  "urgent_rules": 2,
+  "deliveries": 40,
+  "accepted": 40,
+  "slots": 4,
+  "max_start_seconds": 3.718829,
+  "max_attempt_seconds": 0.059385,
+  "first_wave": [
+    "urgente",
+    "urgente",
+    "urgente",
+    "periodica"
+  ],
+  "elapsed_seconds": 6.429887536000024,
+  "cpu_seconds": 1.481468475000014,
+  "max_rss_kib": 593820,
+  "host_logical_cpus": 8,
+  "python": "3.14.4",
+  "tzdata": "2026.6",
+  "source": "synthetic1second intervals normalized by real002; runtime uses SystemClock",
+  "references": [
+    {
+      "delivery_id": "1076c59e-7284-445d-b575-bac596d3f3f8",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.432111Z",
+      "finished_at": "2026-11-25T04:17:46.491496Z"
+    },
+    {
+      "delivery_id": "268e0dfa-3b7c-46ec-b090-e1170153bb50",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.469602Z",
+      "finished_at": "2026-11-25T04:17:46.528670Z"
+    },
+    {
+      "delivery_id": "3b02b54d-452a-45f8-9be6-bb5c892ec3a4",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.508506Z",
+      "finished_at": "2026-11-25T04:17:46.549758Z"
+    },
+    {
+      "delivery_id": "3f32bb54-6713-4587-9ed7-8ae88e5c3b4c",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:46.534936Z",
+      "finished_at": "2026-11-25T04:17:46.563441Z"
+    },
+    {
+      "delivery_id": "42068426-2056-451d-ab68-9a962d88924d",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.577768Z",
+      "finished_at": "2026-11-25T04:17:46.619099Z"
+    },
+    {
+      "delivery_id": "73ce0db5-1aa2-495e-b8fe-6c2c52f12a9f",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.598879Z",
+      "finished_at": "2026-11-25T04:17:46.652935Z"
+    },
+    {
+      "delivery_id": "9e4ca962-1527-4061-a1d6-8bfe869ae3fc",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.636157Z",
+      "finished_at": "2026-11-25T04:17:46.690475Z"
+    },
+    {
+      "delivery_id": "54837d50-48a4-4e6b-a31e-6322cdfddc74",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:46.661712Z",
+      "finished_at": "2026-11-25T04:17:46.700857Z"
+    },
+    {
+      "delivery_id": "a127c5ce-5f92-4182-953f-cdab7a8c717e",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.714080Z",
+      "finished_at": "2026-11-25T04:17:46.754926Z"
+    },
+    {
+      "delivery_id": "abd401e5-8af7-4dab-a5fa-91191814181b",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.736634Z",
+      "finished_at": "2026-11-25T04:17:46.786040Z"
+    },
+    {
+      "delivery_id": "d15b1bc0-07ec-4c5c-9ce6-06bf273d451e",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.769604Z",
+      "finished_at": "2026-11-25T04:17:46.805939Z"
+    },
+    {
+      "delivery_id": "81daed2d-22ad-44c8-9a96-3dd737bced22",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:46.793811Z",
+      "finished_at": "2026-11-25T04:17:46.823779Z"
+    },
+    {
+      "delivery_id": "e609c9b2-8d8d-4096-bc12-50e6c5738e1b",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.352874Z",
+      "started_at": "2026-11-25T04:17:46.837420Z",
+      "finished_at": "2026-11-25T04:17:46.868605Z"
+    },
+    {
+      "delivery_id": "03e59d34-4a7f-444d-b0b7-d3d34055efd0",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:46.858784Z",
+      "finished_at": "2026-11-25T04:17:46.905718Z"
+    },
+    {
+      "delivery_id": "1175f8a3-db3f-4b8e-b751-019d6dc50bfb",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:46.884769Z",
+      "finished_at": "2026-11-25T04:17:46.927824Z"
+    },
+    {
+      "delivery_id": "92652a3b-6b42-429d-bf99-b9f30b64fc96",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:46.913101Z",
+      "finished_at": "2026-11-25T04:17:46.944216Z"
+    },
+    {
+      "delivery_id": "208bff28-ec4f-495f-a7cb-3f706fc03553",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:46.956938Z",
+      "finished_at": "2026-11-25T04:17:46.998436Z"
+    },
+    {
+      "delivery_id": "442886aa-cb56-4489-9427-d33e0c245a29",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:46.978049Z",
+      "finished_at": "2026-11-25T04:17:47.032514Z"
+    },
+    {
+      "delivery_id": "4a716238-0a03-41b3-83fd-043b2108f03d",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:47.011933Z",
+      "finished_at": "2026-11-25T04:17:47.053114Z"
+    },
+    {
+      "delivery_id": "bbb484d8-3930-4933-9730-0a627db4189b",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.041005Z",
+      "finished_at": "2026-11-25T04:17:47.071868Z"
+    },
+    {
+      "delivery_id": "6f683f16-a95b-4fa2-bb23-61af694a8174",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:47.083953Z",
+      "finished_at": "2026-11-25T04:17:47.123209Z"
+    },
+    {
+      "delivery_id": "8f6827a3-60c6-4cf6-b7a6-ecda5b4b488a",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:47.104489Z",
+      "finished_at": "2026-11-25T04:17:47.157642Z"
+    },
+    {
+      "delivery_id": "d4c456e9-c23e-43be-ae25-6311167edc17",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:47.139944Z",
+      "finished_at": "2026-11-25T04:17:47.177508Z"
+    },
+    {
+      "delivery_id": "ca5eeb8f-b5cb-45e5-84ad-efc38f8f1913",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.166481Z",
+      "finished_at": "2026-11-25T04:17:47.197982Z"
+    },
+    {
+      "delivery_id": "d5958a10-e796-4439-a8f0-7feeb694f861",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:47.209786Z",
+      "finished_at": "2026-11-25T04:17:47.253804Z"
+    },
+    {
+      "delivery_id": "e21d3c13-86e5-4831-8255-8fe5be5e4975",
+      "scheduled_at": null,
+      "detected_at": "2026-11-25T04:17:46.389226Z",
+      "started_at": "2026-11-25T04:17:47.234689Z",
+      "finished_at": "2026-11-25T04:17:47.274006Z"
+    },
+    {
+      "delivery_id": "caf8b837-0078-4f06-a89f-e741271927b0",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.263012Z",
+      "finished_at": "2026-11-25T04:17:47.303561Z"
+    },
+    {
+      "delivery_id": "e436c7ce-ee24-4cc5-a556-c3abcfe1caca",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.285602Z",
+      "finished_at": "2026-11-25T04:17:47.319290Z"
+    },
+    {
+      "delivery_id": "e6773a94-9f29-4f13-bf7a-822396ae8a16",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.335977Z",
+      "finished_at": "2026-11-25T04:17:47.367550Z"
+    },
+    {
+      "delivery_id": "f0601eeb-f942-471c-ac75-68831a235664",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.352030Z",
+      "finished_at": "2026-11-25T04:17:47.388967Z"
+    },
+    {
+      "delivery_id": "1d02eddf-ad98-43fe-88c9-b455740d40cf",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.373581Z",
+      "finished_at": "2026-11-25T04:17:47.414741Z"
+    },
+    {
+      "delivery_id": "29dff9da-fa54-4ffc-a846-944cc7897de0",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.401327Z",
+      "finished_at": "2026-11-25T04:17:47.427548Z"
+    },
+    {
+      "delivery_id": "2f51674b-de21-49c2-997e-76a23478e590",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.440797Z",
+      "finished_at": "2026-11-25T04:17:47.476099Z"
+    },
+    {
+      "delivery_id": "36e7318e-6fad-4c16-abca-40b8eff2a1c4",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.459349Z",
+      "finished_at": "2026-11-25T04:17:47.499773Z"
+    },
+    {
+      "delivery_id": "3e2331f8-c095-4212-9d24-aea08fb2e48c",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.485043Z",
+      "finished_at": "2026-11-25T04:17:47.522540Z"
+    },
+    {
+      "delivery_id": "6544c50d-ea42-4d3e-9c7e-44281da21957",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.510647Z",
+      "finished_at": "2026-11-25T04:17:47.537599Z"
+    },
+    {
+      "delivery_id": "794f1f7a-9869-4a5b-8a4d-819a01989067",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.550104Z",
+      "finished_at": "2026-11-25T04:17:47.581472Z"
+    },
+    {
+      "delivery_id": "93e6746d-ed7b-4991-b632-db72fbecfdb8",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.568113Z",
+      "finished_at": "2026-11-25T04:17:47.606659Z"
+    },
+    {
+      "delivery_id": "9d310ac1-4a51-4c10-8cde-c0a881f99369",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.590699Z",
+      "finished_at": "2026-11-25T04:17:47.632897Z"
+    },
+    {
+      "delivery_id": "e385b42d-1e10-4220-a159-71c5a8cec9bf",
+      "scheduled_at": "2026-11-25T04:17:43.898858Z",
+      "detected_at": null,
+      "started_at": "2026-11-25T04:17:47.617687Z",
+      "finished_at": "2026-11-25T04:17:47.643727Z"
+    }
+  ]
+}

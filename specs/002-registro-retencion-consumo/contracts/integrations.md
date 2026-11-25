@@ -264,9 +264,11 @@ saneada; caída de visores/SMTP no revierte cambios ni impide consultas.
 002 usa `core.unit_of_work.UnitOfWork` y el head `cb63a76198be`, sin recrear catálogo.
 El proveedor de máximos se inyecta como `ConfigurationService(clock, store)`; se consulta
 tras locks de contexto/categorías en la misma transacción READ COMMITTED.
-Las fachadas/HTTP/UI integradas 001 aún no existen; su ausencia y los gates de
-003/007/personas se registran en [prerrequisitos](../validation/prerequisites.md).
-El router único seguirá siendo `backend/src/ecs_ec/consumption/router.py`.
+Las fachadas/HTTP/UI de001 y estos proveedores002 están integrados. El router único
+es `backend/src/ecs_ec/consumption/router.py`. Las pruebas consumidoras SFTP003 y de
+instrumentación propia007 están verificadas;002:T068/personas permanece pendiente.
+Los [prerrequisitos](../validation/prerequisites.md) distinguen disponibilidad actual
+de los registros históricos de preparación.
 
 ## Nombres concretos de los proveedores implementados
 

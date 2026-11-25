@@ -1,0 +1,21 @@
+✔ 10/8/2 is20%; stages and preadmission rejection do not change logical denominator (2.20601ms)
+✔ 3 commits then2 recovered are5 new records,1 logical attempt and2 executions,50% versus0% (0.286074ms)
+✔ empty verified window is zero; percentages N/D; no heartbeat is unknown and N/D (0.282567ms)
+✔ durations100/200/300 produce mean200,p50200,p95290; null is excluded (0.31959ms)
+✔ adjacent ns boundaries assign an event once (0.271444ms)
+✔ known losses and missing sequence remain partial; recovery cannot fill a historical gap (0.156295ms)
+✔ exact reread is deduplicated; conflicting body or lost positions forbid exact totals (0.224315ms)
+✔ logs and traces use independent failure evidence (0.259789ms)
+✔ restarts/resets are not summed snapshots; bad metadata and10000rows are unknown (24.698512ms)
+✔ 45s missing heartbeat and open windows remain provisional (0.512662ms)
+✔ export confirmation alone is insufficient; missing persisted references are partial (0.443738ms)
+✔ catalog dimensions exclude IDs; Jaeger OTLP hex/base64 are interpreted as references only (1.540907ms)
+✔ native metric replay inflation is visible as partial while unique logical records stay exact (3.354127ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 89.370533

@@ -22,3 +22,12 @@ consumo ni añade eventos funcionales. El lifespan inyecta007 también en Recept
 [regresión](../../006-acceso-usuarios-rbac/validation/regression.md).003 queda70/76:
 T003/T008/T009/T021 siguen sujetos a la referencia19, T070 a otra persona y T076 a
 aceptación integral. Esto no cierra cobertura transversal, visores ni políticas007.
+
+## Verificación transversal del paso4 —2026-11-24
+
+La suite007 consume ahora receptor/adaptadores reales y consulta Loki/Jaeger.
+Se corrigió clasificación de todo duplicado/rechazado y conteo de archivos desde
+resultado confirmado.003 enlaza contexto de sesión SFTP a su evaluación en metadatos
+técnicos existentes, sin modificar archivos nativos; consulta contexto antes de sellar
+para respetar invariantes SQL. [Cobertura y recuperación](../../007-observabilidad-externa/validation/coverage-acquisition.md).
+No se modifican tareas de personas ni aceptación integral del propietario.

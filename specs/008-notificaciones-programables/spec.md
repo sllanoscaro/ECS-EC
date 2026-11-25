@@ -27,6 +27,10 @@ de la spec-007.
 
 ## Clarifications
 
+### Session 2026-11-24
+
+- Q: Primer horario igual a starts_at: ¿omitir corte vacío o ampliar contrato? → A: Permitir una ventana inicial vacía y ampliar el contrato. Excepción exclusiva al primer resumen periódico; identificarla como initial_window_empty, sin afirmar historia observada ni consumo cero.
+
 ### Session 2026-11-01
 
 - Q: ¿Dónde se implementan los productores reales de costos y PDF y sus eventos de fallo? → A: En sus propias funcionalidades, specs 004 y 005, con planes y tareas explícitos para cálculo/generación reales, resultados persistidos y eventos funcionales de fallo; la integración de notificaciones solo conecta esos eventos.

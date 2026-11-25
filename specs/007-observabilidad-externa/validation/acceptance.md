@@ -1,3 +1,31 @@
+# Aceptación007 parcial — paso4
+
+2026-11-24. 58/65 tareas completas; cobertura técnica local001–006, métricas, privacidad y cuotas verificadas. T059–T065 siguen pendientes: ensayo24h/GC, recorrido final, personas y revisión/aceptación. No aceptación integral ni VPS.
+[Resultados y límites actuales](step4.md); [continuación](implementation-checkpoint-2026-11-24.md).
+
+Revisión2026-11-25:008 ya integró sus señales y dashboard sobre el emisor007,
+con [pruebas reales separadas](../../008-notificaciones-programables/validation/observability.md).
+Esto no completa007:T059–T065 ni sustituye su ensayo físico24h/GC activo.
+
+## Matriz actual de aceptación técnica local
+
+| Requisitos / criterios | Estado y evidencia actual |
+| --- | --- |
+|FR-001–004/022; SC-001 | Verificados con matriz funcional/PDF/entornos/revocación; [acceso](access.md). |
+|FR-005–007/011–014; SC-002/004 | Verificados sobre productores001–006 y continuación real; [cobertura](coverage.md). |
+|FR-008–010; SC-003 | Carga conocida y cortes/percentiles verificados; replay limita exactitud explícitamente con partial/N/D, [métricas](metrics.md). |
+|FR-015–018; SC-005/006 | Privacidad, saturación y fallos conservan negocio/permisos/commits; [aislamiento](isolation.md). |
+|FR-019–020; SC-007 | Políticas/muestreo/cuotas/persistencia comprobadas; TTL24h y GC físico pendientes, [retención](retention.md). |
+|FR-021 | Instrumentación en el monolito existente, sin servicio de negocio nuevo ni tablas007; composición y regresión verificadas. |
+|FR-023 | Guías/contratos/evidencias actualizados; revisión finalT062–T064 conserva prerrequisitos pendientes. |
+|FR-024; SC-009 | Recorrido local final con salida remota bloqueada y sin perfil pendienteT060; no se acredita por tener redes locales. |
+|SC-008 | Personas representativas/diez tareas pendientesT061; E2E no sustituye>=9/10 tareas sin ayuda. |
+
+Esta matriz es un estado parcial para revisión, no cierre deT065. Sin VPS validada,
+SC-008 ni GC físico aceptado. El orden pendiente está en el [checkpoint](implementation-checkpoint-2026-11-24.md).
+
+## Corte histórico conservado
+
 # Estado parcial de implementación007
 
 Disponibilidad revisada2026-11-24: receptor/publicador003 y la entrega técnica005

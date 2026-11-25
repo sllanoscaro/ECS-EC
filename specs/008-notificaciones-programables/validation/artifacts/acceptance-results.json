@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-25",
+  "scope": "008 local technical completion; US1-US4",
+  "tasks": {
+    "complete": 90,
+    "total": 92,
+    "pending": [
+      "008:T090 representative participants",
+      "008:T091 production VPS/domain/SMTP"
+    ]
+  },
+  "backend": {
+    "full_regression_passed": 844,
+    "full_regression_skipped": 52,
+    "full_regression_deselected": 5,
+    "full_regression_failed": 1,
+    "errors": 0,
+    "seconds": 377.943,
+    "browser_rerun_passed": 2,
+    "unique_cases_with_passing_execution": 845,
+    "browser_node_version": "24.21.0",
+    "qualification": "One Node24.22 worker SIGSEGV before periodic scenario; both browser harnesses passed separately under Node24.21. Full regression is not represented as a single clean run."
+  },
+  "notifications_in_regression": {
+    "passed": 127,
+    "skipped": 1,
+    "browser_failed_before_scenario": 1,
+    "browser_rerun_passed": 2
+  },
+  "frontend": {
+    "unit_passed": 101,
+    "files": 34,
+    "workers": 1,
+    "typecheck": "passed",
+    "static_export": "passed",
+    "browser_scenarios": 5
+  },
+  "panel_js": {
+    "passed": 13
+  },
+  "live_stack": {
+    "project": "ecs008-step5-observe",
+    "real_services": [
+      "Alloy",
+      "Loki",
+      "Jaeger",
+      "Grafana"
+    ],
+    "verification": "passed separately; read/revoke/isolation and signal correlation",
+    "physical_quota_acceptance": false
+  },
+  "versions": {
+    "python": "3.14.4",
+    "tzdata": "2026.6",
+    "sqlalchemy": "2.0.55",
+    "fastapi": "0.162.0",
+    "postgres": "18.3",
+    "mailpit": "1.33.1"
+  },
+  "mixed40": {
+    "profile": "mixed40_supervised",
+    "supervised": true,
+    "recipients": 10,
+    "periodic_rules": 2,
+    "urgent_rules": 2,
+    "deliveries": 40,
+    "accepted": 40,
+    "slots": 4,
+    "max_start_seconds": 3.718829,
+    "max_attempt_seconds": 0.059385,
+    "first_wave": [
+      "urgente",
+      "urgente",
+      "urgente",
+      "periodica"
+    ],
+    "elapsed_seconds": 6.429887536000024,
+    "cpu_seconds": 1.481468475000014,
+    "max_rss_kib": 593820,
+    "host_logical_cpus": 8,
+    "python": "3.14.4",
+    "tzdata": "2026.6",
+    "source": "synthetic1second intervals normalized by real002; runtime uses SystemClock"
+  },
+  "prior_run_findings": [
+    "Two obsolete test expectations corrected (identity schema ownership and isolated settings input).",
+    "One standalone SFTP publication failed in a prior regression; isolated 8-case rerun and subsequent full regression SFTP case passed. Cause unconfirmed; no simulator retry added.",
+    "Parallel Vitest worker SIGSEGV; final one-worker run passed. Playwright worker SIGSEGV under Node24.22; both browser harnesses rerun under Node24.21."
+  ],
+  "migration": "clean upgrade / empty downgrade / upgrade passed; downgrade with protected evidence refused atomically",
+  "preserved": [
+    "Spec Kit selection003",
+    "review checklists",
+    "step4 physical TTL24h/GC trial",
+    "original user containers"
+  ]
+}

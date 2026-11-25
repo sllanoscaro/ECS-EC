@@ -16,8 +16,9 @@ Solo el Administrador técnico configura y reenvía; el Operador consulta sus pr
 FastAPI sirve la API y la exportación estática React/Next.js desde una única imagen.
 Planificación, evaluación y despacho viven en el monolito; PostgreSQL conserva sus estados.
 Docker Compose integra las dependencias de datos, correo local y observabilidad externa.
-Diseño previo a implementación, con trabajo propio en [tasks.md](tasks.md).
-La base común se construye en plataforma009; identidad en 006, consumo en 001/002
+Implementación local verificada,90/92 tareas;008:T090/personas y008:T091/VPS pendientes.
+[Trabajo propio](tasks.md) y [evidencia](validation/acceptance.md).
+La base común está implementada en plataforma009; identidad en006, consumo en001/002
 y emisores/visores técnicos en 007. Esta spec integra esas capacidades sin construirlas.
 
 ## Technical Context
@@ -113,9 +114,9 @@ deploy/observability/grafana/dashboards/notifications.json
 La estructura general y los manifiestos son de [plataforma009](../009-fundaciones-plataforma/plan.md).
 Las migraciones propias se enlazan al head existente y no crean tablas de audit/identity/consumption.
 Notificaciones añade rutas, participante de identidad y servicios internos al registro común;
-el registro ampliable y el frontend base ya existen en plataforma009. El código propio
-de notificaciones todavía no está implementado (0/92 tareas); identidad006, consumo001/002,
-costos004 y emisor básico007 están disponibles, generación005 sigue pendiente.
+el registro ampliable y el frontend base ya existen en plataforma009. El código propio de notificaciones tiene90/92 tareas verificadas: US1–US4,
+instrumentación y regresión local; personas y VPS siguen pendientes. Identidad006, consumo001/002, costos004, PDF005 y emisor007
+están disponibles. [Evidencia y pendientes](validation/acceptance.md).
 
 ## Phase 0: Research
 
@@ -212,8 +213,10 @@ representativos: 9 de 10 tareas sin ayuda en <=3 minutos; no se sustituye por au
 
 La reorganización requiere comprobar enlaces relativos, referencias locales OpenAPI,
 identificadores de tareas y resolución de rutas con los scripts oficiales de Spec Kit.
-Estas comprobaciones no ejecutan aplicación, SMTP, costos o PDF reales. La aceptación
-funcional, los participantes de usabilidad y la medición de 40 entregas siguen pendientes.
+Estas comprobaciones documentales por sí solas no ejecutan aplicación ni proveedores.
+La continuación del paso5 verificó además aplicación, SMTP local, costos/PDF reales
+y el perfil mixto40; [resultados](validation/acceptance.md). Participantes de usabilidad
+y comprobaciones VPS/relay de producción siguen pendientes.
 Los marcadores de checklists conservan el estado de quien revisa.
 
 ## Complexity Tracking

@@ -1,3 +1,10 @@
+# US1 verificada localmente en el paso4
+
+2026-11-24. Matriz completa con PDF005 real y ambos perfiles006; T022/T028–T030 cerradas. No queda la omisión PDF del corte histórico. Acceso a tres señales, revocación, entornos, límites, puertos privados y separación funcional pasan en la regresión de768casos.
+[Resultados y límites actuales](step4.md); [continuación](implementation-checkpoint-2026-11-24.md).
+
+## Corte histórico conservado
+
 # US1: acceso local parcialmente validado
 
 Fecha local2026-11-02. Emisor básico y MVP técnico ejecutados; SC-001/007 integral

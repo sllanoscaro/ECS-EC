@@ -1,6 +1,7 @@
 # Data Model: Notificaciones programables
 
-Diseño lógico PostgreSQL 18, previo a migraciones. Todas las entidades pertenecen al
+Modelo implementado en PostgreSQL18, con migraciones propias hasta
+`notifications_008_consumed`; [evidencia](validation/acceptance.md). Todas las entidades pertenecen al
 monolito. Las cuentas, categorías y datos de origen pertenecen a sus módulos originales.
 
 ## Convenciones
@@ -148,7 +149,7 @@ para toda la ventana; en otro caso un conteo disponible es observado y no un tot
 NULL significa conteo desconocido y nunca se serializa como cero. Se incluye un ítem
 por cada contenido seleccionado aunque su fuente no pueda consultarse.
 
-La evidencia de integridad del historial pertenece a auditoría: `functional_history_coverage`
+La evidencia de integridad del historial pertenece a auditoría: `functional_coverage`
 con tipo de contenido/módulo, período registrado, alcance conservado, huecos conocidos,
 revisión, origen y fechas. El resumen toma una captura al mismo corte de los conteos;
 una fuente no consultable o sin evidencia suficiente queda desconocida. La conservación
@@ -287,3 +288,31 @@ el máximo de sus dependientes. Cumplir el mínimo no obliga a borrar automátic
 
 Cuentas desactivadas mantienen su identidad histórica. Direcciones efectivas de intentos
 no se emiten en telemetría. La retención técnica es independiente y nunca purga este historial.
+
+
+## Aclaración aprobada2026-11-24: primer corte vacío
+
+El usuario eligió conservar el primer horario cuando coincide exactamente con starts_at.
+Solo esa ventana inicial periódica admite inicio=fin y se identifica mediante
+initial_window_empty=true. El contenido informa ausencia de período observado:
+summary_items desconocidos, conteoNULL y motivo ventana_inicial_vacia; no inventa cero
+ni cobertura histórica. Las ventanas posteriores y las de consumo/evidencia siguen
+exigiendo inicio<fin. No cambia el contrato positivo de intervalos de otros propietarios.
+
+## Concreción relacional2026-11-25
+
+`notification_activation.next_slot` conserva JSON tipado de la próxima fecha nominal,
+fecha resuelta y ventana, además de `next_due_at`. Un upgrade tzdata conserva ese
+slot vencido; solo recalcula futuros todavía no materializados. La reconciliación
+es transaccional por regla y bloquea planificación hasta finalizar.
+
+`notification_consumed_event` tiene PK `(activation_id,source_event_id)`, referencias
+restrictivas a activación/FunctionalEvent y procedencia/conservación. El acuse evita
+perder commits tardíos con una fecha o UUID anterior al cursor observado; no duplica
+la tabla de eventos del productor. Los acuses se confirman con cursor/episodio/entregas.
+
+La evidencia normaliza valor Numeric nullable, origen, categoría, ventana/corte,
+referencias y motivo; su JSON conserva la captura funcional tipada. Una ventana
+completa con cambios de origen conserva el total del propietario y declara su
+alcance mixto como agregado calculado; no se recalcula ni presenta como medidor
+físico general único. Una fórmula no declarada por el proveedor permanece NULL.

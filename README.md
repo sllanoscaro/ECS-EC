@@ -4,13 +4,21 @@ Sistema de monitoreo eléctrico de un edificio, con arquitectura monolítica mod
 Estado actual: plataforma009, identidad006, consumo001/002, costos004 y recepción
 PAS600/SFTP003 implementados y validados localmente en sus alcances registrados.
 Observabilidad007 parcial; PDF005 con entrega técnica de generación real y pendientes
-físicos/humanos; notificaciones008 sin implementar. Paso3 completado: acceso/PDF real,
+físicos/humanos; notificaciones008 con US1–US4, SMTP local, historial/reenvíos e
+instrumentación verificados:90/92 tareas; personas y VPS pendientes.
+[Resultados008](specs/008-notificaciones-programables/validation/acceptance.md). Paso3 completado: acceso/PDF real,
 actividad, administración e instrumentación durable002/003. [Evidencia](specs/006-acceso-usuarios-rbac/validation/regression.md).
-Cobertura transversal007, personas y VPS pendientes según la hoja de ruta.
+Paso4: cobertura001–006, métricas, aislamiento y cuotas reales007 verificados;
+[estado y continuación](specs/007-observabilidad-externa/validation/step4.md).
+Punto6.1 completado:001:T056,SFTP/consulta/correo/señales locales verificados;
+[evidencia](specs/001-visualizar-consumo-categorias/validation/local-integrations.md).
+Retención24h/GC,recorrido final,personas,impresión,referencia19 yVPS siguen pendientes;
+578/605 tareas completas según la hoja de ruta.
 
 - [Arquitectura compartida](docs/architecture.md): stack, módulos, datos y entornos.
 - [Hoja de ruta](docs/implementation-roadmap.md): propietarios, dependencias, estado y uso de Spec Kit.
 - [Orden de trabajo actualizado](docs/implementation-priority-plan-2026-11-03.md): tareas restantes y capacidades que las desbloquean.
+- [Revisión documental de las nueve specs](docs/documentation-review-2026-11-25.md): estado contrastado, correcciones y límites de la revisión.
 - [Instrucciones del repositorio](AGENTS.md): carga de contexto común para trabajar con Spec Kit.
 - [Plataforma compartida (spec-009)](specs/009-fundaciones-plataforma/spec.md): punto de partida técnico.
 - [Especificaciones funcionales](specs/): cada funcionalidad conserva requisitos, diseño y tareas propios.

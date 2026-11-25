@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-24",
+  "scope": "008 setup/foundations/US1/US2",
+  "backend": {
+    "tests": "83",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "122.819"
+  },
+  "frontend_unit": {
+    "passed": 97
+  },
+  "browser_scenarios": 3,
+  "versions": {
+    "python": "3.14.4",
+    "tzdata": "2026.6",
+    "sqlalchemy": "2.0.55",
+    "fastapi": "0.162.0",
+    "postgres": "18.3",
+    "mailpit": "1.33.1"
+  },
+  "resources": {
+    "host_logical_cpus": 8,
+    "cpu_cgroup": null,
+    "memory_cgroup": null,
+    "postgres_limits": {
+      "memory": 0,
+      "nano_cpus": 0
+    },
+    "mailpit_limits": {
+      "memory": 0,
+      "nano_cpus": 0
+    }
+  },
+  "periodic_profile": {
+    "deliveries": 20,
+    "recipients": 10,
+    "rules": 2,
+    "smtp_slots": 4,
+    "cycle_seconds": 5,
+    "all_accepted": true,
+    "first_recorded_run_max_start_seconds": 7.578158,
+    "first_recorded_run_max_attempt_seconds": 0.038121,
+    "scope": "partial periodic profile; does not assert SC003 mixed40"
+  },
+  "pending": [
+    "US3",
+    "US4",
+    "cross-cutting acceptance",
+    "008:T090 people",
+    "008:T091 VPS"
+  ]
+}

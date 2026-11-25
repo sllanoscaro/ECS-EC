@@ -1,6 +1,6 @@
 # Data Model: Costos BT4.3
 
-Diseño previo a código. Propiedad de `costs`; identidad, consumo y eventos pertenecen a sus módulos comunes. No existen claves foráneas hacia notificaciones.
+Modelo implementado en `backend/src/ecs_ec/costs/models.py`; [evidencia](validation/acceptance.md). Propiedad de `costs`; identidad, consumo y eventos pertenecen a sus módulos comunes. No existen claves foráneas hacia notificaciones.
 
 ## Convenciones
 

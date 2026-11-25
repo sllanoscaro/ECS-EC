@@ -1,0 +1,1 @@
+[{"check": "ecs007-step4 Compose config", "code": 0}, {"check": "ecs007-step4 nginx -t", "code": 0}, {"check": "ecs007-step4-other Compose config", "code": 0}, {"check": "ecs007-step4-other nginx -t", "code": 0}, {"check": "ecs007-step4-quotas Compose config", "code": 0}, {"check": "ecs007-step4-quotas nginx -t", "code": 0}]

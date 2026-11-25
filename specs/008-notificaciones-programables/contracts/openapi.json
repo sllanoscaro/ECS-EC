@@ -3,8 +3,8 @@
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "info": {
     "title": "ECS-EC — Notificaciones programables",
-    "version": "1.0.0-design",
-    "description": "Contrato de diseño spec-008. Base /api/v1, sesión funcional de spec-006. Todos los recursos protegidos usan Cache-Control: no-store. La app sirve UI estática y API del mismo origen. Cookie HttpOnly, SameSite=Lax y Secure en HTTPS; CSRF ligado a sesión y validación de origen para POST/PUT. Credenciales técnicas/Programador no son sesiones funcionales. Errores saneados sin datos ajenos. HTTP 503 indica dependencia de base indisponible; SMTP se procesa de forma asíncrona durable."
+    "version": "1.1.0",
+    "description": "Contrato vigente spec-008 con implementación local; aceptación humana y VPS pendientes. Base /api/v1, sesión funcional de spec-006. Todos los recursos protegidos usan Cache-Control: no-store. La app sirve UI estática y API del mismo origen. Cookie HttpOnly, SameSite=Lax y Secure en HTTPS; CSRF ligado a sesión y validación de origen para POST/PUT. Credenciales técnicas/Programador no son sesiones funcionales. Errores saneados sin datos ajenos. HTTP 503 indica dependencia de base indisponible; SMTP se procesa de forma asíncrona durable."
   },
   "servers": [
     {
@@ -1163,7 +1163,7 @@
           "start",
           "end"
         ],
-        "description": "[start,end), start < end; instantes RFC3339 con zona/offset explícitos."
+        "description": "[start,end). start < end; solo el corte periódico inicial identificado por initial_window_empty=true admite start=end, sin afirmar historia observada."
       },
       "SourceReference": {
         "type": "object",
@@ -2111,6 +2111,10 @@
               "primera_hora_repetida",
               "ultimo_dia_valido"
             ]
+          },
+          "initial_window_empty": {
+            "type": "boolean",
+            "description": "Solo el primer corte periódico que coincide con starts_at admite ventana vacía; se presenta sin período observado, no como consumo cero."
           }
         },
         "required": [
@@ -2279,6 +2283,50 @@
               "pattern": "^/[^/].*$",
               "description": "Ruta funcional local; URL de correo se forma con APP_PUBLIC_BASE_URL y exige permisos."
             }
+          },
+          "initial_window_empty": {
+            "type": "boolean",
+            "description": "Solo el primer corte periódico que coincide con starts_at admite ventana vacía; se presenta sin período observado, no como consumo cero."
+          },
+          "episode_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Episodio durable que justifica esta urgencia."
+          },
+          "condition": {
+            "$ref": "#/components/schemas/Condition"
+          },
+          "source_event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceReference"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_event_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -2512,6 +2560,10 @@
                 "type": "null"
               }
             ]
+          },
+          "initial_window_empty": {
+            "type": "boolean",
+            "description": "Identifica la excepción aprobada de primera ventana periódica vacía; no afirma historia observada."
           }
         },
         "required": [

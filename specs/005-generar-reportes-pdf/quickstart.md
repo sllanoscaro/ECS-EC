@@ -4,15 +4,8 @@
 [hoja de ruta](../../docs/implementation-roadmap.md). La infraestructura común pertenece
 a [plataforma009](../009-fundaciones-plataforma/plan.md); esta funcionalidad consume sus capacidades.
 
-Estado revisado2026-11-23:5/63 tareas preparatorias completas; dependencias, fuentes,
-puertos, ruta protegida y captura parcial disponibles. Generación, API y descarga siguen
-sin implementar. Los escenarios de esta guía son objetivos pendientes; las pruebas de
-preparación ejecutadas están en [dependencias](validation/dependencies.md).
-
-Esta guía describe la implementación prevista. Hoy existen artefactos de diseño; los comandos de aplicación/pruebas serán ejecutables después de completar [tasks.md](tasks.md). No se afirma generación real, instalación de bibliotecas ni aceptación de personas ya realizada.
-
-
-**Estado2026-11-24**: generación real y entrega técnica verificadas,60/63 tareas.
+**Estado revisado2026-11-25**: generación real y entrega técnica verificadas,60/63 tareas.
+Los cortes de preparación se conservan como historia en [dependencias](validation/dependencies.md).
 [Resultados, comandos y límites](validation/acceptance.md). Impresión física/personas
 siguen pendientes; esta guía no acredita comprobaciones no ejecutadas.
 
@@ -24,21 +17,34 @@ siguen pendientes; esta guía no acredita comprobaciones no ejecutadas.
 - Entorno local de desarrollo de la aplicación: CPython 3.14, uv, Node >=20.9/npm, PostgreSQL 18 y Docker Compose; lockfiles, TTF/licencia y ReportLab/pypdf fijados.
 - Aplicar migración `backend/migrations/versions/reports_005_initial_reports_initial.py` (`reports_005_initial`) después de las capacidades compartidas, sin volver a crear tablas de identidad/auditoría ni modificar mediciones/costos.
 
-Comandos previstos desde la raíz:
+Comandos disponibles desde la raíz, con configuración explícita y recursos test separados:
 
 ```sh
-uv sync --locked
+uv sync --locked --group dev
 npm --prefix frontend ci
 docker compose up -d db
-uv run alembic -c backend/alembic.ini upgrade head
+uv run --locked alembic -c backend/alembic.ini upgrade head
 docker compose up -d app
-uv run pytest backend/tests/unit/reports backend/tests/integration/reports backend/tests/contract/reports
+TEST_DATABASE_URL="$REPORTS_TEST_DATABASE_URL" uv run --locked pytest backend/tests/unit/reports backend/tests/integration/reports backend/tests/contract/reports
 npm --prefix frontend run test -- --run
 npm --prefix frontend run build
-npm --prefix frontend exec playwright test tests/e2e/reports.spec.ts
 ```
 
 Las pruebas usan base independiente, cuentas sintéticas y fuentes conocidas. `scripts/seed_report_reference.py` debe rechazar configuración de producción; prepara los casos diarios, mensuales y anuales para revisión manual sin un servicio remoto. No se exige activar el perfil SMTP para generar PDF ni emitir el evento durable.
+
+Para navegador, preparar primero la fixture siguiente y arrancar el monolito contra
+esa base test, con configuración006 explícita y `WEB_DIRECTORY=frontend/out`:
+
+```sh
+REPORTS_E2E=1 IDENTITY_E2E_PASSWORD_FILE="$REPORTS_PASSWORD_FILE" E2E_BASE_URL="$REPORTS_BROWSER_ORIGIN" npm --prefix frontend run test:e2e -- tests/e2e/reports.spec.ts --workers=1
+```
+
+La contraseña sintética se lee de archivo0600. Al repetir sobre el mismo Operador ya
+renovado, añadir `REPORTS_E2E_RENEWED=1`; no volver a sembrar la base. La factory privada
+`backend.tests.run_reports_browser:create_test_app` permite el caso de fallo interno
+mediante archivo0600 `REPORTS_E2E_FAILURE_FILE`, sin endpoint público. El monolito
+habitual no habilita esa inyección. Ejecutar Playwright sin estas variables no acredita
+el escenario005, pues su test es optativo. [Evidencia y límites](validation/acceptance.md).
 
 ## Fixtures005 reproducibles
 

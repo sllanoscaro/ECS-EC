@@ -2,8 +2,9 @@
 
 [Spec](spec.md), [plan](plan.md), [perfil](contracts/pas600-profile.md),
 [recepción](contracts/sftp-reception.md), [CLI](contracts/cli.md).
-Diseño previo a implementación. Decimales exactos, UTC y zona IANA explícita;
-intervalos `[start,end)`. Código y rutas siguientes son previstos.
+Modelo implementado en el simulador independiente y `backend/src/ecs_ec/acquisition/`;
+[evidencia y pendientes](validation/acceptance.md). Decimales exactos, UTC y zona IANA
+explícita; intervalos `[start,end)`. El modelo no certifica conformidad documental19.
 
 ## Separación de almacenes
 

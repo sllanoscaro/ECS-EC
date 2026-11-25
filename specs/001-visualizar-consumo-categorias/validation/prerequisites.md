@@ -1,6 +1,6 @@
 # Prerrequisitos observados de spec-001
 
-## Disponibilidad vigente — revisión2026-11-23
+## Disponibilidad vigente — revisión2026-11-25
 
 Revisión estática del checkout. No modifica tareas ni acredita aceptación ampliada.
 
@@ -9,15 +9,16 @@ Revisión estática del checkout. No modifica tareas ni acredita aceptación amp
 | Plataforma009 e identidad006 | `backend/src/ecs_ec/core/`, `audit/`, `identity/` y composición en `main.py` disponibles. |
 | Recepción/almacenamiento002 | `consumption/reception.py`, `store.py` y `pending_totals.py` disponibles e integrados. Diagnósticos cruzados, límites y retirada protegida tienen verificación ampliada001:T018/T038/T041/T044 completa según [aceptación001](acceptance.md). |
 | Consulta/UI001 | `consumption/{queries,schemas,router}.py`, `frontend/src/app/consumption/page.tsx` y `frontend/src/app/administracion/consumo/page.tsx` existen y se componen con006. No se necesita crear el layout general previsto originalmente. |
-| Emisión007 | `observability/{logging,tracing,lifecycle}.py` y perfil técnico disponibles. Instrumentación propia001:T054 verificada localmente; integración transversal001:T056 pendiente. No equivale a cobertura integral007. |
-| Recepción nativa003 / correo008 | Receptor003 en `backend/src/ecs_ec/acquisition/` y publicador en `tools/pas600_simulator/` disponibles con [evidencia local](../../003-simulador-pas600-sftp/validation/acceptance.md). `notifications/` sigue ausente;001:T056 debe ejecutar su integración con003/007 y correo de prueba008 real. |
+| Emisión007 | `observability/{logging,tracing,lifecycle}.py` y perfil técnico disponibles. Instrumentación propia001:T054 verificada localmente; integración transversal001:T056 verificada con consultas reales deLoki/Jaeger/Grafana. [Evidencia](local-integrations.md). No equivale a cobertura integral007. |
+| Recepción nativa003 / correo008 | Receptor003 en `backend/src/ecs_ec/acquisition/` y publicador en `tools/pas600_simulator/` disponibles con [evidencia local](../../003-simulador-pas600-sftp/validation/acceptance.md). `backend/src/ecs_ec/notifications/`, perfil Mailpit y sus [pruebas locales008](../../008-notificaciones-programables/validation/acceptance.md) también disponibles.001:T056 ejecutó y registró su propia integración con003/007/008 en [resultados](local-integrations.md). |
 | Personas / VPS |001:T059/T060 pendientes; no se sustituyen con pruebas automatizadas. |
 
 La evidencia de ampliación002 está en su [aceptación vigente](../../002-registro-retencion-consumo/validation/acceptance.md).
 El [incremento001](increment-2026-11-02.md) conserva el estado anterior a esa ampliación;
 sus bloqueos por diagnósticos/retirada no describen la disponibilidad actual. Los casos
 ampliados de001 ya constan en la [aceptación vigente](acceptance.md); esta revisión no
-reejecuta esas pruebas ni cierra la integración transversal.
+presenta como nuevas esas pruebas. La ejecución posterior de001:T056 y su regresión
+propia sí constan en [integración local](local-integrations.md).
 
 ## Registro histórico — 2026-11-02
 

@@ -1,6 +1,6 @@
 # Prerrequisitos observados de 002
 
-## Disponibilidad vigente — ejecución2026-11-24
+## Disponibilidad vigente — revisión2026-11-25
 
 Pruebas consumidoras003 y de instrumentación002 ejecutadas; [aceptación local](acceptance.md).
 
@@ -9,8 +9,8 @@ Pruebas consumidoras003 y de instrumentación002 ejecutadas; [aceptación local]
 | Plataforma009 / identidad006 | DB/UoW/reloj/auditoría, sesiones y permisos disponibles e integrados localmente. |
 | Fachada/UI001 y proveedores002 | `consumption/{queries,schemas,router,store}.py`, página `frontend/src/app/consumption/page.tsx` y componentes existentes. `Consumption.query_aggregates`, snapshots, `FunctionalSummary` y retirada protegida disponibles.002:T024/T025 y US2–US4 tienen evidencia local; no existe bloqueo por ausencia de fachada. |
 | Adquisición003 | Receptor/publicador003 disponibles;002:T064 completada el2026-11-23 con pruebas consumidoras de publicación, fragmentos, ID/entrada fijados, recuperación y nuevo intento tras too_early. [Evidencia002](source-integration.md). No cierra conformidad documental/aceptación integral003. |
-| Emisión007 | T065 completa: adaptador instalado, execution.completed/reception.completed y contexto durable en002, con007 real. [Evidencia](telemetry.md). Cobertura integral007 pendiente de su paso4. |
-| Consumidores004/005/008 | Costos004 implementado localmente con `Costs.read_snapshot`;005 tiene productor/API/worker/UI y generación/descarga reales;008 sigue sin módulo. Disponibilidad de productores002 no acredita aceptación conjunta de consumidores. |
+| Emisión007 | T065 completa: adaptador instalado, execution.completed/reception.completed y contexto durable en002, con007 real. [Evidencia](telemetry.md). La cobertura de productores001–006 se verificó en el [paso4 de007](../../007-observabilidad-externa/validation/step4.md); TTL/GC y aceptación integral007 siguen pendientes. |
+| Consumidores004/005/008 | Costos004 implementado con `Costs.read_snapshot`;005 tiene generación/descarga reales;008 verifica US1–US4 y SMTP local usando proveedores002 reales. [Evidencia008](../../008-notificaciones-programables/validation/acceptance.md). No sustituye la integración transversal001:T056 ni la aceptación humana/externa. |
 | Personas / VPS |002:T068/SC-005 sigue pendiente de personas. La verificación externa no se acredita por pruebas locales. |
 
 Propiedad del emisor y sus ampliaciones: [contrato007](../../007-observabilidad-externa/contracts/integrations.md)

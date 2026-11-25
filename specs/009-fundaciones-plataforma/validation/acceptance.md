@@ -3,6 +3,12 @@
 2026-11-02. Implementación común completada y comprobada localmente, con T022 pendiente
 de VPS real por decisión explícita del usuario. Las checklists de otras specs no cambian.
 
+Revisión de seguimiento2026-11-25:22/23 tareas;009:T022 continúa pendiente. Los módulos
+001–008 están incorporados por sus propietarios. Las limitaciones y cifras de este
+documento describen la aceptación de la base009 del2 de noviembre, no ausencia actual
+de esos módulos. La evidencia conjunta posterior está en la
+[hoja de ruta](../../../docs/implementation-roadmap.md).
+
 | Requisito | Evidencia y resultado |
 | --- | --- |
 | FR-001 | Paquete `core`/`audit`, composición y scaffold Next en un monolito; manifiestos/lockfiles comunes. |

@@ -10,7 +10,7 @@ a [plataforma009](../009-fundaciones-plataforma/plan.md); esta funcionalidad con
 
 **Input**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md) y [constitución](../../.specify/memory/constitution.md).
 **Tests**: La spec solicita pruebas independientes y resultados de referencia; la constitución exige verificación automatizada de validaciones/cálculos y contraste de visualización contra fuentes. Escribir primero las pruebas del comportamiento nuevo y constatar su fallo esperado; no exigir fallos artificiales en capacidades ya implementadas.
-**Organization**: Cuatro historias de spec-005, precedidas por setup/fundaciones y seguidas de validación transversal. Estado del incremento de preparación en [validation/dependencies.md](validation/dependencies.md); las tareas restantes conservan sus marcadores pendientes.
+**Organization**: Cuatro historias de spec-005, precedidas por setup/fundaciones y seguidas de validación transversal. Estado vigente:60/63;005:T037/T058/T059 pendientes por impresión/personas y revisión física. [Aceptación técnica](validation/acceptance.md); [preparación histórica](validation/dependencies.md).
 
 **Cierre técnico de la reanudación,2026-11-24**:60/63 tareas con evidencia;
 T037 (impresión física), T058 (personas) y T059 (componente físico enlazado aT037)

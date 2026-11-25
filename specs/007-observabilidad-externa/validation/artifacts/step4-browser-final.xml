@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="143.854" timestamp="2026-11-24T18:41:46.028124-03:00"><testcase classname="backend.tests.integration.observability.test_metrics" name="test_closed_known_window_and_real_browser" time="143.581" /></testsuite></testsuites>

@@ -1,10 +1,11 @@
 # Estado de implementación003
 
-## Continuación2026-11-24
+## Estado revisado2026-11-25
 
 **70/76 completas; seis pendientes.** T072 completada en el paso3; [evidencia](telemetry.md).
 Solo quedan T003/T008/T009/T021, T070 y T076. La cobertura007 transversal corresponde al
-paso4 y no impide cerrar la instrumentación propia003. El corte siguiente es histórico.
+paso4 y ya tiene [evidencia](../../007-observabilidad-externa/validation/coverage-acquisition.md).
+La aceptación integral007 conserva TTL/GC/personas pendientes. El corte siguiente es histórico.
 
 2026-11-03: **69/76 tareas completas;7 pendientes**.41 tareas completadas en este
 incremento. Las marcas representan tareas verificadas, no aceptación integral ni esfuerzo.
@@ -24,8 +25,9 @@ Compose sigue desplegando una aplicación; listener opcional y secretos/bytes ex
 [Aceptación y comandos](acceptance.md), [US2](us2.md), [US3](us3.md), [US4](us4.md),
 [restauración](restore.md), [despliegue](deployment.md), [documentación](documentation.md).
 
-Quedan abiertos T003/T008/T009/T021 por revisión documental19 diferida, T070 por otra
-persona, T072 por cobertura/continuación técnica007 y T076 por cierre integral. Las pruebas
+En ese corte quedaron abiertos T003/T008/T009/T021 por revisión documental19 diferida,
+T070 por otra persona, T072 por cobertura/continuación técnica007 y T076 por cierre
+integral. T072 se completó después, como indica el estado vigente anterior. Las pruebas
 largas900s se ejecutaron en el corte descrito enUS2; no se repitieron tras los últimos
 refuerzos de constraints/journal. VPS y firmware real no se han verificado.
 

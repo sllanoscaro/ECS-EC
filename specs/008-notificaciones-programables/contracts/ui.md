@@ -82,3 +82,13 @@ Reutilizar los estados, contenido y tiempos de [quickstart.md](../quickstart.md)
 Validar teclado, etiquetas y mensajes comprensibles en formulario/historial. SC-008 exige
 9 de 10 tareas de configuración diaria 06:00 realizadas por administradores representativos,
 sin ayuda y en <=3 minutos, incluyendo identificar la próxima fecha.
+
+
+## Aclaración aprobada2026-11-24: primer corte vacío
+
+El usuario eligió conservar el primer horario cuando coincide exactamente con starts_at.
+Solo esa ventana inicial periódica admite inicio=fin y se identifica mediante
+initial_window_empty=true. El contenido informa ausencia de período observado:
+summary_items desconocidos, conteoNULL y motivo ventana_inicial_vacia; no inventa cero
+ni cobertura histórica. Las ventanas posteriores y las de consumo/evidencia siguen
+exigiendo inicio<fin. No cambia el contrato positivo de intervalos de otros propietarios.

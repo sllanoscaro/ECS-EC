@@ -1,6 +1,7 @@
 # Data Model: Persistencia funcional común
 
-Diseño lógico previo a migraciones. La [arquitectura](../../docs/architecture.md) define
+Modelo implementado por la migración `platform_009_initial`;
+[evidencia de auditoría y cobertura](validation/audit.md). La [arquitectura](../../docs/architecture.md) define
 convenciones de identidad/fecha/precisión. Esta spec posee tablas comunes; las specs de
 negocio no vuelven a declararlas en sus migraciones.
 

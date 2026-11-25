@@ -2,7 +2,8 @@
 
 ## Convenciones y relaciones
 
-Modelo lógico del módulo `reports`, previo a migraciones. Identidades, edificio, cuentas, energía y costos pertenecen a sus módulos; aquí se conservan referencias y la captura necesaria para reproducir el documento.
+Modelo implementado del módulo `reports`, con migración `reports_005_initial` y
+[evidencia de integridad](validation/acceptance.md). Identidades, edificio, cuentas, energía y costos pertenecen a sus módulos; aquí se conservan referencias y la captura necesaria para reproducir el documento.
 
 - Identidades: «UUID generado por la aplicación».
 - Instantes: «UTC con zona IANA del edificio identificada»; ventanas «`[inicio,fin)`, siempre inicio < fin».
